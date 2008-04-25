@@ -1,0 +1,20 @@
+* Behandlung von Maus Move / Click
+* Simulation mit verschiednenen Punktgrößen ~ Min abstand
+* Punkte der Simulation -> Groesse aendern
+* Eigabe des Wellenlängenbandes / Spannung
+* Zone beim Fit vorgeben
+* Bild invertieren (evtl. verschiedene Farbmodi)
+* Drucken
+* Aktuelle Einstellungen speichern
+* Symmetrisch equivalente Loesungen bei (search axis) zusammenfassen
+* Windows installation mit libqt ohne den Rest
+* Sys absents
+* CIF-Import der Kristallstruktur
+* Nomenklatur Axis, Axes, Zone, ...
+* Image Enhancer -> Definition der Transferkurve wie in Gimp
+* von SWIG nach SIP
+* mehrere "Kristalle", Orientierungen, etc.
+* Mehrere geladene Bilder
+* Stereographische Projektion
+* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
+* Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
