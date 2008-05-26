@@ -18,9 +18,17 @@ os.system(s)
 
 makefile = sipconfig.SIPModuleMakefile(config, build_file)
 
-makefile.extra_libs=['QtCore4', 'QtGui4', 'ToolBox']
-makefile.extra_lib_dirs=['..', '.',  'c:\\Programme\\Python25\\PyQt4\\bin',  '../CSource']
-makefile.extra_include_dirs=['..', '../CSource', 'C:\\Programme\\Qt\\4.4.0\\include',  'C:\\Programme\\Qt\\4.4.0\\include\\QtCore', 'C:\\Programme\\Qt\\4.4.0\\include\\QtGui']
-#makefile.extra_lflags=['ToolBox.a']
+windows=False
+
+if windows:
+    makefile.extra_libs=['QtCore4', 'QtGui4', 'ToolBox']
+    makefile.extra_lib_dirs=['..', '.',  'c:\\Programme\\Python25\\PyQt4\\bin',  '../CSource']
+    makefile.extra_include_dirs=['..', '../CSource', 'C:\\Programme\\Qt\\4.4.0\\include',  'C:\\Programme\\Qt\\4.4.0\\include\\QtCore', 'C:\\Programme\\Qt\\4.4.0\\include\\QtGui']
+else:
+    makefile.extra_libs=['QtCore', 'QtGui', 'ToolBox']
+    makefile.extra_lib_dirs=['..', '.',  '../CSource']
+    makefile.extra_include_dirs=['..', '../CSource', '/usr/include/qt4',  '/usr/include/qt4/QtCore',  '/usr/include/qt4/QtGui']
+
 
 makefile.generate()
+

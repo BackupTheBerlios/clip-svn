@@ -75,7 +75,7 @@ void ImageTransfer::deleteData() {
 void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned int format, unsigned char *inData, unsigned int len) {
     deleteData();
 #ifdef __DEBUG__
-    cout << "get Data, len=" << len << endl;
+    cout << "get Data, len=" << len << " width=" << width << " height=" << height << endl;
 #endif
     rawData = new unsigned char[len];
     memcpy(rawData, inData, len);
@@ -98,8 +98,8 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
             arr[i]/=maxVal;
         transferedLen=4*N;
     } else if (format==1) {
-        // 32bit RGB
-        transferedLen=len;
+        // 24bit RGB
+        transferedLen=4*len/3;
     }
     
     transferedData = new unsigned char[transferedLen];
@@ -173,7 +173,39 @@ void ImageTransfer::doFloatTransfer() {
 }
 
 void ImageTransfer::doRGBTransfer() {
+    vector< vector<unsigned int> > Cmaps(3);
+    unsigned int vPos=0;
+    unsigned int cPos[3];
+
+    for (unsigned int i=3; i--; ) {
+        cPos[i]=0;    
+        Cmaps[i].resize(256);
+    }
     
+    for (unsigned int i=256; i--; ) {
+        float val=(float)i/255.0;
+        while ((val>curves[0][vPos].upper) and (vPos+1<curves[0].size()))
+            vPos++;
+        
+        float nval=curves[0][vPos].calc(val);
+        
+        for (unsigned int j=3; j--; ) {
+            unsigned int s=curves[j+1].size();
+            while (cPos[j]+1<s and nval>curves[j+1][cPos[j]].upper)
+                cPos[j]++;
+            while (cPos[j]>0 and nval<curves[j+1][cPos[j]-1].upper)
+                cPos[j]--;
+            Cmaps[j][i]=(unsigned char)(255.0*curves[j+1][cPos[j]].calc(nval));
+        }
+    }
+        
+    unsigned int N=rawLen/3;
+    
+    for (unsigned int i=N; i--; ) {
+        for (unsigned int j=3; j--; ) {
+            transferedData[4*i+2-j]=Cmaps[j][rawData[3*i+j]];
+        }
+    }
 }
 
 void ImageTransfer::doTransfer() {
