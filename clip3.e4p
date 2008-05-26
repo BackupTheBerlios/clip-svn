@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.2.dtd">
 <!-- eric4 project file for project clip3 -->
-<!-- Saved: 2008-05-25, 20:28:08 -->
+<!-- Saved: 2008-05-26, 20:01:08 -->
 <!-- Copyright (C) 2008 Olaf J. Schumann, schumann@ph2.uni-koeln.de -->
 <Project version="4.2">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -15,9 +15,6 @@
       <Name>clip.py</Name>
     </Source>
     <Source>
-      <Name>Ui_ImgTransferCurveWidget.py</Name>
-    </Source>
-    <Source>
       <Name>ImgTransferCurve.py</Name>
     </Source>
     <Source>
@@ -26,12 +23,6 @@
     <Source>
       <Dir>Tools</Dir>
       <Name>BezierCurve.py</Name>
-    </Source>
-    <Source>
-      <Name>Ui_CrystalWidget.py</Name>
-    </Source>
-    <Source>
-      <Name>Ui_RotateCrystalWidget.py</Name>
     </Source>
     <Source>
       <Dir>ToolBox</Dir>
@@ -96,6 +87,15 @@
     <Source>
       <Dir>Tools</Dir>
       <Name>bestRotation.py</Name>
+    </Source>
+    <Source>
+      <Name>Ui_CrystalWidget.py</Name>
+    </Source>
+    <Source>
+      <Name>Ui_ImgTransferCurveWidget.py</Name>
+    </Source>
+    <Source>
+      <Name>Ui_RotateCrystalWidget.py</Name>
     </Source>
   </Sources>
   <Forms>
@@ -222,10 +222,10 @@
     </VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
-    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ui" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
-    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
     <FiletypeAssociation pattern="*.py" type="SOURCES" />
+    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

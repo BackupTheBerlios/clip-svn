@@ -24,30 +24,28 @@ class LaueImage(QtGui.QWidget):
                  [(0, 0),  (1, 1)]]
         
         
-        print 'create ImageTransfer'
         self.transfer=ImageTransfer()
-        print 'done'
         self.resize(self.size())
         self.setTransferCurves(initParams)
         
     def resizeEvent(self,  e):
-        print 'resizeEvent'
         #QtGui.QWidget.resizeEvent(self,  e)
         self.resize(e.size())
     
     def resize(self,  size):
-        print 'resize to %ix%i = %i'%(size.width(), size.height(), size.width()*size.height())
         self.scaledImg=self.fullImg.resize((size.width(),  size.height()))
-        print 'set'
-        self.transfer.setData(size.width(),  size.height(), 0, self.scaledImg.tostring())
-        print 'OK'
+        mode=None
+        if self.scaledImg.mode=='RGB':
+            mode=1
+        elif self.scaledImg.mode=='F':
+            mode=0
+        if mode!=None:
+            self.transfer.setData(size.width(),  size.height(), mode, self.scaledImg.tostring())
     
     
     def paintEvent(self, e):
         p=QtGui.QPainter(self)
-        print 'about to draw'
         p.drawImage(0, 0, self.transfer.qImg())
-        print 'drawn'
         
     def setTransferCurves(self, newParams):
         curvesChanged=False
@@ -62,9 +60,7 @@ class LaueImage(QtGui.QWidget):
                 c=BezierCurve(*zip(*self.VRGB_BezierParams[i]))
                 p1=c.x[1:]
                 p2=reduce(lambda x, y:x+y, c.D)
-                print 'before setTransferCurve',  p1, p2
                 self.transfer.setTransferCurve(i, p1,  p2)
-                print 'OK'
             self.update()
 
 
