@@ -91,17 +91,17 @@ class Mat3D {
     Py_END_ALLOW_THREADS
 %End
 
-  double __getitem__(int idx);
+  double __getitem__(int i, int j);
 %MethodCode
     Py_BEGIN_ALLOW_THREADS
-    sipRes = (*sipCpp)[a0][a0];
+    sipRes = *((*sipCpp).at(a0, a1));
     Py_END_ALLOW_THREADS
 %End
 
   SIP_PYOBJECT __repr__();
 %MethodCode
-  char c[128];
-  sprintf (c, "[[%f %f %f][%f %f %f][%f %f %f]]", (*sipCpp)[0][0], (*sipCpp)[0][1], (*sipCpp)[0][2], (*sipCpp)[1][0], (*sipCpp)[1][1], (*sipCpp)[1][2], (*sipCpp)[2][0], (*sipCpp)[2][1], (*sipCpp)[2][2]);
+  char c[256];
+  sprintf (c, "[[%f %f %f]\n[%f %f %f]\n[%f %f %f]]", (*sipCpp)[0][0], (*sipCpp)[0][1], (*sipCpp)[0][2], (*sipCpp)[1][0], (*sipCpp)[1][1], (*sipCpp)[1][2], (*sipCpp)[2][0], (*sipCpp)[2][1], (*sipCpp)[2][2]);
   sipRes=PyString_FromString(c);
 %End
 

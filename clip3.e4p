@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.2.dtd">
 <!-- eric4 project file for project clip3 -->
-<!-- Saved: 2008-05-26, 20:01:08 -->
+<!-- Saved: 2008-06-02, 19:31:30 -->
 <!-- Copyright (C) 2008 Olaf J. Schumann, schumann@ph2.uni-koeln.de -->
 <Project version="4.2">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -96,6 +96,13 @@
     </Source>
     <Source>
       <Name>Ui_RotateCrystalWidget.py</Name>
+    </Source>
+    <Source>
+      <Dir>Tools</Dir>
+      <Name>SolutionFinder.py</Name>
+    </Source>
+    <Source>
+      <Name>Crystal.py</Name>
     </Source>
   </Sources>
   <Forms>
@@ -222,10 +229,10 @@
     </VcsOtherData>
   </Vcs>
   <FiletypeAssociations>
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

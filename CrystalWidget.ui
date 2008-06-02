@@ -1,12 +1,12 @@
 <ui version="4.0" >
- <class>CrystalWidgetForm</class>
- <widget class="QWidget" name="CrystalWidgetForm" >
+ <class>CrystalWidget</class>
+ <widget class="QWidget" name="CrystalWidget" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>187</width>
-    <height>314</height>
+    <width>253</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="sizePolicy" >
@@ -72,6 +72,9 @@
          <property name="text" >
           <string>A</string>
          </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="buddy" >
           <cstring>latticeA</cstring>
          </property>
@@ -90,6 +93,9 @@
          </property>
          <property name="text" >
           <string>Alpha</string>
+         </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="buddy" >
           <cstring>latticeAlpha</cstring>
@@ -114,6 +120,9 @@
          <property name="text" >
           <string>B</string>
          </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="buddy" >
           <cstring>latticeB</cstring>
          </property>
@@ -132,6 +141,9 @@
          </property>
          <property name="text" >
           <string>Beta</string>
+         </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="buddy" >
           <cstring>latticeBeta</cstring>
@@ -156,6 +168,9 @@
          <property name="text" >
           <string>C</string>
          </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="buddy" >
           <cstring>latticeC</cstring>
          </property>
@@ -174,6 +189,9 @@
          </property>
          <property name="text" >
           <string>Gamma</string>
+         </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="buddy" >
           <cstring>latticeGamma</cstring>
@@ -266,6 +284,9 @@
          <property name="text" >
           <string>Omega</string>
          </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="buddy" >
           <cstring>rotationOmega</cstring>
          </property>
@@ -288,6 +309,9 @@
          </property>
          <property name="text" >
           <string>Chi</string>
+         </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
          </property>
          <property name="buddy" >
           <cstring>rotationChi</cstring>
@@ -312,6 +336,9 @@
          <property name="text" >
           <string>Phi</string>
          </property>
+         <property name="alignment" >
+          <set>Qt::AlignCenter</set>
+         </property>
          <property name="buddy" >
           <cstring>rotationPhi</cstring>
          </property>
@@ -329,15 +356,15 @@
  <tabstops>
   <tabstop>SpaceGroup</tabstop>
   <tabstop>latticeA</tabstop>
+  <tabstop>latticeB</tabstop>
+  <tabstop>latticeC</tabstop>
+  <tabstop>latticeAlpha</tabstop>
   <tabstop>latticeBeta</tabstop>
   <tabstop>latticeGamma</tabstop>
   <tabstop>rotationOmega</tabstop>
   <tabstop>rotationChi</tabstop>
   <tabstop>rotationPhi</tabstop>
-  <tabstop>latticeAlpha</tabstop>
-  <tabstop>latticeC</tabstop>
   <tabstop>orientationMatrix</tabstop>
-  <tabstop>latticeB</tabstop>
  </tabstops>
  <resources/>
  <connections/>

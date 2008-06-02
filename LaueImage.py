@@ -27,25 +27,37 @@ class LaueImage(QtGui.QWidget):
         self.transfer=ImageTransfer()
         self.resize(self.size())
         self.setTransferCurves(initParams)
+        sp=self.sizePolicy()
+        #sp.setHeightForWidth(True)
+        sp.setHorizontalPolicy(QtGui.QSizePolicy.Expanding)
+        sp.setVerticalPolicy(QtGui.QSizePolicy.Expanding)
+        self.setSizePolicy(sp)
         
     def resizeEvent(self,  e):
         #QtGui.QWidget.resizeEvent(self,  e)
         self.resize(e.size())
-    
-    def resize(self,  size):
-        self.scaledImg=self.fullImg.resize((size.width(),  size.height()))
+            
+    def resize(self,  size):        
+        s=QtCore.QSize(self.fullImg.width,  self.fullImg.height)
+        s.scale(size,  QtCore.Qt.KeepAspectRatio)
+        print 'Size',self.width(),  self.height() ,  s.width(),  s.height() 
+
+        self.scaledImg=self.fullImg.resize((s.width(),  s.height()))
         mode=None
         if self.scaledImg.mode=='RGB':
             mode=1
         elif self.scaledImg.mode=='F':
             mode=0
         if mode!=None:
-            self.transfer.setData(size.width(),  size.height(), mode, self.scaledImg.tostring())
+            self.transfer.setData(s.width(),  s.height(), mode, self.scaledImg.tostring())
     
     
     def paintEvent(self, e):
         p=QtGui.QPainter(self)
-        p.drawImage(0, 0, self.transfer.qImg())
+        s=self.transfer.qImg().size()
+        x=(self.width()-s.width())/2
+        y=(self.height()-s.height())/2
+        p.drawImage(x, y, self.transfer.qImg())
         
     def setTransferCurves(self, newParams):
         curvesChanged=False
