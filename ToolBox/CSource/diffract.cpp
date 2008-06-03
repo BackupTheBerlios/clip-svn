@@ -19,123 +19,75 @@ int ggt(int a, int b) {
 
 
 
-Diffract::Diffract(): boxSize(2, 1.0), cell(6, 0.0), M_real(), M_rezi(), rot(), M_proj(), V_proj(), reflexe(), scatteringRef(), projectedRef(), projectedCoords(), reflexCond() {
-  //sg = NULL;
-  projectionType = Plane;
+Diffract::Diffract(): cell(6, 0.0), Mreal(), Mrezi(), rot(), reflections(), scatteredIdx(), reflexCond() {
 }
 
 Diffract::~Diffract() {
 }
 
-unsigned int Diffract::reflexCount() {
-  if (reflexe.size()==0)
-    generateReflex();
-  return reflexe.size();
+unsigned int Diffract::reflectionsCount() {
+  if (reflections.size()==0)
+    generateReflections();
+  return reflections.size();
 }
 
 Reflex Diffract::getReflex(unsigned int i) {
   if (i<reflexCount()) {
-    return reflexe[i];
+    return reflections[i];
   } else {
     return Reflex();
   }
 }
 
 unsigned int Diffract::scatteringReflexCount() {
-  if (scatteringRef.size()==0)
+  if (scatteredIdx.size()==0)
     generateScatteredRayDirections();
-  return scatteringRef.size();
+  return scatteredIdx.size();
 }
 
-Reflex Diffract::getScatteringReflex(unsigned int i) {
-  if (i<scatteringReflexCount()) {
-    return reflexe[scatteringRef[i]];
+Reflex Diffract::getScatteredReflex(unsigned int i) {
+  if (i<scatteredReflexCount()) {
+    return reflections[scatteredIdx[i]];
   } else {
     return Reflex();
   }
 }
 
-unsigned int Diffract::projectedReflexCount() {
-  if (projectedRef.size()==0)
-    calcProjection();
-  return projectedRef.size();
-}
-
-Reflex Diffract::getProjectedReflex(unsigned int i) {
-  if (i<projectedReflexCount()) {
-    return reflexe[projectedRef[i]];
-  } else {
-    return Reflex();
-  }
-}
-
-vector<double> Diffract::getProjectedCoord(unsigned int i) {
-  unsigned int s=projectedCoords.size();
-  if (s==0) {
-    calcProjection();
-    s=projectedCoords.size();
-  }
-  if (i<s) 
-    return projectedCoords[i];
-  vector<double> r(2,0.0);
-  return r;
-}
-
-vector<vector<double> > Diffract::getCoord() {
-  if (projectedCoords.size()==0)
-    calcProjection();
-  return projectedCoords;
-}
-
-bool Diffract::setSym(string s, vector<double> uc) {
+bool Diffract::setCell(vector<double> uc) {
   if (uc.size()!=6) return false;
   cell = uc;
-  try {
-    	/*
-	if (sg)
-      	delete sg;
-    	sg = new cctbx::sgtbx::space_group(cctbx::sgtbx::space_group_symbols(s));
-	*/	
-  }
-  catch (...) {
-    cout << "exception" << endl;
-    //delete sg;
-    //sg=NULL;
-    return false;
-  }
 
-
-  // Cosini und Sini der Winkel zwischen den Gittervektoren
+  // Cosini und Sini of angles between lattice vectors
   double Ca=cos(M_PI/180.0*cell[3]);
   double Cb=cos(M_PI/180.0*cell[4]);
   double Cc=cos(M_PI/180.0*cell[5]);
   double Sc=sin(M_PI/180.0*cell[5]);
 
-  // Volumen der Einheitszelle im realen und reziproken Raum
+  // Volume of real and reciprocal space unit cell
   double Vreal=cell[0]*cell[1]*cell[2]*sqrt(1.0+2.0*Ca*Cb*Cc-Ca*Ca-Cb*Cb-Cc*Cc);
   double Vrezi=1.0/Vreal;
    
-  // Realraum Gittervektoren, a zeigt in x-Richtung, b liegt in der xy-Ebene, c ist dann festgelegt.
-  // a,b,c sind die Kristallachse, x,y,z bezeichnen ein orthonormalsystem
+  // Coordinate system: 
+  //      a points towards x
+  //      b lies in xy plane
+  //      c completes the right handed system
   Vec3D a_real(cell[0], 0, 0);
   Vec3D b_real(Cc*cell[1], Sc*cell[1], 0);
   Vec3D c_real(Cb, (Ca-Cb*Cc)/Sc, sqrt(1.0-Cb*Cb-(Ca-Cb*Cc)/Sc*(Ca-Cb*Cc)/Sc));
   c_real *= cell[2];
   
-  M_real=Mat3D(a_real, b_real, c_real);
+  Mreal=Mat3D(a_real, b_real, c_real);
 
-  // Reziproke Gittervektoren als Kreuzprodukte. Nach der Wahl der Realraum Gittervektoren
-  // liegt c* entlang der z-Achse, b* in der yz-Ebene und a* ist durch diese Wahl wieder festgelegt. insbesondere ist 
-  // c* = (0,0,1/c) !!!
+  // This gives for the reziprocal space unit vectors:
+  //      c* is along the z direction
+  //      b* lies in the yz plane
+  //      a* again completes the right handed system
 
   
-  M_rezi = Mat3D(b_real%c_real, c_real%a_real, a_real%b_real);
-  M_rezi*=Vrezi;
+  Mrezi = Mreal.inverse()
 
-  reflexe.clear();
+  reflections.clear();
   scatteringRef.clear();
-  projectedRef.clear();
-  projectedCoords.clear();
   return true;
 }
 
@@ -144,26 +96,17 @@ bool Diffract::setReflexConditions(vector<ReflexCondition> rc) {
   return true;
 }
     
-void Diffract::setProjection(ProjectionType type, Mat3D localCoord, Vec3D v) {
-  projectionType = type;
-  M_proj = localCoord;
-  V_proj = v;
-  projectedRef.clear();
-  projectedCoords.clear();
-}
 
 void Diffract::addRotation(Vec3D axis, double angle) {
   rot = Mat3D(axis, angle)*rot;
+  reflections.clear();
   scatteringRef.clear();
-  projectedRef.clear();
-  projectedCoords.clear();
 }
 
 void Diffract::setRotation(Mat3D M) {
   rot = M;
-  scatteringRef.clear();
-  projectedRef.clear();
-  projectedCoords.clear();
+  reflections.clear();
+  scatteredIdx.clear();
 }
 
 void Diffract::generateReflex() {
@@ -258,131 +201,6 @@ void Diffract::generateScatteredRayDirections() {
       }
     }
   }
-}
-
-// Rechnet aus den Richtungen der gestreuten Strahlen die
-// Position auf dem Detector
-void Diffract::calcProjection() {
-  projectedRef.clear();
-  projectedCoords.clear();
-  Vec3D ex = M_proj[0];
-  Vec3D ey = M_proj[1];
-  Vec3D n = M_proj[2];
-  if (projectionType==Plane) {
-
-    // M_proj ist lokales orthogonales Koordinatensystem
-    // 0 und 1 liegen in der Detektorebene, 2 ist die Detektornormale
-    // 
-    // V_proj.x und y sind die Verschiebungen entlang der lokalen Koordinatenachsen
-    // V_proj.z ist der minimale Abstand der Ebene vom Ursprung
-    
-      
-    for (unsigned int i=0; i<scatteringReflexCount(); i++) {
-      unsigned int j = scatteringRef[i];
-      Vec3D r=reflexe[j].scatteredRay;
-      //r.normalize();
-      double c = r*n;
-      if (c>0) {
-	//r=(r/c-n)*V_proj.z();
-	r=r*V_proj.z()/c;
-	double x = r*ex-V_proj.x();
-	double y = r*ey-V_proj.y();
-	
-	reflexe[j].projX = x;
-	reflexe[j].projY = y;
-	projectedRef.push_back(j);
-	vector<double> coord(2,0.0);
-	coord[0] = x;
-	coord[1] = y;
-	projectedCoords.push_back(coord);
-      }
-    }
-  } else if (projectionType==Cylinder) {
-    // M_proj ist lokales orthogonales Koordinatensystem
-    // 2 ist die Zylinderachse, 0 und 1 sind senkrecht dazu
-    // 
-    // V_proj.x und y sind die Verschiebungen der Zylinderachse entlang der lokalen Koordinatenachsen
-    // V_proj.z ist der Zylinderradius
-
-    Vec3D offset = ex*V_proj.x()+ey*V_proj.y();
-
-    for (unsigned int i=0; i<scatteringRef.size(); i++) {
-      unsigned int j = scatteringRef[i];
-      Vec3D v=reflexe[j].scatteredRay;
-      Vec3D v_perp=v-n*(n*v);
-      double n2vp=v_perp.norm_sq();
-      
-      if (n2vp>0.0) {
-	
-	double lambda = (v_perp*offset)/n2vp;
-	lambda = sqrt(lambda*lambda+(V_proj.z()*V_proj.z()-offset.norm_sq())/n2vp)-lambda;
-	v=v*lambda+offset;
-	double x = 2.0*V_proj.z()*atan2(v*ex, v*ey);
-	double y = v*n;
-	reflexe[j].projX = x;
-	reflexe[j].projY = y;
-	projectedRef.push_back(j);
-	vector<double> coord(2,0.0);
-	coord[0] = x;
-	coord[1] = y;
-	projectedCoords.push_back(coord);
-      }
-    }
-  }
-}
-
-vector<double> Diffract::rSpace2Det(Vec3D v) {
-  vector<double> coord(0);
-  if (v.z()>0) {
-    v = Vec3D(2.0*v.x()*v.z(), 2.0*v.y()*v.z(), v.z()*v.z()-v.x()*v.x()-v.y()*v.y());
-    Vec3D ex = M_proj[0];
-    Vec3D ey = M_proj[1];
-    Vec3D n = M_proj[2];
-    if (projectionType==Plane) {
-      double c = v*n;
-      if (c>0) {
-	v=v*V_proj.z()/c;
-	coord.push_back(v*ex-V_proj.x());
-	coord.push_back(v*ey-V_proj.y());
-      }
-    } else if (projectionType==Cylinder) {
-      Vec3D v_perp=v-n*(n*v);
-      double n2vp=v_perp.norm_sq();
-      Vec3D offset = ex*v.x()+ey*v.y();
-
-      if (n2vp>0.0) {
-	
-	double lambda = (v_perp*offset)/n2vp;
-	lambda = sqrt(lambda*lambda+(v.z()*v.z()-offset.norm_sq())/n2vp)-lambda;
-	v=v*lambda+offset;
-	
-	coord.push_back(2.0*V_proj.z()*atan2(v*ex, v*ey));
-	coord.push_back(v*n);
-      }
-    }
-  }
-  return coord;
-}
-
-Vec3D Diffract::det2RSpace(vector<double> p) {
-  Vec3D r(0.0,0.0,0.0);
-  Vec3D ex = M_proj[0];
-  Vec3D ey = M_proj[1];
-  Vec3D n = M_proj[2];
-  Vec3D tmp;
-  if (projectionType==Plane) {
-    tmp=ex*(p[0]+V_proj.x())+ey*(p[1]+V_proj.y())+n*V_proj.z();
-  }
-  //    z'=z^2-x^2-y^2
-  // norm'=z^2+x^2+y^2
-  // z'+norm' = 2z^2
-  double z = tmp.z()+tmp.norm();
-  if (z>0.0) {
-    z=sqrt(0.5*z);
-    r=Vec3D(0.5*tmp.x()/z, 0.5*tmp.y()/z, z);
-    r.normalize();
-  }
-  return r;
 }
 
 
