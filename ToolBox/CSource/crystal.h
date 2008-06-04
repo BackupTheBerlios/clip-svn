@@ -14,7 +14,6 @@ class Crystal: public QObject {
   Crystal(const Crystal &);
   ~Crystal();
 
-  bool setSG(string name);
   bool setCell(double a, double b, double c, double alpha, double beta, double gammaa);
 
   void generateReflections();
@@ -26,8 +25,8 @@ class Crystal: public QObject {
   Reflection getReflection(unsigned int i);
   std::vector<Reflection>& getReflectionList();
 
-  Vec3D reduced2Real(const Vec3D&);
-  Vec3D reduced2Reziprocal(const Vec3D&);
+  Vec3D uvw2Real(const Vec3D&);
+  Vec3D hkl2Reziprocal(const Vec3D&);
 
   Mat3D getRealOrientationMatrix();
   Mat3D getReziprocalOrientationMatrix();
@@ -53,5 +52,7 @@ class Crystal: public QObject {
   double a,b,c,alpha,beta,gamma;
   double upperLambda;
   double lowerLambda;
+  double invUpperLambda;
+  double invLowerLambda;
 
 };

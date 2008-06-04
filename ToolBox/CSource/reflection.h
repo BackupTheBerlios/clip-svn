@@ -1,31 +1,35 @@
+#ifndef __REFLECTION_H__
+#define __REFLECTION_H__
+
+#include <vector>
+#include <mat3D.h>
+#include <vec3D.h>
 
 class  Reflection {
- public:
+    public:
 
-  // Index
-  int h;
-  int k;
-  int l;
+        // Index
+        int h;
+        int k;
+        int l;
   
-  // lowest order
-  int lowestDiffOrder;
+        // lowest order (if ==0, this reflection is not in scattering position)
+        int lowestDiffOrder;
 
-  // direct space d-Value
-  double d;
+        // direct space d-Value
+        double d;
 
-  // All contributin orders
-  vector<int> orders;
-  // Real and imaginary part of Structure factor
-  vector<double> Fr;
-  vector<double> Fi;
+        // All contributing orders
+        std::vector<int> orders;
+        // Real and imaginary part of Structure factor
+        //vector<double> Fr;
+        //vector<double> Fi;
   
-  // reziprocal direction (with rotations)
-  Vec3D normal;
+        // reziprocal direction (with rotations)
+        Vec3D normal;
 
-  // Direction of scattered ray
-  Vec3D scatteredRay;
-  
-  double projX;
-  double projY;
-  
+        // Direction of scattered ray
+        Vec3D scatteredRay;
 };
+
+#endif
