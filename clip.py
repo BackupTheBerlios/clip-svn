@@ -10,6 +10,7 @@ from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
 import Crystal
 import ImgTransferCurve
+from ToolBox import ObjectStore
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -22,7 +23,7 @@ class clip(QtGui.QMainWindow):
         self.MdiArea=QtGui.QMdiArea(self)
         self.setCentralWidget(self.MdiArea)
         self.windowMapper = QtCore.QSignalMapper()
-      
+        self.Crystals=ObjectStore()
         self.connect(self.windowMapper, QtCore.SIGNAL('mapped(QWidget *)'), self.MdiArea.setActiveSubWindow)
 
         self.transferCurveMapper=QtCore.QSignalMapper()
@@ -174,11 +175,13 @@ class clip(QtGui.QMainWindow):
         self.statusBar().showMessage("Loading aborted", 2000)
     
     def slotNewCrystal(self):
+        
         wid = Crystal.Crystal(self)
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()
-
+        self.Crystals.addObject(wid)
+        print self.Crystals.size(),  'Crystals are in store'
 
 
 def main(args):

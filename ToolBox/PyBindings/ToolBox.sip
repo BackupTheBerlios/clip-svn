@@ -8,3 +8,4 @@
 %Include ToolBoxImageTools.sip
 %Include ToolBoxCrystal.sip
 %Include ToolBoxReflection.sip
+%Include ToolBoxObjectStore.sip

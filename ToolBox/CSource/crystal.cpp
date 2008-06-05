@@ -22,8 +22,15 @@ Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot() {
 Crystal::Crystal(const Crystal& c) {};
 
 Crystal::~Crystal() {};
-  
-bool Crystal::setCell(double _a, double _b, double _c, double _alpha, double _beta, double _gamma) {
+ 
+void Crystal::setCell(double _a, double _b, double _c, double _alpha, double _beta, double _gamma) {
+    cout << "Set Cell to: ";
+    cout << _a << " ";
+    cout << _b << " ";
+    cout << _c << " ";
+    cout << _alpha << " ";
+    cout << _beta << " ";
+    cout << _gamma << endl;
     // discard minor changes (may affect fit)
     if (fabs(_a-a)>1e-8 || fabs(_b-b)>1e-8 || fabs(_c-c)>1e-8 || fabs(_alpha-alpha)>1e-8 ||fabs(_beta-beta)>1e-8 || fabs(_gamma-gamma)>1e-8) {
         a=_a;
@@ -59,20 +66,31 @@ bool Crystal::setCell(double _a, double _b, double _c, double _alpha, double _be
         astar=MReziprocal[0];
         bstar=MReziprocal[1];
         cstar=MReziprocal[2];
-
+        emit cellChanged();
+        emit reflectionsUpdate();
     }
-    return true;
 }
 
 void Crystal::addRotation(const Vec3D& axis, double angle) {
     MRot *= Mat3D(axis, angle);
     MRot.orthogonalize();
     reflections.clear();
+    emit orientationChanged();
+    emit reflectionsUpdate();
 }
 
 void Crystal::setRotation(const Mat3D& M) {
     MRot = M;
     reflections.clear();
+    emit orientationChanged();
+    emit reflectionsUpdate();
+}
+
+void Crystal::setWavelengthBoundarys(double lower, double upper) {
+    lowerLambda=lower;
+    upperLambda=upper;
+    reflections.clear();
+    emit reflectionsUpdate();
 }
 
 void Crystal::generateReflections() {
@@ -116,8 +134,9 @@ void Crystal::generateReflections() {
                         v*=d;
                         v=MRot*v;
                         r.normal = v;
-                        // sin(theta) = v*e_z = v.z
-                        double scatterLambda = 2.0*r.d*v.z();
+                        // sin(theta) = v*e_x = v.x
+                        // x direction points toward source, z points upwards
+                        double scatterLambda = 2.0*r.d*v.x();
                         // Loop over higher orders
                         
                         int NMax = int(d/lowerLambda+0.9);
@@ -129,7 +148,7 @@ void Crystal::generateReflections() {
                         }
                         if (!r.orders.empty()) {
                             if (r.lowestDiffOrder!=0) 
-                                r.scatteredRay = Vec3D(2.0*v.x()*v.z(), 2.0*v.y()*v.z(), v.z()*v.z()-v.x()*v.x()-v.y()*v.y());
+                                r.scatteredRay = Vec3D(v.x()*v.x()-v.y()*v.y()-v.z()*v.z(), 2.0*v.x()*v.y(), 2.0*v.x()*v.z());
                             reflections.push_back(r);
                         }
                     }
@@ -166,11 +185,20 @@ Vec3D Crystal::uvw2Real(const Vec3D& v) {
     return MRot*MReal*v;
 }
 
+Vec3D Crystal::uvw2Real(const int u, const int v, const int w) {
+    return uvw2Real(Vec3D(u,v,w));
+}
+
 
 Vec3D Crystal::hkl2Reziprocal(const Vec3D& v) {
     return MRot*MReziprocal*v;
 }
-  
+
+Vec3D Crystal::hkl2Reziprocal(const int h, const int k, const int l) {
+    return hkl2Reziprocal(Vec3D(h,k,l));
+}
+
+
 Mat3D Crystal::getRealOrientationMatrix() {
     return MReal;
 }
@@ -181,9 +209,4 @@ Mat3D Crystal::getReziprocalOrientationMatrix() {
 
 Mat3D Crystal::getRotationMatrix() {
     return MRot;
-}
-
-bool Crystal::setWavelengthBoundarys(double lower, double upper) {
-    lowerLambda=lower;
-    upperLambda=upper;
 }

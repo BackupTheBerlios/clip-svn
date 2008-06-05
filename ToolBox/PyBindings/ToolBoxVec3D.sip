@@ -73,19 +73,39 @@ public:
   
   double __getitem__(int i);
 %MethodCode
+    if (a0<3) {
     Py_BEGIN_ALLOW_THREADS
-    sipRes = (*sipCpp)[a0];
+        sipRes = (*sipCpp)[a0];
     Py_END_ALLOW_THREADS
+    } else {
+        PyErr_SetString(PyExc_IndexError, "3d vectors only have 3 items");
+        sipIsErr=1;
+        sipRes=0.0;
+    }
 %End
  
   void __setitem__(int i, double d);
 %MethodCode
+    if (a0<3) {
     Py_BEGIN_ALLOW_THREADS
-    (*sipCpp)[a0]=a1;
+        (*sipCpp)[a0]=a1;
     Py_END_ALLOW_THREADS
+    } else {
+        // Raise IndexError
+        PyErr_SetString(PyExc_IndexError, "3d vectors only have 3 items");
+        sipIsErr=1;
+    }
 %End
   //bool __eq__(Vec3D &v);
-    
+
+  int __len__();
+%MethodCode
+    Py_BEGIN_ALLOW_THREADS
+    sipRes=3;
+    Py_END_ALLOW_THREADS
+%End
+
+  
   double x();
   double y();
   double z();
