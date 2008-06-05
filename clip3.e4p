@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.2.dtd">
 <!-- eric4 project file for project clip3 -->
-<!-- Saved: 2008-06-02, 19:31:30 -->
+<!-- Saved: 2008-06-05, 20:27:48 -->
 <!-- Copyright (C) 2008 Olaf J. Schumann, schumann@ph2.uni-koeln.de -->
 <Project version="4.2">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -98,11 +98,24 @@
       <Name>Ui_RotateCrystalWidget.py</Name>
     </Source>
     <Source>
-      <Dir>Tools</Dir>
-      <Name>SolutionFinder.py</Name>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>reflection.h</Name>
     </Source>
     <Source>
-      <Name>Crystal.py</Name>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>crystal.cpp</Name>
+    </Source>
+    <Source>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>crystal.h</Name>
+    </Source>
+    <Source>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>reflection.cpp</Name>
     </Source>
   </Sources>
   <Forms>
@@ -230,9 +243,9 @@
   </Vcs>
   <FiletypeAssociations>
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ui" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
   </FiletypeAssociations>
 </Project>
