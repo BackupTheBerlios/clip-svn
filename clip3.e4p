@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.2.dtd">
 <!-- eric4 project file for project clip3 -->
-<!-- Saved: 2008-06-05, 20:27:48 -->
+<!-- Saved: 2008-06-05, 22:50:29 -->
 <!-- Copyright (C) 2008 Olaf J. Schumann, schumann@ph2.uni-koeln.de -->
 <Project version="4.2">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -116,6 +116,21 @@
       <Dir>ToolBox</Dir>
       <Dir>CSource</Dir>
       <Name>reflection.cpp</Name>
+    </Source>
+    <Source>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>projector.h</Name>
+    </Source>
+    <Source>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>ObjectStore.cpp</Name>
+    </Source>
+    <Source>
+      <Dir>ToolBox</Dir>
+      <Dir>CSource</Dir>
+      <Name>ObjectStore.h</Name>
     </Source>
   </Sources>
   <Forms>
@@ -243,9 +258,9 @@
   </Vcs>
   <FiletypeAssociations>
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
     <FiletypeAssociation pattern="*.py" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

@@ -2,10 +2,11 @@
 #define __crystal_h__
 
 #include <QtCore/QObject>
-#include "vec3D.h"
-#include "mat3D.h"
-#include "reflection.h"
-
+#include <vec3D.h>
+#include <mat3D.h>
+#include <ObjectStore.h>
+#include <reflection.h>
+#include <Projector.h>
 
 
 class Crystal: public QObject {
@@ -38,8 +39,8 @@ class Crystal: public QObject {
         void setRotation(const Mat3D& M);
         void setCell(double a, double b, double c, double alpha, double beta, double gamma);
         void setWavelengthBoundarys(double lower, double upper);
-
-
+        void addProjector(Projector*);
+        void updateWavelengthFromProjectors();
     signals:
         void cellChanged();
         void orientationChanged();
@@ -62,6 +63,8 @@ class Crystal: public QObject {
         double a,b,c,alpha,beta,gamma;
         double upperLambda;
         double lowerLambda;
+            
+        ObjectStore connectedProjectors;
 };
 
 
