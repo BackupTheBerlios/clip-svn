@@ -1,7 +1,8 @@
 
 #include <cmath>
 #include <iostream>
-#include "crystal.h"
+#include <projector.h>
+#include <crystal.h>
 
 using namespace std;
 
@@ -18,8 +19,8 @@ Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProj
     setCell(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     upperLambda = 1000000.0;
     lowerLambda = 0.1;
-    self.connect(connectedProjectors, SIGNAL(objectAdded()), this, SLOT(updateWavelengthFromProjectors()));
-    self.connect(connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavelengthFromProjectors()));
+    connect(&connectedProjectors, SIGNAL(objectAdded()), this, SLOT(updateWavelengthFromProjectors()));
+    connect(&connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavelengthFromProjectors()));
 
 }
 
@@ -71,19 +72,19 @@ void Crystal::setCell(double _a, double _b, double _c, double _alpha, double _be
 void Crystal::addRotation(const Vec3D& axis, double angle) {
     MRot *= Mat3D(axis, angle);
     MRot.orthogonalize();
-    reflections.clear();
+    updateRotation();
     emit orientationChanged();
     emit reflectionsUpdate();
 }
 
 void Crystal::setRotation(const Mat3D& M) {
     MRot = M;
-    reflections.clear();
+    updateRotation();
     emit orientationChanged();
     emit reflectionsUpdate();
 }
 
-void Crystal::setWavelengthBoundarys(double lower, double upper) {
+void Crystal::setWavelengthBoundaries(double lower, double upper) {
     lowerLambda=lower;
     upperLambda=upper;
     reflections.clear();
@@ -126,36 +127,45 @@ void Crystal::generateReflections() {
                         r.k=k;
                         r.l=l;
                         r.d = d;
-                        r.lowestDiffOrder=0;
+                        for (unsigned int i=1; i<int(d/lowerLambda+0.9); i++) {
+                            // TODO: check sys absents
+                            r.orders.push_back(i);
+                        }
 
-                        v*=d;
-                        v=MRot*v;
-                        r.normal = v;
-                        // sin(theta) = v*e_x = v.x
-                        // x direction points toward source, z points upwards
-                        double scatterLambda = 2.0*r.d*v.x();
-                        // Loop over higher orders
+                        r.normalLocal=v*d;
+                        reflections.push_back(r);
                         
-                        int NMax = int(d/lowerLambda+0.9);
-                        for (int n=1; n<=NMax; n++) {
-                            // Check sysAbsents
-                            r.orders.push_back(n);
-                            if  ((r.lowestDiffOrder==0) and (n*lowerLambda<=scatterLambda) and (n*upperLambda>=scatterLambda))
-                                r.lowestDiffOrder=n;
-                        }
-                        if (!r.orders.empty()) {
-                            if (r.lowestDiffOrder!=0) 
-                                r.scatteredRay = Projector::normal2scattered(v);
-                            reflections.push_back(r);
-                        }
                     }
                 } 
             }
         }
     }
+    updateRotation();
 }
   
-
+void Crystal::updateRotation() {
+    for (unsigned int i=reflections.size(); i--; ) {
+        Reflection &r = reflections[i];
+        r.normal=MRot*r.normalLocal;
+        // sin(theta) = v*e_x = v.x
+        // x direction points toward source, z points upwards
+        double scatterLambda = 2.0*r.d*r.normal.x();
+        // Loop over higher orders
+        r.lowestDiffOrder=0;
+        for (unsigned int j=0; j<r.orders.size(); j++) {
+            unsigned int n=r.orders[j];
+            if  ((r.lowestDiffOrder==0) and (n*lowerLambda<=scatterLambda) and (n*upperLambda>=scatterLambda)) {
+                r.lowestDiffOrder=n;
+                break;
+            }
+        }
+        if (r.lowestDiffOrder!=0) 
+            r.scatteredRay = Projector::normal2scattered(r.normal);
+        else
+            r.scatteredRay=Vec3D();
+    }
+};
+                            
 
 unsigned int Crystal::reflectionCount() {
     std::vector<Reflection>& r = getReflectionList();

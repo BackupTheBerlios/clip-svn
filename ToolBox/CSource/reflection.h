@@ -25,6 +25,9 @@ class  Reflection {
         //vector<double> Fr;
         //vector<double> Fi;
   
+        // reziprocal direction (without rotations)
+        Vec3D normalLocal;
+
         // reziprocal direction (with rotations)
         Vec3D normal;
 

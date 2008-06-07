@@ -1,17 +1,10 @@
-#ifndef __PROJECTOR_H__
-#define __PROJECTOR_H__
 
-#include <vector>
-#include <reflection.h>
+class Projector: QObject {
+%TypeHeaderCode
+#include <vec3D.h>
 #include <QtCore/QObject>
-#include <QtCore/QVector>
-#include <QtCore/QPointF>
-#include <QtCore/QPointer>
-#include <crystal.h>
-
-
-class Projector: public QObject {
-    Q_OBJECT
+#include <projector.h>
+%End
     public:
         Projector(ObjectStore*, QObject* parent=0);
         Projector(const Projector&);
@@ -35,13 +28,30 @@ class Projector: public QObject {
         void projectedPointsUpdated();
         void wavelengthUpdated();
     protected:
-        virtual bool project(const Reflection &r)=0;
-        QPointer<Crystal> crystal;
-        ObjectStore& crystalStore;
-        double upperLambda;
-        double lowerLambda;
+         virtual bool project(const Reflection &r)=0;
 };
 
 
 
-#endif
+class StereoProjector: Projector {
+%TypeHeaderCode
+#include <vec3D.h>
+#include <QtCore/QObject>
+#include <StereoProjector.h>
+#include <projector.h>
+%End
+    public:
+        StereoProjector(ObjectStore*, QObject* parent=0);
+        
+        QPointF scattered2det(const Vec3D&);
+        Vec3D det2scattered(const QPointF&);
+        QPointF normal2det(const Vec3D&);
+        Vec3D det2normal(const QPointF&);
+    protected:
+        virtual bool project(const Reflection &r);
+};
+
+
+
+
+

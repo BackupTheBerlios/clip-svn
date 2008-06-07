@@ -23,31 +23,31 @@ Vec3D::Vec3D(const Vec3D* v) {
   for (unsigned int i=3; i--; ) X[i] = v->X[i];
 }
 
-Vec3D Vec3D::operator+(const Vec3D& v){
+Vec3D Vec3D::operator+(const Vec3D& v) const{
   Vec3D r(this);
   for (unsigned int i=3; i--; ) r.X[i] += v.X[i];
   return r;
 }
 
-Vec3D Vec3D::operator-(const Vec3D& v){
+Vec3D Vec3D::operator-(const Vec3D& v) const {
   Vec3D r(this);
   for (unsigned int i=3; i--; ) r.X[i] -= v.X[i];
   return r;
 }
 
-double Vec3D::operator*(const Vec3D& v){
+double Vec3D::operator*(const Vec3D& v) const {
   double p=0.0;
   for (unsigned int i=3; i--; ) p+=X[i]*v.X[i];
   return p;
 }
 
-Vec3D Vec3D::operator*(double a){
+Vec3D Vec3D::operator*(double a) const {
   Vec3D r(this);
   for (unsigned int i=3; i--; ) r.X[i] *= a;
   return r;
 }
 
-Vec3D Vec3D::operator%(const Vec3D &v){
+Vec3D Vec3D::operator%(const Vec3D &v) const {
   Vec3D r;
   r.X[0]=X[1]*v.X[2]-X[2]*v.X[1];
   r.X[1]=X[2]*v.X[0]-X[0]*v.X[2];
@@ -55,7 +55,7 @@ Vec3D Vec3D::operator%(const Vec3D &v){
   return r;
 }
 
-Vec3D Vec3D::operator/(double a) {
+Vec3D Vec3D::operator/(double a)  const {
   if (a==0) return Vec3D(this);
   Vec3D r(this);
   for (unsigned int i=3; i--; ) r.X[i] /= a;
@@ -63,7 +63,7 @@ Vec3D Vec3D::operator/(double a) {
 }
 
 
-Vec3D Vec3D::operator+=(const Vec3D& v){
+Vec3D Vec3D::operator+=(const Vec3D& v) {
   for (unsigned int i=3; i--; ) X[i] += v.X[i];
   return Vec3D(this);
 }
@@ -84,11 +84,11 @@ Vec3D Vec3D::operator/=(double a) {
   return Vec3D(this);
 }
 
-double Vec3D::norm() {
+double Vec3D::norm()  const {
   return sqrt(X[0]*X[0]+X[1]*X[1]+X[2]*X[2]);
 }
 
-double Vec3D::norm_sq() {
+double Vec3D::norm_sq()  const {
   return X[0]*X[0]+X[1]*X[1]+X[2]*X[2];
 }
 
@@ -104,15 +104,15 @@ Vec3D Vec3D::normalized() const {
   return v;
 }
 
-double Vec3D::x() {
+double Vec3D::x()  const {
   return X[0];
 }
 
-double Vec3D::y() {
+double Vec3D::y()  const {
   return X[1];
 }
 
-double Vec3D::z() {
+double Vec3D::z()  const {
   return X[2];
 }
 
@@ -130,21 +130,21 @@ double Vec3D::operator[](unsigned int i) const {
 }
 
 
-bool Vec3D::operator==(const Vec3D& v) {
+bool Vec3D::operator==(const Vec3D& v)  const {
   return (X[0]==v.X[0]) && (X[1]==v.X[1]) && (X[2]==v.X[2]);
 }
 
-bool Vec3D::operator!=(const Vec3D& v) {
+bool Vec3D::operator!=(const Vec3D& v)  const {
   return (X[0]!=v.X[0]) || (X[1]!=v.X[1]) || (X[2]!=v.X[2]);
 }
 
-bool Vec3D::isNull() {
+bool Vec3D::isNull()  const {
   return (X[0]==0.0) && (X[1]==0.0) && (X[2]==0.0);
 }
 
 
 
-  char* Vec3D::__repr__() {
+  char* Vec3D::__repr__()  const {
   char c[1024];
   sprintf (c, "[%f %f %f]", X[0], X[1], X[2]);
   return c;

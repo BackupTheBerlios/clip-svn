@@ -10,4 +10,9 @@ class ObjectStore:  QObject {
     public slots:
         void addObject(QObject *o);
         void removeObject(QObject *o);
+        
+    signals:
+        void objectAdded(QObject *o=0);
+        void objectRemoved(QObject *o=0);
+    
 };

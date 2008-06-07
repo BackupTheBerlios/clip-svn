@@ -9,3 +9,4 @@
 %Include ToolBoxCrystal.sip
 %Include ToolBoxReflection.sip
 %Include ToolBoxObjectStore.sip
+%Include ToolBoxProjector.sip

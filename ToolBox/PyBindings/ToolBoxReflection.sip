@@ -21,7 +21,10 @@ class  Reflection {
         // Real and imaginary part of Structure factor
         //vector<double> Fr;
         //vector<double> Fi;
-  
+        
+        // reziprocal direction (without rotations)
+        Vec3D normalLocal;
+        
         // reziprocal direction (with rotations)
         Vec3D normal;
 

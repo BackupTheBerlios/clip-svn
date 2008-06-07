@@ -8,16 +8,16 @@ class Vec3D {
     Vec3D(const double _x[3]);
     Vec3D(const Vec3D* v);
 
-    Vec3D operator+(const Vec3D& v);
-    Vec3D operator-(const Vec3D& v);
-    Vec3D operator*(double a);
-    double operator*(const Vec3D& v);
-    Vec3D operator%(const Vec3D &v);
-    Vec3D operator/(double a);
+    Vec3D operator+(const Vec3D& v) const;
+    Vec3D operator-(const Vec3D& v) const;
+    Vec3D operator*(double a) const;
+    double operator*(const Vec3D& v) const;
+    Vec3D operator%(const Vec3D &v) const;
+    Vec3D operator/(double a) const;
 
-    bool operator==(const Vec3D& v);
-    bool operator!=(const Vec3D& v);
-    bool isNull();
+    bool operator==(const Vec3D& v) const;
+    bool operator!=(const Vec3D& v) const;
+    bool isNull() const;
 
     Vec3D operator+=(const Vec3D& v);
     Vec3D operator-=(const Vec3D& v);
@@ -27,17 +27,17 @@ class Vec3D {
     double& operator[](unsigned int i);
     double operator[](unsigned int i) const;
     
-    double norm();
-    double norm_sq();
+    double norm() const;
+    double norm_sq() const;
     void normalize();
     Vec3D normalized() const;
 
-    char* __repr__();
+    char* __repr__() const;
     //bool __eq__(Vec3D &v);
     
-    double x();
-    double y();
-    double z();
+    double x() const;
+    double y() const ;
+    double z() const;
 
   private:
     double X[3]; 

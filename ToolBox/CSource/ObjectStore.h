@@ -16,8 +16,8 @@ class ObjectStore: public QObject {
         void addObject(QObject *o);
         void removeObject(QObject *o);
     signals:
-        void objectAdded(QObject *);
-        void objectRemoved(QObject *);
+        void objectAdded(QObject *o=0);
+        void objectRemoved(QObject *o=0);
     private:
         QList<QObject *> set;
 };

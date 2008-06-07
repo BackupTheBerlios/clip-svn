@@ -1,13 +1,15 @@
-#ifndef __crystal_h__
-#define __crystal_h__
+#ifndef __CRYSTAL_H__
+#define __CRYSTAL_H__
 
 #include <QtCore/QObject>
 #include <vec3D.h>
 #include <mat3D.h>
 #include <ObjectStore.h>
 #include <reflection.h>
-#include <Projector.h>
 
+
+
+class Projector;
 
 class Crystal: public QObject {
     Q_OBJECT 
@@ -17,10 +19,8 @@ class Crystal: public QObject {
         Crystal(const Crystal &);
         ~Crystal();
 
-
         void generateReflections();
-
-
+        void updateRotation();
         unsigned int reflectionCount();
         Reflection getReflection(unsigned int i);
         std::vector<Reflection>& getReflectionList();
@@ -38,7 +38,7 @@ class Crystal: public QObject {
         void addRotation(const Vec3D& axis, double angle);
         void setRotation(const Mat3D& M);
         void setCell(double a, double b, double c, double alpha, double beta, double gamma);
-        void setWavelengthBoundarys(double lower, double upper);
+        void setWavelengthBoundaries(double lower, double upper);
         void addProjector(Projector*);
         void updateWavelengthFromProjectors();
     signals:
