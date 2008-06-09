@@ -18,17 +18,28 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.gv.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.gv.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.gv.setRenderHints(QtGui.QPainter.Antialiasing)
+        self.connect(self.gv, QtCore.SIGNAL('updatedZoom()'), self.resizeView)
 
     def resizeEvent(self, e):
-        l=min(self.width(), self.height())
-        self.gv.setGeometry(0.5*(self.width()-l),  0.5*(self.height()-l), l, l)
+        self.resizeView()
+        
+    def resizeView(self):
+        m=self.gs.sceneRect().size()
+        r=self.gv.zoomRect().size()
+        r.scale(QtCore.QSizeF(self.size()), QtCore.Qt.KeepAspectRatio)
+        s=r.width()/self.gv.zoomRect().width()
+        m*=s
+        m=m.boundedTo(QtCore.QSizeF(self.size()))
+        r=QtCore.QRectF(QtCore.QPointF(0, 0), m)
+        r.moveCenter(QtCore.QPointF(self.rect().center()))
+        self.gv.setGeometry(r.toRect())
         
 #    def paintEvent(self, e):
     def updatePoints(self):
         self.gs.clear()
         r=QtCore.QRectF(0, 0, 0.015,  0.015)
         
-        self.marker=self.gs.addItem(PrimaryBeamMarker(0.01, 0.05))
+        #self.marker=self.gs.addItem(PrimaryBeamMarker(0.01, 0.05))
         
         #b=QtCore.QRectF(-1.02, -1.02, 2.04,  2.04)
         for x in self.projector.projectedPoints:
@@ -80,21 +91,28 @@ class MyGraphicsView(QtGui.QGraphicsView):
             QtGui.QGraphicsView.mouseReleaseEvent(self, e)
         else:
             self.rubberBand.hide()
-            self.zoomSteps.append(QtCore.QRectF(self.zoomStart, self.mapToScene(e.pos())).normalized())
-            self.updateZoom()
+            r=QtCore.QRectF(self.zoomStart, self.mapToScene(e.pos())).normalized()
+            if (1000*r.width()>self.sceneRect().width() and 1000*r.height()>self.sceneRect().height()):
+                self.zoomSteps.append(r)
+                self.updateZoom()
             self.zoomStart=None
 
         
     def resizeEvent(self, e):
-        
         QtGui.QGraphicsView.resizeEvent(self, e)
         self.updateZoom()
+    
+    def zoomRect(self):
+        if len(self.zoomSteps)>0:
+            return self.zoomSteps[-1]
+        else:
+            return self.scene().sceneRect()
         
     def updateZoom(self):
-        if len(self.zoomSteps)>0:
-            self.fitInView(self.zoomSteps[-1], QtCore.Qt.KeepAspectRatio)
-        else:
-            self.fitInView(self.scene().sceneRect())
+        self.fitInView(self.zoomRect(), QtCore.Qt.KeepAspectRatio)
+        self.emit(QtCore.SIGNAL('updatedZoom()'))
+        r=QtCore.QRectF(self.mapToScene(0, 0), self.mapToScene(self.width(), self.height()))
+
             
     def dragEnterEvent(self, e):
         if not e.mimeData().hasFormat('application/CrystalPointer'):

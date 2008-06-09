@@ -38,7 +38,12 @@ class clip(QtGui.QMainWindow):
         
         self.statusBar().showMessage(self.appTitle+" ready", 2000)
         self.crystalStore=ObjectStore()
-
+        
+        #FIXME: Remove Debug Code
+        w=self.slotNewCrystal()
+        w.crystal.setCell(5, 5, 5, 90, 90, 90)
+        self.slotNewStereoProjector()
+        
     def initMenu(self):
         menudef = [
             ('&File',
@@ -182,6 +187,7 @@ class clip(QtGui.QMainWindow):
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()
+        return wid
 
     def slotNewStereoProjector(self):
         wid = ProjectionPlaneWidget(self.crystalStore, self)
@@ -190,6 +196,7 @@ class clip(QtGui.QMainWindow):
         wid.setWindowTitle('Stereographic Projection')
         self.MdiArea.addSubWindow(wid)
         wid.show()
+        return wid
 
 def main(args):
     app=QtGui.QApplication(args)

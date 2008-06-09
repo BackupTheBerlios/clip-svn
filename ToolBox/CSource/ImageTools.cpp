@@ -1,5 +1,3 @@
-
-
 #include "ImageTools.h"
 
 #include <iostream>
