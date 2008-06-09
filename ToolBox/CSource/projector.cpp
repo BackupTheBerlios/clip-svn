@@ -50,6 +50,7 @@ void Projector::reflectionsUpdated() {
     for (unsigned int i=r.size(); i--; ) {
         project(r[i]);
     }
+    emit projectedPointsUpdated();
 }
 
 

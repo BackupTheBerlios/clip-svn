@@ -18,7 +18,7 @@ os.system(s)
 
 makefile = sipconfig.SIPModuleMakefile(config, build_file)
 
-windows=False
+windows=True
 
 if windows:
     makefile.extra_libs=['QtCore4', 'QtGui4', 'ToolBox']

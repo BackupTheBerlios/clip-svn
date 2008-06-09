@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <QtGui/qimage.h>
+#include <QtGui/QImage>
 
 #include "vec3D.h"
 

@@ -54,10 +54,7 @@ class LaueImage(QtGui.QWidget):
     
     def paintEvent(self, e):
         p=QtGui.QPainter(self)
-        l=min(self.widht(),  self.height())
-        p.translate(0.5*self.width(), 0.5*self.height())
-        p.setPen(QtCore.Qt.black)
-        p.drawRect(QtCore.QRectF(-0.5*l, -0.5*l, l, l))
+        
         s=self.transfer.qImg().size()
         x=(self.width()-s.width())/2
         y=(self.height()-s.height())/2

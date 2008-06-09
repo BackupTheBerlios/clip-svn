@@ -1,6 +1,6 @@
 from Ui_CrystalWidget import Ui_CrystalWidget
 from PyQt4 import QtCore, QtGui
-import SpaceGroup
+from Tools import SpaceGroup
 import ToolBox
 from ToolBox import Vec3D,  Mat3D
 import math
@@ -49,6 +49,9 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
         
         self.connect(self.crystal,  QtCore.SIGNAL('orientationChanged()'),  self.updateOM)
         self.connect(self.crystal,  QtCore.SIGNAL('cellChanged()'),  self.updateOM)
+        
+        ac1=self.toolBar.addAction('Load')
+        ac1=self.toolBar.addAction('Save')
 
     def sizeHint(self):
         return self.minimumSizeHint()
@@ -95,7 +98,7 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
         self.symConstrain()
 
     def wheelEvent(self, e):
-        for i in self.inputs:
+        for i in self.inputs+self.rotInputs:
             if i.isEnabled and i.underMouse():
                 d=i.validator().decimals()
                 if e.modifiers()&QtCore.Qt.ShiftModifier:
@@ -108,7 +111,10 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
                 if i.validator().validate(t,pos)[0]==QtGui.QValidator.Acceptable:
                     i.selectAll()
                     i.insert(t)
-                    self.publish()
+                    if i in self.inputs:
+                        self.publish()
+                    elif i in self.rotInputs:
+                        self.changeRotation()
                 
     def nextFocus(self):
         self.focusNextPrevChild(True)
@@ -144,4 +150,24 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
             ax[p]=1.0
             OM=OM*Mat3D(ax,  math.radians(ang))
         self.crystal.setRotation(OM)
+        
+    def mousePressEvent(self,  e):
+        if e.button()==QtCore.Qt.LeftButton and self.dragStart.geometry().contains(e.pos()):
+            self.mousePressStart=QtCore.QPoint(e.pos())
+            print 'Possibly start Drag', e.pos().x(),  e.pos().y()
+            drag=QtGui.QDrag(self)
+            mimeData=QtCore.QMimeData()
+            mimeData.setData('application/CrystalPointer','')
+            drag.setMimeData(mimeData)
+            res=drag.exec_(QtCore.Qt.LinkAction) 
+            
+    def mouseMoveEvent(self,  e):
+        p=self.mousePressStart
+        dragLen=(e.pos()-p).manhattanLength()
+        if (e.buttons()==QtCore.Qt.LeftButton) and (dragLen>QtGui.QApplication.startDragDistance()) and (self.dragStart.geometry().contains(p)):
+            pass
+
+        
+    def mouseReleaseEvent(self,  e):
+        pass
         

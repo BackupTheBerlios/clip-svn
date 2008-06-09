@@ -12,6 +12,5 @@
 * Nomenklatur Axis, Axes, Zone, ...
 * mehrere "Kristalle", Orientierungen, etc.
 * Mehrere geladene Bilder
-* Stereographische Projektion
 * Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
