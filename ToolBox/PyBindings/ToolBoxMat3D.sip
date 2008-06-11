@@ -83,6 +83,13 @@ class Mat3D {
   Mat3D inverse() const;
   double sqSum() const;
   double det() const;
+
+  double __getitem__(int i, int j);
+%MethodCode
+    Py_BEGIN_ALLOW_THREADS
+    sipRes = *((*sipCpp).at(a0, a1));
+    Py_END_ALLOW_THREADS
+%End
   
   void __setitem__(int i, int j, double d);
 %MethodCode
@@ -91,12 +98,7 @@ class Mat3D {
     Py_END_ALLOW_THREADS
 %End
 
-  double __getitem__(int i, int j);
-%MethodCode
-    Py_BEGIN_ALLOW_THREADS
-    sipRes = *((*sipCpp).at(a0, a1));
-    Py_END_ALLOW_THREADS
-%End
+
 
   SIP_PYOBJECT __repr__();
 %MethodCode

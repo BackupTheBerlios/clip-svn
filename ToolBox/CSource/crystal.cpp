@@ -70,7 +70,11 @@ void Crystal::setCell(double _a, double _b, double _c, double _alpha, double _be
 }
 
 void Crystal::addRotation(const Vec3D& axis, double angle) {
-    MRot *= Mat3D(axis, angle);
+    addRotation(Mat3D(axis, angle));
+}
+
+void Crystal::addRotation(const Mat3D& M) {
+    MRot *= M;
     MRot.orthogonalize();
     updateRotation();
     emit orientationChanged();

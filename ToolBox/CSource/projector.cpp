@@ -63,7 +63,7 @@ Vec3D Projector::normal2scattered(const Vec3D &v) {
     return Vec3D(x*x-y*y-z*z, 2.0*x*y, 2.0*x*z);
 }
 
-Vec3D Projector::scattered2normal(const Vec3D &v) {
+Vec3D Projector::scattered2normal(const Vec3D& v) {
     double x=v.x();
     double y=v.y();
     double z=v.z();
@@ -71,4 +71,19 @@ Vec3D Projector::scattered2normal(const Vec3D &v) {
     if (x==0.0) 
         return Vec3D();
     return Vec3D(x, 0.5*y/x, 0.5*z/x);
+}
+
+void Projector::addRotation(const Vec3D& axis, double angle) {
+    if (not crystal.isNull())
+        crystal->addRotation(axis, angle);
+}
+
+void Projector::addRotation(const Mat3D& M) {
+    if (not crystal.isNull())
+        crystal->addRotation(M);
+}
+
+void Projector::setRotation(const Mat3D& M) {
+    if (not crystal.isNull())
+        crystal->setRotation(M);
 }

@@ -23,7 +23,10 @@ class Projector: QObject {
         void connectToCrystal(Crystal *);
         void setWavelength(double lower, double upper);
         void reflectionsUpdated();
-        //void paint(QPaintDevice*);
+        void addRotation(const Vec3D& axis, double angle);
+        void addRotation(const Mat3D& M);
+        void setRotation(const Mat3D& M);
+        
     signals:  
         void projectedPointsUpdated();
         void wavelengthUpdated();

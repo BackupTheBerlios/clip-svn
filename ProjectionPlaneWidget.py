@@ -6,11 +6,15 @@ import math
 from Tools import Icons
 
 class ProjectionPlaneWidget(QtGui.QWidget):
+    pressContext=1
+    moveContext=2
+    releaseContext=3
     def __init__(self, o, parent):
         QtGui.QWidget.__init__(self, parent)
 
         self.zoomSteps=[]
-
+        self.mousePressStart=None
+        
         self.projector=StereoProjector(o)
         self.projector.setWavelength(0.7, 1000.0)
         self.connect(self.projector, QtCore.SIGNAL('projectedPointsUpdated()'),  self.updatePoints)
@@ -20,33 +24,39 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         #TODO: Move scene to projector
         self.gs=QtGui.QGraphicsScene(QtCore.QRectF(-1.0, -1.0, 2.0, 2.0), self)
 
-        self.gv=MyGraphicsView(self.gs, self)
-    
-        a=self.gv.mapToScene(0, 0)
-        b=self.gv.mapToScene(self.gv.width(),  self.gv.height())
-        print 'View Rect:', a.x(),  a.y(),  b.x(),  b.y()
+        self.gv=MyGraphicsView(self)
+        self.gv.setScene(self.gs)
 
         self.toolBar=QtGui.QToolBar(self)
+        
+        a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.rotate, 'Pan'), (Icons.rotate, 'Rotate')))
+        self.toolBar.addSeparator()
+        self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'AddMarker')))
+        self.toolBar.addSeparator()
         self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'configure')
-        group1=QtGui.QActionGroup(self)
-        a1=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.viewmag)), 'zoom')
-        a2=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate)), 'rotate')
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.messagebox_info)), 'Reflection Info')
-
-        for a in (a1,  a2):
-            a.setCheckable(True)
-            group1.addAction(a)
-        a1.setChecked(True)
+        
+        self.connect(a[0],  QtCore.SIGNAL('toggled(bool)'),  self.zoomHandler)
+        self.connect(a[1],  QtCore.SIGNAL('toggled(bool)'),  self.panHandler)
+        self.connect(a[2],  QtCore.SIGNAL('toggled(bool)'),  self.rotateHandler)
         
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
-        self.resizeView()
         
+        self.mouseHandler=self.zoomHandler
+
+    def mkActionGroup(self, n, args):
+        group=QtGui.QActionGroup(self)
+        r=[]
+        for icon, text in args:
+            a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(icon)), text)
+            a.setCheckable(True)
+            group.addAction(a)
+            r.append(a)
+        r[n].setChecked(True)
+        return r
+
     def resizeEvent(self, e):
         self.resizeView()
-        #self.updateZoom()
-        a=self.gv.mapToScene(0, 0)
-        b=self.gv.mapToScene(self.gv.width(),  self.gv.height())
-        print 'View Rect:', a.x(),  a.y(),  b.x(),  b.y()
+        self.updateZoom()
         
     def resizeView(self):
         toolBarGeometry=QtCore.QRect(0, 0, self.width(),  self.toolBar.sizeHint().height())
@@ -63,17 +73,13 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         
     #TODO: Move to projector
     def updatePoints(self):
-        #self.gs.clear()
-        print 'startClear'
-        for item in self.gs.items():
-            self.gs.removeItem(item)
-        print 'stopClear'
+        self.gs.clear()
         r=QtCore.QRectF(0, 0, 0.015,  0.015)
         
         self.marker=self.gs.addEllipse(r,  QtCore.Qt.red)
         self.marker.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         self.marker.setCursor(QtCore.Qt.SizeAllCursor)
-        bounding=self.gv.sceneRect()
+        bounding=self.gs.sceneRect()
         for x in self.projector.projectedPoints:
             if bounding.contains(x):
                 r.moveCenter(x)
@@ -92,27 +98,26 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         if self.gv.geometry().contains(e.pos()):
             self.mousePressStart=self.gv.mapFromParent(e.pos())
             self.mouseButtons=e.buttons()
+            self.lastMousePos=self.gv.mapFromParent(e.pos())
             if e.buttons()==QtCore.Qt.LeftButton:
-                e.accept()
-                self.rubberBand.setGeometry(QtCore.QRect(e.pos(), e.pos()).normalized())
-                self.rubberBand.show()
+                self.mouseHandler(e, self.pressContext)
             elif e.buttons()==QtCore.Qt.RightButton:
                 QtCore.QTimer.singleShot(QtGui.QApplication.startDragTime(),  self.showContextMenu)
 
     def mouseMoveEvent(self, e):
         if self.mousePressStart!=None and self.gv.geometry().contains(e.pos()):
             if e.buttons()==QtCore.Qt.LeftButton:
-                self.rubberBand.setGeometry(QtCore.QRect(self.mousePressStart, self.gv.mapFromParent(e.pos())).normalized())
-            
+                self.mouseHandler(e, self.moveContext)
+        self.lastMousePos=self.gv.mapFromParent(e.pos())
+        
     def mouseReleaseEvent(self, e):
         if self.mousePressStart!=None and self.gv.geometry().contains(e.pos()):
             if self.mouseButtons==QtCore.Qt.LeftButton:
                 a, b=[self.gv.mapToScene(x) for x in (self.mousePressStart,  self.gv.mapFromParent(e.pos()))]
                 r=QtCore.QRectF(a, b).normalized()
                 if (1000*r.width()>self.gv.sceneRect().width() and 1000*r.height()>self.gv.sceneRect().height()):
-                    self.zoomSteps.append(r)
-                    self.resizeView()
-                    self.updateZoom()
+                    self.mouseDragRect=r
+                    self.mouseHandler(e, self.releaseContext)
             elif self.mouseButtons==QtCore.Qt.RightButton:
                 if len(self.zoomSteps):
                     self.zoomSteps.pop()
@@ -133,30 +138,60 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             return self.gv.scene().sceneRect()
         
     def updateZoom(self):
-        print 'fitInView', 
-        a=self.gv.mapToScene(0, 0)
-        b=self.gv.mapToScene(self.gv.width(),  self.gv.height())
-        print a.x(),  a.y(),  b.x(),  b.y()
         self.gv.fitInView(self.zoomRect(), QtCore.Qt.KeepAspectRatio)
-        a=self.gv.mapToScene(0, 0)
-        b=self.gv.mapToScene(self.gv.width(),  self.gv.height())
-        print a.x(),  a.y(),  b.x(),  b.y()
+
+    def zoomHandler(self, *args):
+        if len(args)==1 and args[0]:
+            self.mouseHandler=self.zoomHandler
+        elif len(args)==2:
+            e, context=args
+            if context==self.pressContext:
+                self.rubberBand.setGeometry(QtCore.QRect(e.pos(), e.pos()).normalized())
+                self.rubberBand.show()
+            elif context==self.moveContext:
+                self.rubberBand.setGeometry(QtCore.QRect(self.mousePressStart, self.gv.mapFromParent(e.pos())).normalized())
+            elif context==self.releaseContext:
+                self.zoomSteps.append(self.mouseDragRect)
+                self.resizeView()
+                self.updateZoom()
 
 
+        
+    def panHandler(self, *args):
+        if len(args)==1 and args[0]:
+            self.mouseHandler=self.panHandler
+        elif len(args)==2:
+            e, context=args
+            if context==self.moveContext:
+                p1=self.gv.mapToScene(self.lastMousePos)
+                p2=self.gv.mapToScene(self.gv.mapFromParent(e.pos()))
+                v1=self.projector.det2normal(p1)
+                v2=self.projector.det2normal(p2)
+                r=v2%v1
+                r.normalize()
+                a=math.acos(v1*v2)
+                #print '%6.3f %6.3f %6.3f %6.3f'%(p1.x(),  p1.y(),  p2.x(), p2.y()), v1, v2, r, a
+                print v2, r
+                self.projector.addRotation(r, a)
 
+    def rotateHandler(self, *args):
+        if len(args)==1 and args[0]:
+            self.mouseHandler=self.rotateHandler
+        elif len(args)==2:
+            e, context=args
+            if context==self.pressContext:
+                pass
 
 
 class MyGraphicsView(QtGui.QGraphicsView):
-    def __init__(self, gs, parent=0):
-        QtGui.QGraphicsView.__init__(self, gs, parent)
-        self.comunicateMouseEvent=False
+    def __init__(self, parent=0):
+        QtGui.QGraphicsView.__init__(self, parent)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setRenderHints(QtGui.QPainter.Antialiasing)
         self.setDragMode(self.NoDrag)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
         self.viewIgnoresThisMouseEvent=False
-        self.fitInView(gs.sceneRect(),  QtCore.Qt.KeepAspectRatio)
         
     def dragEnterEvent(self, e):
         if not e.mimeData().hasFormat('application/CrystalPointer'):
@@ -180,16 +215,6 @@ class MyGraphicsView(QtGui.QGraphicsView):
             self.viewIgnoresThisMouseEvent=False
         else:
             QtGui.QGraphicsView.mouseReleaseEvent(self, e)
-
-    def resizeEvent(self, e):
-        print 'resize1', self.sceneRect().x(), self.sceneRect().y(), self.sceneRect().width(), self.sceneRect().height()
-        QtGui.QGraphicsView.resizeEvent(self, e)
-        if e.oldSize().isValid():
-            sx=1.0*e.size().width()/e.oldSize().width()
-            sy=1.0*e.size().height()/e.oldSize().height()
-            s=min(sx, sy)
-            self.scale(s, s)
-        print 'resize2', self.sceneRect().x(), self.sceneRect().y(), self.sceneRect().width(), self.sceneRect().height()
 
 
 

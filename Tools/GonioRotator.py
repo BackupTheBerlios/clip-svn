@@ -3,14 +3,15 @@ import math
 
 def calcAngles(v1,  v2,  phi,  chi):
     u1, u2=calcLine(v1, v2, phi, chi)
-    im=calcIntermediates(u1, u2)
+    intermediates=calcIntermediates(u1, u2)
     
-    if im==None:
+    if intermediates==None:
         return None
+    
     r=[]
-    for c in im:
-        aPhi=calcRotationAngle(c, v2, phi)
+    for c in intermediates:
         aChi=calcRotationAngle(v1, c, chi)
+        aPhi=calcRotationAngle(c, v2, phi)
         r.append((aPhi, aChi))
     r.sort(lambda x, y:cmp(abs(x[0])+abs(x[1]),  abs(y[0])+abs(y[1])))
     return r
