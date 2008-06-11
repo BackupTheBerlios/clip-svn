@@ -24,15 +24,27 @@
   <property name="windowTitle" >
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" >
-   <property name="margin" >
+  <layout class="QGridLayout" >
+   <property name="leftMargin" >
     <number>0</number>
    </property>
-   <property name="spacing" >
+   <property name="topMargin" >
+    <number>0</number>
+   </property>
+   <property name="rightMargin" >
+    <number>0</number>
+   </property>
+   <property name="bottomMargin" >
+    <number>0</number>
+   </property>
+   <property name="horizontalSpacing" >
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing" >
     <number>0</number>
    </property>
    <item row="0" column="0" colspan="3" >
-    <layout class="QHBoxLayout" name="horizontalLayout" >
+    <layout class="QHBoxLayout" >
      <item>
       <widget class="ToolBar" native="1" name="toolBar" >
        <property name="sizePolicy" >
@@ -366,16 +378,6 @@
     </widget>
    </item>
   </layout>
-  <action name="actionLoad" >
-   <property name="icon" >
-    <iconset>
-     <normalon>C:/Programme/Qt/4.4.0/demos/interview/images/folder.png</normalon>
-    </iconset>
-   </property>
-   <property name="text" >
-    <string>Load</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
