@@ -27,7 +27,7 @@ Vec3D StereoProjector::det2normal(const QPointF& p) {
     double x=p.x();
     double y=p.y();
     double n=1.0/(x*x+y*y+1.0);
-    return Vec3D(n*(x*x+y*y-1.0), 2*x*n, 2*y*n);    
+    return Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
 }
 
 

@@ -74,7 +74,7 @@ void Crystal::addRotation(const Vec3D& axis, double angle) {
 }
 
 void Crystal::addRotation(const Mat3D& M) {
-    MRot *= M;
+    MRot = M * MRot;
     MRot.orthogonalize();
     updateRotation();
     emit orientationChanged();
