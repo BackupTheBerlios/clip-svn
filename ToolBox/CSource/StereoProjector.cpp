@@ -1,6 +1,9 @@
 #include <StereoProjector.h>
 #include <cmath>
 #include <QtGui/QGraphicsEllipseItem>
+#include <iostream>
+
+using namespace std;
 
 StereoProjector::StereoProjector(QObject* parent): Projector(parent), localCoordinates() {
     scene.setSceneRect(QRectF(-1.0, -1.0, 2.0, 2.0));
@@ -36,8 +39,10 @@ Vec3D StereoProjector::det2normal(const QPointF& p) {
 bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
     Vec3D v=localCoordinates*r.normal;
     double s=1.0+v.x();
-    if (s<1e-5)
+    if (s<1e-5) {
+        cout << "noproject " << v.x() << " " << v.y() << " " << v.z() << " " << s << endl;
         return false;
+    }
     QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
     s=1.0/s;
     e->setRect(QRectF(v.y()*s, v.z()*s, 0.015, 0.015));
@@ -52,6 +57,7 @@ QGraphicsItem* StereoProjector::itemFactory() {
 }
 
 void StereoProjector::decorateScene() {
+    cout << "StereoDecorate" << endl;
     while (!decorationItems.empty()) {
         QGraphicsItem* item = decorationItems.takeLast();
         scene.removeItem(item);

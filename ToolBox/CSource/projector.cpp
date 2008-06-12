@@ -1,5 +1,8 @@
 #include <projector.h>
 #import <cmath>
+#import <iostream>
+
+using namespace std;
 
 Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems() {
     lowerLambda=1.0;
@@ -47,30 +50,49 @@ void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
         return;
     
-    std::vector<Reflection>&   r = crystal->getReflectionList();
-    unsigned int n=projectedItems.size();
-    unsigned int i=r.size();
-    while (i and n) {
-        if (project(r[i], projectedItems.at(n))) 
-            n--;
-        i--;
-    }
+    unsigned int projected=0;
+    unsigned int noproj=0;
+    std::vector<Reflection>& r = crystal->getReflectionList();
+    int n=0;
+    int i=0;
 
-    QGraphicsItem* item = itemFactory();
-    for (; i-- ; ) {
+    //cout << "refUpdate" << n << " " << i <<endl;
+    cout << "Start: " << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
+    
+    for (; i<r.size() and n<projectedItems.size(); i++) {
+        //cout << "rewrite " << i << " " << n << endl;
+        if (project(r[i], projectedItems.at(n))) {
+            n++;
+            projected++;
+        } else {
+            noproj++;
+        }
+    }
+    cout << "rewrite: " << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << " " << noproj << endl;
+    QGraphicsItem* item;
+    for (; n<projectedItems.size(); n++) {
+        //cout << "del" << n  << endl;
+        item = projectedItems.takeLast();
+        scene.removeItem(item);
+        delete item;
+    }
+    cout << "del:" << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
+
+
+    //cout << "Afterrewrite" << i << " " << n << endl;
+    item = itemFactory();
+    for (; i<r.size(); i++) {
+        //cout << "add" << i  << endl;
         if (project(r[i], item))  {
             projectedItems.append(item);
             scene.addItem(item);
             item = itemFactory();
+            projected++;
         }
     }
     delete item;
+    cout << "add:" << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
     
-    for (; n--; ) {
-        item = projectedItems.takeFirst();
-        scene.removeItem(item);
-        delete item;
-    }
     emit projectedPointsUpdated();
 }
 

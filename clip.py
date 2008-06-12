@@ -4,7 +4,7 @@
 import sys
 import os.path
 import math
-sys.path.append('Tools')
+
 
 from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
