@@ -14,3 +14,4 @@
 * Mehrere geladene Bilder
 * Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
+* Qwt5 ersetzen

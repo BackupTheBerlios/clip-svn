@@ -1,14 +1,16 @@
 #include <projector.h>
 #import <cmath>
 
-Projector::Projector(ObjectStore *c, QObject *parent): QObject(parent), crystal(), projectedPoints() , crystalStore(*c) {
+Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems() {
     lowerLambda=1.0;
     upperLambda=100.0;
+    decorateScene();
 };
 
-Projector::Projector(const Projector &p): crystal(p.crystal), projectedPoints(p.projectedPoints) , crystalStore(p.crystalStore) {
+Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems()  {
     lowerLambda=p.lowerLambda;
     upperLambda=p.upperLambda;
+    decorateScene();
 }; 
 
 
@@ -42,13 +44,32 @@ void Projector::setWavelength(double lower, double upper)  {
 }
 
 void Projector::reflectionsUpdated() {
-    projectedPoints.clear();
     if (crystal.isNull()) 
         return;
-    std::vector<Reflection>&   r = crystal->getReflectionList();
     
-    for (unsigned int i=r.size(); i--; ) {
-        project(r[i]);
+    std::vector<Reflection>&   r = crystal->getReflectionList();
+    unsigned int n=projectedItems.size();
+    unsigned int i=r.size();
+    while (i and n) {
+        if (project(r[i], projectedItems.at(n))) 
+            n--;
+        i--;
+    }
+
+    QGraphicsItem* item = itemFactory();
+    for (; i-- ; ) {
+        if (project(r[i], item))  {
+            projectedItems.append(item);
+            scene.addItem(item);
+            item = itemFactory();
+        }
+    }
+    delete item;
+    
+    for (; n--; ) {
+        item = projectedItems.takeFirst();
+        scene.removeItem(item);
+        delete item;
     }
     emit projectedPointsUpdated();
 }
@@ -86,4 +107,11 @@ void Projector::addRotation(const Mat3D& M) {
 void Projector::setRotation(const Mat3D& M) {
     if (not crystal.isNull())
         crystal->setRotation(M);
+}
+
+QGraphicsScene* Projector::getScene() {
+    return &scene;
+}
+
+void Projector::decorateScene() {
 }

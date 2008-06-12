@@ -1,6 +1,6 @@
 #include <ObjectStore.h>
 
-ObjectStore::ObjectStore(QObject* parent): QObject(parent), set(  ) {
+ObjectStore::ObjectStore(QObject* parent): QObject(parent), set() {
 }
 unsigned int ObjectStore::size() {
     return set.size();

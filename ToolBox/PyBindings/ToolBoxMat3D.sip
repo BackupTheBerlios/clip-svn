@@ -84,11 +84,31 @@ class Mat3D {
   double sqSum() const;
   double det() const;
 
-  double __getitem__(int i, int j);
+  double __getitem__(SIP_PYOBJECT _x);
 %MethodCode
-    Py_BEGIN_ALLOW_THREADS
-    sipRes = *((*sipCpp).at(a0, a1));
-    Py_END_ALLOW_THREADS
+  PyObject* iter=PyObject_GetIter(a0);
+  if (iter==NULL) {
+    sipIsErr=1;
+  } else {
+    vector<int> m;
+    unsigned int itercount=0;
+    PyObject* coliter;
+    int t;
+    for (PyObject* item=PyIter_Next(iter); item && itercount<9; item=PyIter_Next(iter)) {
+      if (PyInt_Check(item)) {
+        PyArg_Parse(item, "i", &t);
+     	m.push_back(t);
+        itercount++;
+      }
+    }
+    if (m.size()==2) {
+      Py_BEGIN_ALLOW_THREADS
+        sipRes = *((*sipCpp).at(m[0],m[1]));
+      Py_END_ALLOW_THREADS
+    } else {
+      sipIsErr=1;
+    }
+  }
 %End
   
   void __setitem__(int i, int j, double d);

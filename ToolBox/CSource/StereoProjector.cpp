@@ -1,8 +1,9 @@
 #include <StereoProjector.h>
 #include <cmath>
+#include <QtGui/QGraphicsEllipseItem>
 
-StereoProjector::StereoProjector(ObjectStore* crystals, QObject* parent): Projector(crystals, parent) {
-    setStereoProjectionDir(Vec3D(1,0,0));
+StereoProjector::StereoProjector(QObject* parent): Projector(parent), localCoordinates() {
+    scene.setSceneRect(QRectF(-1.0, -1.0, 2.0, 2.0));
 };
 
 
@@ -15,7 +16,7 @@ Vec3D StereoProjector::det2scattered(const QPointF& p) {
 }
 
 QPointF StereoProjector::normal2det(const Vec3D& n) {
-    Vec3D v=R*n;
+    Vec3D v=localCoordinates*n;
     double s=1.0+v.x();
     if (s<1e-5)
         return QPointF();
@@ -27,32 +28,38 @@ Vec3D StereoProjector::det2normal(const QPointF& p) {
     double x=p.x();
     double y=p.y();
     double n=1.0/(x*x+y*y+1.0);
-    return Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
+    
+    return localCoordinates.transpose()*Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
 }
 
 
-void StereoProjector::setStereoProjectionDir(const Vec3D &v) {
-    dir = v;
-    if (dir==Vec3D(1,0,0)) {
-        R=Mat3D();
-    } else if (dir==Vec3D(-1,0,0)) {
-        R=Mat3D();
-        *R.at(0,0)=-1.0;
-        *R.at(2,2)=-1.0;
-    } else {
-        Vec3D p=Vec3D(1, 0, 0)%dir;
-        p.normalize();
-        R=Mat3D(p, -acos(dir.x()));
-    }
-    reflectionsUpdated();
-}
-
-bool StereoProjector::project(const Reflection &r) {
-    Vec3D v=R*r.normal;
+bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
+    Vec3D v=localCoordinates*r.normal;
     double s=1.0+v.x();
     if (s<1e-5)
         return false;
-    projectedPoints.push_back(QPointF(v.y()/s, v.z()/s));
+    QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
+    s=1.0/s;
+    e->setRect(QRectF(v.y()*s, v.z()*s, 0.015, 0.015));
     return true;
+    
 }
+        
+QGraphicsItem* StereoProjector::itemFactory() {
+    QGraphicsEllipseItem* e=new QGraphicsEllipseItem();
+    e->setPen(QPen(Qt::green));
+    return e;
+}
+
+void StereoProjector::decorateScene() {
+    while (!decorationItems.empty()) {
+        QGraphicsItem* item = decorationItems.takeLast();
+        scene.removeItem(item);
+        delete item;
+    }
+    decorationItems.append(scene.addEllipse(-1.0, -1.0, 2.0, 2.0, QPen(Qt::gray)));
+    decorationItems.append(scene.addLine(-1.0, 0.0, 1.0, 0.0, QPen(Qt::gray)));
+    decorationItems.append(scene.addLine(0.0, -1.0, 0.0, 1.0, QPen(Qt::gray)));
+}
+
 

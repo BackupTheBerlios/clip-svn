@@ -17,15 +17,15 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         
         self.projector=StereoProjector(o)
         self.projector.setWavelength(0.7, 1000.0)
-        self.connect(self.projector, QtCore.SIGNAL('projectedPointsUpdated()'),  self.updatePoints)
+        #self.connect(self.projector, QtCore.SIGNAL('projectedPointsUpdated()'),  self.update)
         self.setMinimumSize(QtCore.QSize(140, 180))
         self.setAcceptDrops(True)
 
         #TODO: Move scene to projector
-        self.gs=QtGui.QGraphicsScene(QtCore.QRectF(-1.0, -1.0, 2.0, 2.0), self)
+        #self.gs=QtGui.QGraphicsScene(QtCore.QRectF(-1.0, -1.0, 2.0, 2.0), self)
 
         self.gv=MyGraphicsView(self)
-        self.gv.setScene(self.gs)
+        self.gv.setScene(self.projector.getScene())
 
         self.toolBar=QtGui.QToolBar(self)
         
@@ -65,25 +65,25 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         scaledZoom=self.zoomRect().size()
         scaledZoom.scale(spareSize, QtCore.Qt.KeepAspectRatio)
         scaleFactor=scaledZoom.width()/self.zoomRect().width()
-        fullScene=self.gs.sceneRect().size()
+        fullScene=self.gv.sceneRect().size()
         fullScene*=scaleFactor
         maxScene=fullScene.boundedTo(spareSize)
         maxSceneRect=QtCore.QRectF(QtCore.QPointF(0.5*(self.width()-maxScene.width()), 0.5*(self.height()-maxScene.height()+toolBarGeometry.height())), maxScene)
         self.gv.setGeometry(maxSceneRect.toRect())
         
-    #TODO: Move to projector
-    def updatePoints(self):
-        self.gs.clear()
-        r=QtCore.QRectF(0, 0, 0.015,  0.015)
-        
-        self.marker=self.gs.addEllipse(r,  QtCore.Qt.red)
-        self.marker.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-        self.marker.setCursor(QtCore.Qt.SizeAllCursor)
-        bounding=self.gs.sceneRect()
-        for x in self.projector.projectedPoints:
-            if bounding.contains(x):
-                r.moveCenter(x)
-                self.gs.addEllipse(r, QtCore.Qt.green)
+#    #TODO: Move to projector
+#    def updatePoints(self):
+#        self.gs.clear()
+#        r=QtCore.QRectF(0, 0, 0.015,  0.015)
+#        
+#        self.marker=self.gs.addEllipse(r,  QtCore.Qt.red)
+#        self.marker.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+#        self.marker.setCursor(QtCore.Qt.SizeAllCursor)
+#        bounding=self.gs.sceneRect()
+#        for x in self.projector.projectedPoints:
+#            if bounding.contains(x):
+#                r.moveCenter(x)
+#                self.gs.addEllipse(r, QtCore.Qt.green)
          
     def dragEnterEvent(self, e):
         if e.mimeData().hasFormat('application/CrystalPointer'):
@@ -167,11 +167,12 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 p2=self.gv.mapToScene(self.gv.mapFromParent(e.pos()))
                 v1=self.projector.det2normal(p1)
                 v2=self.projector.det2normal(p2)
-                r=v2%v1
+                r=v1%v2
                 r.normalize()
                 a=math.acos(v1*v2)
                 #print '%6.3f %6.3f %6.3f %6.3f'%(p1.x(),  p1.y(),  p2.x(), p2.y()), v1, v2, r, a
-                print v2, r
+                p3=self.projector.normal2det(v2)
+                print v2,  '%6.3f %6.3f %6.3f %6.3f'%(p2.x(),  p2.y(),  p3.x(), p3.y())
                 self.projector.addRotation(r, a)
 
     def rotateHandler(self, *args):

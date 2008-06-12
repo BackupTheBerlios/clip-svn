@@ -66,6 +66,7 @@ class Crystal: public QObject {
         double lowerLambda;
             
         ObjectStore connectedProjectors;
+        
 };
 
 

@@ -7,17 +7,20 @@
 #include <QtCore/QVector>
 #include <QtCore/QPointF>
 #include <QtCore/QPointer>
+#include <QtGui/QGraphicsScene>
+ #include <QtGui/QGraphicsItem>
 #include <crystal.h>
 
 
 class Projector: public QObject {
     Q_OBJECT
     public:
-        Projector(ObjectStore*, QObject* parent=0);
+        Projector(QObject* parent=0);
         Projector(const Projector&);
-        QList<QPointF> projectedPoints;  
+
         double lowerWavelength();
         double upperWavelength();
+
         static Vec3D normal2scattered(const Vec3D&);
         static Vec3D scattered2normal(const Vec3D&);
 
@@ -25,6 +28,8 @@ class Projector: public QObject {
         virtual Vec3D det2scattered(const QPointF&)=0;
         virtual QPointF normal2det(const Vec3D&)=0;
         virtual Vec3D det2normal(const QPointF&)=0;
+        
+        QGraphicsScene* getScene();
         
     public slots:
         void connectToCrystal(Crystal *);
@@ -38,11 +43,18 @@ class Projector: public QObject {
         void projectedPointsUpdated();
         void wavelengthUpdated();
     protected:
-        virtual bool project(const Reflection &r)=0;
+        virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
+        virtual QGraphicsItem* itemFactory()=0;
+        virtual void decorateScene();
+    
+        QList<QGraphicsItem*> projectedItems;
+        QList<QGraphicsItem*> decorationItems;
+    
         QPointer<Crystal> crystal;
-        ObjectStore& crystalStore;
+
         double upperLambda;
         double lowerLambda;
+        QGraphicsScene scene;
 };
 
 

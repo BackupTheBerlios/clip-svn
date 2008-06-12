@@ -3,12 +3,13 @@ class Projector: QObject {
 %TypeHeaderCode
 #include <vec3D.h>
 #include <QtCore/QObject>
+#include <QtGui/QGraphicsScene>
 #include <projector.h>
 %End
     public:
-        Projector(ObjectStore*, QObject* parent=0);
+        Projector(QObject* parent=0);
         Projector(const Projector&);
-        QList<QPointF> projectedPoints;  
+        
         double lowerWavelength();
         double upperWavelength();
         static Vec3D normal2scattered(const Vec3D&);
@@ -19,6 +20,7 @@ class Projector: QObject {
         virtual QPointF normal2det(const Vec3D&)=0;
         virtual Vec3D det2normal(const QPointF&)=0;
         
+        QGraphicsScene* getScene();
     public slots:
         void connectToCrystal(Crystal *);
         void setWavelength(double lower, double upper);
@@ -31,7 +33,9 @@ class Projector: QObject {
         void projectedPointsUpdated();
         void wavelengthUpdated();
     protected:
-         virtual bool project(const Reflection &r)=0;
+        virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
+        virtual QGraphicsItem* itemFactory()=0;
+
 };
 
 
@@ -44,14 +48,15 @@ class StereoProjector: Projector {
 #include <projector.h>
 %End
     public:
-        StereoProjector(ObjectStore*, QObject* parent=0);
+        StereoProjector(QObject* parent=0);
         
         QPointF scattered2det(const Vec3D&);
         Vec3D det2scattered(const QPointF&);
         QPointF normal2det(const Vec3D&);
         Vec3D det2normal(const QPointF&);
     protected:
-        virtual bool project(const Reflection &r);
+        virtual bool project(const Reflection &r, QGraphicsItem* item);
+        virtual QGraphicsItem* itemFactory();
 };
 
 
