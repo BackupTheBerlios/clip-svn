@@ -1,6 +1,6 @@
 
 PLAINSRC=vec3D mat3D ImageTools
-QOBJSRC=crystal ObjectStore projector StereoProjector
+QOBJSRC=crystal ObjectStore projector StereoProjector LauePlaneProjector
 
 
 CXXFLAGS=-O2 -I/usr/include/qt4 -IC:\Programme\Qt\4.4.0\include -I/usr/include/qt4 -I/usr/include/qt4 -I. -fPIC -D__DEBUG__

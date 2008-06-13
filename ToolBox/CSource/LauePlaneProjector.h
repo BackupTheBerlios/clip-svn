@@ -1,12 +1,12 @@
-#ifndef __STEREOPROJECTOR_H__
-#define __STEREOPROJECTOR_H__
+#ifndef __LAUEPLANEPROJECTOR_H__
+#define __LAUEPLANEPROJECTOR_H__
 
 #include <projector.h>
 
-class StereoProjector: public Projector {
+class LauePlaneProjector: public Projector {
     Q_OBJECT
     public:
-        StereoProjector(QObject* parent=0);
+        LauePlaneProjector(QObject* parent=0);
         virtual QPointF scattered2det(const Vec3D&);
         virtual Vec3D det2scattered(const QPointF&);
         virtual QPointF normal2det(const Vec3D&);
@@ -19,6 +19,8 @@ class StereoProjector: public Projector {
         virtual QGraphicsItem* itemFactory();
     
         Mat3D localCoordinates;
+        double detWidth;
+        double detHeight;
 };
 
 #endif

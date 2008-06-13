@@ -28,7 +28,7 @@ class Projector: QObject {
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
-        
+        virtual void decorateScene()=0;
     signals:  
         void projectedPointsUpdated();
         void wavelengthUpdated();
@@ -54,12 +54,31 @@ class StereoProjector: Projector {
         Vec3D det2scattered(const QPointF&);
         QPointF normal2det(const Vec3D&);
         Vec3D det2normal(const QPointF&);
+        virtual void decorateScene();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();
 };
 
 
-
+class LauePlaneProjector: Projector {
+%TypeHeaderCode
+#include <vec3D.h>
+#include <QtCore/QObject>
+#include <LauePlaneProjector.h>
+#include <projector.h>
+%End
+    public:
+        LauePlaneProjector(QObject* parent=0);
+        
+        QPointF scattered2det(const Vec3D&);
+        Vec3D det2scattered(const QPointF&);
+        QPointF normal2det(const Vec3D&);
+        Vec3D det2normal(const QPointF&);
+        virtual void decorateScene();
+    protected:
+        virtual bool project(const Reflection &r, QGraphicsItem* item);
+        virtual QGraphicsItem* itemFactory();
+};
 
 

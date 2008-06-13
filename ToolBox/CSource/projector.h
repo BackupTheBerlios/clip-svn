@@ -38,14 +38,14 @@ class Projector: public QObject {
         void addRotation(const Vec3D &axis, double angle);
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
-        
+        virtual void decorateScene()=0;
+
     signals:  
         void projectedPointsUpdated();
         void wavelengthUpdated();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;
-        virtual void decorateScene();
     
         QList<QGraphicsItem*> projectedItems;
         QList<QGraphicsItem*> decorationItems;

@@ -1,19 +1,19 @@
 #include <projector.h>
 #import <cmath>
 #import <iostream>
+#import <QtCore/QTimer>
 
 using namespace std;
 
 Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems() {
     lowerLambda=1.0;
     upperLambda=100.0;
-    decorateScene();
+    QTimer::singleShot(0, this, SLOT(decorateScene()));
 };
 
 Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems()  {
     lowerLambda=p.lowerLambda;
     upperLambda=p.upperLambda;
-    decorateScene();
 }; 
 
 
@@ -50,49 +50,52 @@ void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
         return;
     
-    unsigned int projected=0;
-    unsigned int noproj=0;
+
     std::vector<Reflection>& r = crystal->getReflectionList();
     int n=0;
     int i=0;
 
-    //cout << "refUpdate" << n << " " << i <<endl;
-    cout << "Start: " << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
     
     for (; i<r.size() and n<projectedItems.size(); i++) {
-        //cout << "rewrite " << i << " " << n << endl;
         if (project(r[i], projectedItems.at(n))) {
             n++;
-            projected++;
-        } else {
-            noproj++;
         }
     }
-    cout << "rewrite: " << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << " " << noproj << endl;
+    #ifdef __DEBUG__
+    int rewritten=n;
+    int deleted=projectedItems.size()-n;
+    int added=r.size()-i;
+    int projected=n;
+    #endif
     QGraphicsItem* item;
     for (; n<projectedItems.size(); n++) {
-        //cout << "del" << n  << endl;
         item = projectedItems.takeLast();
         scene.removeItem(item);
         delete item;
     }
-    cout << "del:" << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
 
 
-    //cout << "Afterrewrite" << i << " " << n << endl;
     item = itemFactory();
     for (; i<r.size(); i++) {
-        //cout << "add" << i  << endl;
         if (project(r[i], item))  {
             projectedItems.append(item);
             scene.addItem(item);
             item = itemFactory();
+            #ifdef __DEBUG__
             projected++;
+            #endif
         }
     }
     delete item;
-    cout << "add:" << projected << " " << projectedItems.size() << " " << r.size() << " " << i << " " << n << endl;
     
+    #ifdef __DEBUG__
+    cout << "rewrite:" << rewritten;
+    cout << " det:" << deleted;
+    cout << " add:" << added;
+    cout << " projected:" << projected;
+    cout << " itemSize:" << projectedItems.size() << endl;
+    #endif
+       
     emit projectedPointsUpdated();
 }
 
@@ -103,14 +106,15 @@ Vec3D Projector::normal2scattered(const Vec3D &v) {
         return Vec3D();
     double y=v.y();
     double z=v.z();
-    return Vec3D(x*x-y*y-z*z, 2.0*x*y, 2.0*x*z);
+    return Vec3D(2*x*x-1.0, 2.0*x*y, 2.0*x*z);
 }
 
 Vec3D Projector::scattered2normal(const Vec3D& v) {
     double x=v.x();
     double y=v.y();
     double z=v.z();
-    x=sqrt(0.5*(x-1.0));
+
+    x=sqrt(0.5*(x+1.0));
     if (x==0.0) 
         return Vec3D();
     return Vec3D(x, 0.5*y/x, 0.5*z/x);
@@ -135,5 +139,4 @@ QGraphicsScene* Projector::getScene() {
     return &scene;
 }
 
-void Projector::decorateScene() {
-}
+

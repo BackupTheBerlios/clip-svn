@@ -49,7 +49,7 @@ class LaueImage(QtGui.QWidget):
         elif self.scaledImg.mode=='F':
             mode=0
         if mode!=None:
-            self.transfer.setData(s.width(),  s.height(), mode, self.scaledImg.tostring())
+            self.transfer.setData(s.width(), s.height(), mode, self.scaledImg.tostring())
     
     
     def paintEvent(self, e):

@@ -40,12 +40,12 @@ bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
     Vec3D v=localCoordinates*r.normal;
     double s=1.0+v.x();
     if (s<1e-5) {
-        cout << "noproject " << v.x() << " " << v.y() << " " << v.z() << " " << s << endl;
         return false;
     }
     QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
     s=1.0/s;
-    e->setRect(QRectF(v.y()*s, v.z()*s, 0.015, 0.015));
+    double w=0.015;
+    e->setRect(QRectF(v.y()*s-0.5*w, v.z()*s-0.5*w,w,w));
     return true;
     
 }

@@ -9,7 +9,7 @@ import math
 from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
 import Crystal
-#import ImgTransferCurve
+import ImgTransferCurve
 from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 
@@ -43,6 +43,7 @@ class clip(QtGui.QMainWindow):
         w=self.slotNewCrystal()
         w.crystal.setCell(5, 5, 5, 90, 90, 90)
         self.slotNewStereoProjector()
+        self.slotNewLauePlaneProjector()
         
     def initMenu(self):
         menudef = [
@@ -190,10 +191,19 @@ class clip(QtGui.QMainWindow):
         return wid
 
     def slotNewStereoProjector(self):
-        wid = ProjectionPlaneWidget(self.crystalStore, self)
+        wid = ProjectionPlaneWidget(0, self)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('Stereographic Projection')
+        self.MdiArea.addSubWindow(wid)
+        wid.show()
+        return wid
+        
+    def slotNewLauePlaneProjector(self):
+        wid = ProjectionPlaneWidget(1, self)
+        if self.crystalStore.size()>0:
+            wid.projector.connectToCrystal(self.crystalStore.at(0))
+        wid.setWindowTitle('LauePlane')
         self.MdiArea.addSubWindow(wid)
         wid.show()
         return wid

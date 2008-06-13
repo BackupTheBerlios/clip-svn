@@ -1,5 +1,5 @@
-from ToolBox import StereoProjector,  Vec3D,  Mat3D
-
+from ToolBox import StereoProjector, LauePlaneProjector, Vec3D, Mat3D, ImageTransfer
+import LaueImage
 from PyQt4 import QtCore, QtGui
 import math
 
@@ -9,39 +9,52 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
     moveContext=2
     releaseContext=3
-    def __init__(self, o, parent):
+    def __init__(self, type, parent):
         QtGui.QWidget.__init__(self, parent)
 
         self.zoomSteps=[]
         self.mousePressStart=None
+        self.image=None
         
-        self.projector=StereoProjector(o)
+        if type==0:
+            self.projector=StereoProjector(self)
+        elif type==1:
+            self.projector=LauePlaneProjector(self)
         self.projector.setWavelength(0.7, 1000.0)
         #self.connect(self.projector, QtCore.SIGNAL('projectedPointsUpdated()'),  self.update)
         self.setMinimumSize(QtCore.QSize(140, 180))
         self.setAcceptDrops(True)
 
-        #TODO: Move scene to projector
-        #self.gs=QtGui.QGraphicsScene(QtCore.QRectF(-1.0, -1.0, 2.0, 2.0), self)
-
         self.gv=MyGraphicsView(self)
         self.gv.setScene(self.projector.getScene())
-
+        self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
+        
         self.toolBar=QtGui.QToolBar(self)
         
         a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.rotate, 'Pan'), (Icons.rotate, 'Rotate')))
-        self.toolBar.addSeparator()
-        self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'AddMarker')))
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'configure')
         
-        self.connect(a[0],  QtCore.SIGNAL('toggled(bool)'),  self.zoomHandler)
-        self.connect(a[1],  QtCore.SIGNAL('toggled(bool)'),  self.panHandler)
-        self.connect(a[2],  QtCore.SIGNAL('toggled(bool)'),  self.rotateHandler)
+        self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.zoomHandler)
+        self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.panHandler)
+        self.connect(a[2], QtCore.SIGNAL('toggled(bool)'), self.rotateHandler)
         
+        self.toolBar.addSeparator()
+        self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'Add Marker')))
+
+        self.toolBar.addSeparator()
+        
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Image')
+        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.slotLoadImage)
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileclose)), 'Close Image')
+        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.slotCloseImage)
+
+
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'Configure')
+    
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
         
         self.mouseHandler=self.zoomHandler
+        QtCore.QTimer.singleShot(0, self.startResize)
 
     def mkActionGroup(self, n, args):
         group=QtGui.QActionGroup(self)
@@ -54,6 +67,10 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         r[n].setChecked(True)
         return r
 
+    def startResize(self):
+        #FIXME: View not fixed
+        self.resize(self.width()+1, self.height())
+        
     def resizeEvent(self, e):
         self.resizeView()
         self.updateZoom()
@@ -71,19 +88,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         maxSceneRect=QtCore.QRectF(QtCore.QPointF(0.5*(self.width()-maxScene.width()), 0.5*(self.height()-maxScene.height()+toolBarGeometry.height())), maxScene)
         self.gv.setGeometry(maxSceneRect.toRect())
         
-#    #TODO: Move to projector
-#    def updatePoints(self):
-#        self.gs.clear()
-#        r=QtCore.QRectF(0, 0, 0.015,  0.015)
-#        
-#        self.marker=self.gs.addEllipse(r,  QtCore.Qt.red)
-#        self.marker.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-#        self.marker.setCursor(QtCore.Qt.SizeAllCursor)
-#        bounding=self.gs.sceneRect()
-#        for x in self.projector.projectedPoints:
-#            if bounding.contains(x):
-#                r.moveCenter(x)
-#                self.gs.addEllipse(r, QtCore.Qt.green)
+
          
     def dragEnterEvent(self, e):
         if e.mimeData().hasFormat('application/CrystalPointer'):
@@ -170,9 +175,6 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 r=v1%v2
                 r.normalize()
                 a=math.acos(v1*v2)
-                #print '%6.3f %6.3f %6.3f %6.3f'%(p1.x(),  p1.y(),  p2.x(), p2.y()), v1, v2, r, a
-                p3=self.projector.normal2det(v2)
-                print v2,  '%6.3f %6.3f %6.3f %6.3f'%(p2.x(),  p2.y(),  p3.x(), p3.y())
                 self.projector.addRotation(r, a)
 
     def rotateHandler(self, *args):
@@ -182,17 +184,39 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             e, context=args
             if context==self.pressContext:
                 pass
-
+                
+                
+    def slotLoadImage(self):
+      fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Laue pattern', '', 'Image Plate Files (*.img);;All Images (*.jpg *.jpeg *.bmp *.png *.tif *.tiff *.gif *.img);;All Files (*)'))
+      fInfo=QtCore.QFileInfo(fileName)
+      if fInfo.exists():
+        img=LaueImage.Image.open(fileName)
+        mode=None
+        if img.mode=='RGB':
+            mode=1
+        elif img.mode=='F':
+            mode=0
+        if mode!=None:
+            self.image=ImageTransfer()
+            for i in range(4):
+                self.image.setTransferCurve(i, (1, ), (0, 1, 0, 0))
+            self.image.setData(img.width, img.height, mode, img.tostring())        
+            self.gv.setBGImage(self.image)
+            
+    def slotCloseImage(self):
+        self.gv.setBGImage(None)
 
 class MyGraphicsView(QtGui.QGraphicsView):
     def __init__(self, parent=0):
         QtGui.QGraphicsView.__init__(self, parent)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setRenderHints(QtGui.QPainter.Antialiasing)
+        self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
+        
         self.setDragMode(self.NoDrag)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
         self.viewIgnoresThisMouseEvent=False
+        self.BGImage=None
         
     def dragEnterEvent(self, e):
         if not e.mimeData().hasFormat('application/CrystalPointer'):
@@ -217,7 +241,22 @@ class MyGraphicsView(QtGui.QGraphicsView):
         else:
             QtGui.QGraphicsView.mouseReleaseEvent(self, e)
 
-
+    def setBGImage(self, img):
+        self.BGImage=img
+        self.viewport().update()
+        
+    def drawBackground(self, p, to):
+        if self.BGImage==None:
+            QtGui.QGraphicsView.drawBackground(self, p, to)
+        else:
+            p.save()
+            #p.setClipRect(to)
+            qi=self.BGImage.qImg()
+            
+            source=QtCore.QRectF(0.0, 0.0, qi.width(), qi.height())
+            target=self.sceneRect()
+            p.drawImage(target, qi, source)
+            p.restore()
 
 #FIXME: Port to C++ and remove here
 

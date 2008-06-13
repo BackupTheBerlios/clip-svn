@@ -1,4 +1,3 @@
-* Behandlung von Maus Move / Click
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
 * Punkte der Simulation -> Groesse aendern
 * Eigabe des Wellenlängenbandes / Spannung
@@ -10,8 +9,10 @@
 * Sys absents
 * CIF-Import der Kristallstruktur
 * Nomenklatur Axis, Axes, Zone, ...
-* mehrere "Kristalle", Orientierungen, etc.
-* Mehrere geladene Bilder
 * Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
 * Qwt5 ersetzen
+* bild rotieren / spiegeln
+* image-size -> sceneRect
+* bildstörung?
+* config für projectoren
