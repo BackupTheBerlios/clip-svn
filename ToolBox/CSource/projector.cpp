@@ -50,12 +50,10 @@ void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
         return;
     
-
     std::vector<Reflection>& r = crystal->getReflectionList();
     int n=0;
     int i=0;
 
-    
     for (; i<r.size() and n<projectedItems.size(); i++) {
         if (project(r[i], projectedItems.at(n))) {
             n++;

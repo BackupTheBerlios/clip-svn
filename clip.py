@@ -9,7 +9,7 @@ import math
 from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
 import Crystal
-import ImgTransferCurve
+#import ImgTransferCurve
 from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 

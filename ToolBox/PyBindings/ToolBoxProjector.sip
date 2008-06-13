@@ -21,6 +21,8 @@ class Projector: QObject {
         virtual Vec3D det2normal(const QPointF&)=0;
         
         QGraphicsScene* getScene();
+        virtual QString configName()=0;
+
     public slots:
         void connectToCrystal(Crystal *);
         void setWavelength(double lower, double upper);
@@ -55,6 +57,7 @@ class StereoProjector: Projector {
         QPointF normal2det(const Vec3D&);
         Vec3D det2normal(const QPointF&);
         virtual void decorateScene();
+        virtual QString configName();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();
@@ -76,6 +79,8 @@ class LauePlaneProjector: Projector {
         QPointF normal2det(const Vec3D&);
         Vec3D det2normal(const QPointF&);
         virtual void decorateScene();
+        virtual QString configName();
+        void updatePBMarker();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();

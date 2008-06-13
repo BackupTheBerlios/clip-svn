@@ -49,12 +49,25 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
 
         self.toolBar.addSeparator()
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'Configure')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'Configure')
+        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.startConfig)
     
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
         
         self.mouseHandler=self.zoomHandler
         QtCore.QTimer.singleShot(0, self.startResize)
+
+    def startConfig(self):
+        s=self.projector.configName()
+        #try:
+        exec('from %s import %s'%(s, s))
+        w=eval('%s(self.projector,self)'%s)
+        #except:
+        #   pass
+        mdi=self.parent().mdiArea()
+        mdi.addSubWindow(w)
+        w.show()
+            
 
     def mkActionGroup(self, n, args):
         group=QtGui.QActionGroup(self)
@@ -211,8 +224,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
         QtGui.QGraphicsView.__init__(self, parent)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
-        
+        #self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
+        self.setRenderHints(QtGui.QPainter.Antialiasing)
+        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setDragMode(self.NoDrag)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
         self.viewIgnoresThisMouseEvent=False
@@ -249,14 +263,19 @@ class MyGraphicsView(QtGui.QGraphicsView):
         if self.BGImage==None:
             QtGui.QGraphicsView.drawBackground(self, p, to)
         else:
+            print "Draw"
             p.save()
             #p.setClipRect(to)
             qi=self.BGImage.qImg()
+            sr=self.sceneRect()
+            source=QtCore.QRectF((to.x()-sr.x())*qi.width()/sr.width(), (to.y()-sr.y())*qi.height()/sr.height(), to.width()*qi.width()/sr.width(), to.height()*qi.height()/sr.height())
             
-            source=QtCore.QRectF(0.0, 0.0, qi.width(), qi.height())
-            target=self.sceneRect()
-            p.drawImage(target, qi, source)
+            p.drawImage(to, qi, source)
             p.restore()
+            print "end"
+
+
+
 
 #FIXME: Port to C++ and remove here
 

@@ -61,6 +61,43 @@ void LauePlaneProjector::decorateScene() {
         scene.removeItem(item);
         delete item;
     }
+    QGraphicsEllipseItem* center=scene.addEllipse(-0.015, -0.015, 0.03, 0.03, QPen(Qt::red));
+    center->setFlag(QGraphicsItem::ItemIsMovable, true);
+    QGraphicsEllipseItem* handle=scene.addEllipse(-0.015, -0.015, 0.03, 0.03, QPen(Qt::red));
+    handle->moveBy(0.1, 0);
+    handle->setFlag(QGraphicsItem::ItemIsMovable, true);
+    handle->setParentItem(center);
+
+    QGraphicsEllipseItem* marker=scene.addEllipse(0.1, 0.1, 0.13, 0.13, QPen(Qt::red));
+    marker->setParentItem(center);
+    
+    decorationItems.append(center);
+    decorationItems.append(handle);
+    decorationItems.append(marker);
+    
+    connect(&scene, SIGNAL(changed(const QList<QRectF> &)), this, SLOT(updatePBMarker()));
+    updatePBMarker();
 }
 
 
+void LauePlaneProjector::updatePBMarker() {
+    QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
+    QGraphicsEllipseItem* handle=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[1]);
+    QGraphicsEllipseItem* marker=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[2]);
+    
+    QPointF p=handle->pos();
+    double l=hypot(p.x(), p.y());
+    #ifdef __DEBUG__
+    cout << "bpmarker (" << center->pos().x() << "," << center->pos().y() << ") l=" << l << endl;
+    #endif
+
+    QRectF r(-l, -l, 2*l, 2*l);
+    r.moveCenter(center->rect().center());
+    marker->setRect(r);
+}
+    
+QString LauePlaneProjector::configName() {
+    return QString("LauePlaneCfg");
+}
+
+    

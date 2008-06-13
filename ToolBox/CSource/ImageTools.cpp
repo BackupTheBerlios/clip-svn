@@ -143,27 +143,29 @@ void ImageTransfer::doFloatTransfer() {
     unsigned int cPos[3];
     for (unsigned int i=3; i--; )
         cPos[i]=0;
-    unsigned char rgb[3];
+    unsigned int rgbVal;
     for (unsigned int i=0; i<curves[0].size(); i++) {
         ParamSet p=curves[0][i];
         while (n<N and arr[sortedIdx[n]]<p.upper) {
             float val=arr[sortedIdx[n]];
             float nval=p.calc(val);
+            rgbVal=0xFF;
             for (unsigned int j=3; j--; ) {
                 unsigned int s=curves[j+1].size();
                 while (cPos[j]+1<s and nval>curves[j+1][cPos[j]].upper)
                     cPos[j]++;
                 while (cPos[j]>0 and nval<curves[j+1][cPos[j]-1].upper)
                     cPos[j]--;
-                rgb[2-j]=(unsigned char)(255.0*curves[j+1][cPos[j]].calc(nval));
+                rgbVal<<=8;
+                rgbVal|=(unsigned char)(255.0*curves[j+1][cPos[j]].calc(nval));
+                
             }
 #ifdef __DEBUG__
             //cout << "inVal " << val << " -> (" << (int)rgb[0] << "," << (int)rgb[1] << "," << (int)rgb[2] << ")" << endl;
 #endif
 
             while (n<N and val==arr[sortedIdx[n]]) {
-                for (unsigned int i=3; i--; ) 
-                    transferedData[4*sortedIdx[n]+i]=rgb[i];
+                ((unsigned int *)transferedData)[sortedIdx[n]]=rgbVal;
                 n++;
             }
         }

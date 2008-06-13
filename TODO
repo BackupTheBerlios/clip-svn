@@ -1,3 +1,14 @@
+* Config für Projectoren
+* Aus / An für Reflexe,  Grid
+* hkls als Text im Projector
+* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
+* Qwt5 ersetzen
+* UI für Lösung
+* bild rotieren / spiegeln
+* UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
+* UI für Reflexe
+* UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
+
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
 * Punkte der Simulation -> Groesse aendern
 * Eigabe des Wellenlängenbandes / Spannung
@@ -9,10 +20,16 @@
 * Sys absents
 * CIF-Import der Kristallstruktur
 * Nomenklatur Axis, Axes, Zone, ...
-* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
+
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
-* Qwt5 ersetzen
-* bild rotieren / spiegeln
 * image-size -> sceneRect
 * bildstörung?
 * config für projectoren
+* Kommentare
+* LaueCylinder Projector   
+* Bild des CoordinatenSystems
+* Icons
+* Setzen von Punkten für Lösung / Verschieben der Punkte (einfach per GV)
+* Aufräumen von clip.py
+* Upload to Sourceforge / CCP13
+* Hauptmenü verbessern

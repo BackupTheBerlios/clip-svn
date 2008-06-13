@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>196</width>
-    <height>256</height>
+    <width>622</width>
+    <height>741</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -62,16 +62,6 @@
    </item>
    <item row="1" column="0" >
     <layout class="QGridLayout" >
-     <item row="0" column="1" >
-      <widget class="QwtPlot" name="CurveDisplay" >
-       <property name="minimumSize" >
-        <size>
-         <width>150</width>
-         <height>150</height>
-        </size>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0" >
       <widget class="QLabel" name="verticalScale" >
        <property name="sizePolicy" >
@@ -128,6 +118,21 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1" >
+      <widget class="QGraphicsView" name="gv" >
+       <property name="sceneRect" >
+        <rectf>
+         <x>0.000000000000000</x>
+         <y>0.000000000000000</y>
+         <width>1.000000000000000</width>
+         <height>1.000000000000000</height>
+        </rectf>
+       </property>
+       <property name="renderHints" >
+        <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="2" column="0" >
@@ -163,14 +168,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <customwidgets>
-  <customwidget>
-   <class>QwtPlot</class>
-   <extends>QFrame</extends>
-   <header>qwt_plot.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <includes>
   <include location="local" >qwt_plot.h</include>
  </includes>

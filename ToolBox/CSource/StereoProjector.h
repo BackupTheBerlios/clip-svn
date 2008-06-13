@@ -11,6 +11,8 @@ class StereoProjector: public Projector {
         virtual Vec3D det2scattered(const QPointF&);
         virtual QPointF normal2det(const Vec3D&);
         virtual Vec3D det2normal(const QPointF&);
+    
+        virtual QString configName();
     public slots:
         virtual void decorateScene();
 

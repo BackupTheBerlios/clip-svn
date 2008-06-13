@@ -68,4 +68,6 @@ void StereoProjector::decorateScene() {
     decorationItems.append(scene.addLine(0.0, -1.0, 0.0, 1.0, QPen(Qt::gray)));
 }
 
-
+QString StereoProjector::configName() {
+    return QString("StereoCfg");
+}

@@ -9,6 +9,7 @@
 #include <QtCore/QPointer>
 #include <QtGui/QGraphicsScene>
  #include <QtGui/QGraphicsItem>
+ #include <QtCore/QString>
 #include <crystal.h>
 
 
@@ -30,6 +31,8 @@ class Projector: public QObject {
         virtual Vec3D det2normal(const QPointF&)=0;
         
         QGraphicsScene* getScene();
+        
+        virtual QString configName()=0;
         
     public slots:
         void connectToCrystal(Crystal *);
