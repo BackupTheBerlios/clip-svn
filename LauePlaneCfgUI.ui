@@ -1,0 +1,317 @@
+<ui version="4.0" >
+ <class>LauePlaneCfgUI</class>
+ <widget class="QWidget" name="LauePlaneCfgUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>654</width>
+    <height>725</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2" >
+   <item rowspan="6" row="0" column="0" >
+    <layout class="QGridLayout" name="gridLayout" >
+     <item row="0" column="0" >
+      <widget class="QLabel" name="label_4" >
+       <property name="text" >
+        <string>Dist</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detDist</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" >
+      <widget class="QDoubleSpinBox" name="detDist" >
+       <property name="minimum" >
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>300.000000000000000</double>
+       </property>
+       <property name="value" >
+        <double>30.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" >
+      <widget class="QLabel" name="label_2" >
+       <property name="text" >
+        <string>Width</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detWidth</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QDoubleSpinBox" name="detWidth" >
+       <property name="minimum" >
+        <double>10.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>1000.000000000000000</double>
+       </property>
+       <property name="value" >
+        <double>110.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" >
+      <widget class="QLabel" name="label_3" >
+       <property name="text" >
+        <string>Height</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detHeight</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1" >
+      <widget class="QDoubleSpinBox" name="detHeight" >
+       <property name="minimum" >
+        <double>10.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>1000.000000000000000</double>
+       </property>
+       <property name="value" >
+        <double>140.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" >
+      <widget class="QLabel" name="label_5" >
+       <property name="text" >
+        <string>minimal Wavelength</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detMinWavelength</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" >
+      <widget class="QDoubleSpinBox" name="detMinWavelength" >
+       <property name="decimals" >
+        <number>3</number>
+       </property>
+       <property name="minimum" >
+        <double>0.030000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" >
+      <widget class="QLabel" name="label_6" >
+       <property name="text" >
+        <string>maximal Wavelength</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detMaxwavelength</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1" >
+      <widget class="QDoubleSpinBox" name="detMaxwavelength" >
+       <property name="decimals" >
+        <number>3</number>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" >
+      <widget class="QLabel" name="label_7" >
+       <property name="text" >
+        <string>Omega</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detOmega</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1" >
+      <widget class="QDoubleSpinBox" name="detOmega" />
+     </item>
+     <item row="6" column="1" >
+      <widget class="QDoubleSpinBox" name="detChi" />
+     </item>
+     <item row="7" column="0" >
+      <widget class="QLabel" name="label_9" >
+       <property name="text" >
+        <string>Phi</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detPhi</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1" >
+      <widget class="QDoubleSpinBox" name="detPhi" />
+     </item>
+     <item row="8" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="text" >
+        <string>label Reflections to h^2+k^2+l^2</string>
+       </property>
+       <property name="wordWrap" >
+        <bool>true</bool>
+       </property>
+       <property name="buddy" >
+        <cstring>maxRefLabel</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1" >
+      <widget class="QSpinBox" name="maxRefLabel" />
+     </item>
+     <item row="6" column="0" >
+      <widget class="QLabel" name="label_8" >
+       <property name="text" >
+        <string>Chi</string>
+       </property>
+       <property name="buddy" >
+        <cstring>detChi</cstring>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QCheckBox" name="checkBox" >
+     <property name="text" >
+      <string>Antialias Items</string>
+     </property>
+     <property name="checked" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" >
+    <widget class="QCheckBox" name="checkBox_2" >
+     <property name="text" >
+      <string>Smooth Image</string>
+     </property>
+     <property name="checked" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" >
+    <widget class="QCheckBox" name="checkBox_3" >
+     <property name="text" >
+      <string>Antialias Text</string>
+     </property>
+     <property name="checked" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" >
+    <widget class="QCheckBox" name="checkBox_4" >
+     <property name="text" >
+      <string>Show Projected Points</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" >
+    <widget class="QCheckBox" name="checkBox_5" >
+     <property name="text" >
+      <string>Show Primary Beam</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" >
+    <layout class="QHBoxLayout" name="horizontalLayout_2" >
+     <item>
+      <widget class="QLabel" name="label_10" >
+       <property name="text" >
+        <string>min l:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout" >
+       <item>
+        <widget class="QDoubleSpinBox" name="doubleSpinBox" >
+         <property name="enabled" >
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Fixed" hsizetype="Maximum" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frame" >
+          <bool>true</bool>
+         </property>
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_11" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Maximum" hsizetype="Maximum" >
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text" >
+          <string>keV</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+  <zorder>maxRefLabel</zorder>
+  <zorder>label</zorder>
+  <zorder>lineEdit</zorder>
+  <zorder>lineEdit_2</zorder>
+  <zorder>lineEdit_3</zorder>
+  <zorder>label_2</zorder>
+  <zorder>label_3</zorder>
+  <zorder>label_4</zorder>
+  <zorder>lineEdit_4</zorder>
+  <zorder>lineEdit_5</zorder>
+  <zorder>label_5</zorder>
+  <zorder>label_6</zorder>
+  <zorder>timeEdit</zorder>
+  <zorder>doubleSpinBox</zorder>
+  <zorder>detWidth</zorder>
+  <zorder>detHeight</zorder>
+  <zorder>detDist</zorder>
+  <zorder>detMinWavelength</zorder>
+  <zorder>detMaxwavelength</zorder>
+  <zorder>label_7</zorder>
+  <zorder>spinBox_2</zorder>
+  <zorder>detOmega</zorder>
+  <zorder>label_7</zorder>
+  <zorder>doubleSpinBox_8</zorder>
+  <zorder>label_8</zorder>
+  <zorder>detChi</zorder>
+  <zorder>label_8</zorder>
+  <zorder>doubleSpinBox_9</zorder>
+  <zorder>detPhi</zorder>
+  <zorder>label_9</zorder>
+  <zorder>groupBox</zorder>
+  <zorder>groupBox_2</zorder>
+  <zorder>lineEdit</zorder>
+  <zorder>label_10</zorder>
+  <zorder>label_11</zorder>
+  <zorder>label_10</zorder>
+  <zorder>checkBox</zorder>
+  <zorder>checkBox_2</zorder>
+  <zorder>checkBox_3</zorder>
+  <zorder>checkBox_5</zorder>
+  <zorder>checkBox_4</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
