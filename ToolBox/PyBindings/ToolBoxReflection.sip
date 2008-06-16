@@ -12,9 +12,13 @@ class  Reflection {
   
         // lowest order
         int lowestDiffOrder;
-
+        
         // direct space d-Value
         double d;
+        // Reziplocl length
+        double Q;
+        // Order 1 scattering Wavevectors (Q/2/sin(theta)/2/pi)
+        double Qscatter;
 
         // All contributing orders
         std::vector<int> orders;

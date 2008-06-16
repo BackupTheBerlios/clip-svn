@@ -6,14 +6,14 @@
 using namespace std;
 
 Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems() {
-    lowerLambda=1.0;
-    upperLambda=100.0;
+    QminVal=0.0;
+    QmaxVal=4.0;
     QTimer::singleShot(0, this, SLOT(decorateScene()));
 };
 
 Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems()  {
-    lowerLambda=p.lowerLambda;
-    upperLambda=p.upperLambda;
+    QminVal=p.QminVal;
+    QmaxVal=p.QmaxVal;
 }; 
 
 
@@ -29,22 +29,23 @@ void Projector::connectToCrystal(Crystal *c) {
 }
     
 
-double Projector::lowerWavelength() {
-    return lowerLambda;
+double Projector::Qmin() {
+    return QminVal;
 }
 
-double Projector::upperWavelength() {
-    return upperLambda;
+double Projector::Qmax() {
+    return QmaxVal;
 }
 
 
-void Projector::setWavelength(double lower, double upper)  {
-    if ((lower<upper) and ((lower!=lowerLambda) or (upper!=upperLambda))) {
-        lowerLambda=lower;
-        upperLambda=upper;
-        emit wavelengthUpdated();
+void Projector::setWavevectors(double Qmin, double Qmax)  {
+    if ((Qmin<Qmax) and ((Qmin!=QminVal) or (Qmax!=QmaxVal))) {
+        QmaxVal=Qmax;
+        QminVal=Qmin;
+        emit wavevectorsUpdated();
     }
 }
+
 
 void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
@@ -87,12 +88,14 @@ void Projector::reflectionsUpdated() {
     delete item;
     
     #ifdef __DEBUG__
-    cout << "rewrite:" << rewritten;
-    cout << " det:" << deleted;
-    cout << " add:" << added;
-    cout << " projected:" << projected;
-    cout << " itemSize:" << projectedItems.size() << endl;
-    #endif
+/* 
+ *     cout << "rewrite:" << rewritten;
+ *     cout << " det:" << deleted;
+ *     cout << " add:" << added;
+ *     cout << " projected:" << projected;
+ *     cout << " itemSize:" << projectedItems.size() << endl;
+ */ 
+   #endif
        
     emit projectedPointsUpdated();
 }

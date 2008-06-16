@@ -20,8 +20,6 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.projector=StereoProjector(self)
         elif type==1:
             self.projector=LauePlaneProjector(self)
-        self.projector.setWavelength(0.7, 1000.0)
-        #self.connect(self.projector, QtCore.SIGNAL('projectedPointsUpdated()'),  self.update)
         self.setMinimumSize(QtCore.QSize(140, 180))
         self.setAcceptDrops(True)
 
@@ -29,6 +27,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.gv.setScene(self.projector.getScene())
         self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
         
+        self.connect(self.projector, QtCore.SIGNAL('wavevectorsUpdated()'),  self.gv.viewport().update)
+
         self.toolBar=QtGui.QToolBar(self)
         
         a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.rotate, 'Pan'), (Icons.rotate, 'Rotate')))
@@ -59,14 +59,15 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
     def startConfig(self):
         s=self.projector.configName()
-        #try:
-        exec('from %s import %s'%(s, s))
-        w=eval('%s(self.projector,self)'%s)
-        #except:
-        #   pass
-        mdi=self.parent().mdiArea()
-        mdi.addSubWindow(w)
-        w.show()
+        try:
+            exec('from %s import %s'%(s, s))
+            w=eval('%s(self.projector,self)'%s)
+        except:
+           pass
+        else:           
+            mdi=self.parent().mdiArea()
+            mdi.addSubWindow(w)
+            w.show()
             
 
     def mkActionGroup(self, n, args):

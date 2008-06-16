@@ -10,8 +10,8 @@ class Projector: QObject {
         Projector(QObject* parent=0);
         Projector(const Projector&);
         
-        double lowerWavelength();
-        double upperWavelength();
+        double Qmin();
+        double Qmax();
         static Vec3D normal2scattered(const Vec3D&);
         static Vec3D scattered2normal(const Vec3D&);
 
@@ -25,7 +25,7 @@ class Projector: QObject {
 
     public slots:
         void connectToCrystal(Crystal *);
-        void setWavelength(double lower, double upper);
+        void setWavevectors(double Qmin, double Qmax);
         void reflectionsUpdated();
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -33,7 +33,7 @@ class Projector: QObject {
         virtual void decorateScene()=0;
     signals:  
         void projectedPointsUpdated();
-        void wavelengthUpdated();
+        void wavevectorsUpdated();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;

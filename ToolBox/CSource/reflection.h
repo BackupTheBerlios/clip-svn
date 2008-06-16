@@ -18,6 +18,12 @@ class  Reflection {
 
         // direct space d-Value
         double d;
+            
+        // Reziprocal lattice Vector = 2pi/d
+        double Q;
+            
+        // Order 1 scattering Wavevectors (Q/2/sin(theta)/2/pi)
+        double Qscatter;
 
         // All contributing orders
         std::vector<int> orders;

@@ -30,9 +30,9 @@ class Crystal: QObject {
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
         void setCell(double a, double b, double c, double alpha, double beta, double gamma);
-        void setWavelengthBoundaries(double lower, double upper);
+        void setWavevectors(double lower, double upper);
         void addProjector(Projector*);
-        void updateWavelengthFromProjectors();
+        void updateWavevectorsFromProjectors();
     signals:
         void cellChanged();
         void orientationChanged();

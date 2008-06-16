@@ -8,7 +8,9 @@ using namespace std;
 LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(parent), localCoordinates() {
     detWidth=3.0;
     detHeight=4.0;
+
     scene.setSceneRect(QRectF(-0.5*detWidth, -0.5*detHeight, detWidth, detHeight));
+    
 };
 
 
@@ -37,11 +39,28 @@ Vec3D LauePlaneProjector::det2normal(const QPointF& p) {
 
 
 bool LauePlaneProjector::project(const Reflection &r, QGraphicsItem* item) {
+    if (r.lowestDiffOrder==0) 
+        return false;
+
+    double minN=QminVal/r.Qscatter;
+    double maxN=QmaxVal/r.Qscatter;
+    bool doesReflect=false;
+    for (unsigned int i=0; i<r.orders.size(); i++) {
+        unsigned int n=r.orders[i];
+        if ((minN<=n) and (n<=maxN)) {
+            doesReflect=true;
+            break;
+        }
+    }
+    if (not doesReflect)
+        return false;
+        
     Vec3D v=localCoordinates*r.scatteredRay;
     double s=v.x();
-    if (s<1e-5) {
+    if (s<1e-10)
         return false;
-    }
+    
+    
     QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
     s=1.0/s;
     double w=0.015;
