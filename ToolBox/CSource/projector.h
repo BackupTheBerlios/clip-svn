@@ -19,9 +19,6 @@ class Projector: public QObject {
         Projector(QObject* parent=0);
         Projector(const Projector&);
 
-        double Qmin();
-        double Qmax();
-
         static Vec3D normal2scattered(const Vec3D&);
         static Vec3D scattered2normal(const Vec3D&);
 
@@ -33,6 +30,15 @@ class Projector: public QObject {
         QGraphicsScene* getScene();
         
         virtual QString configName()=0;
+
+        double Qmin() const;
+        double Qmax() const;
+        unsigned int getMaxHklSqSum() const;
+        double getTextSize() const;
+        double getSpotSize() const;
+        bool spotsEnabled() const;
+        
+        QList<Vec3D> getMarkerNormals();
         
     public slots:
         void connectToCrystal(Crystal *);
@@ -41,22 +47,39 @@ class Projector: public QObject {
         void addRotation(const Vec3D &axis, double angle);
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
+        
+        void addMarker(const QPointF& p);
+        void delMarkerNear(const QPointF& p);
+        
         virtual void decorateScene()=0;
-
+        void setMaxHklSqSum(unsigned int m);
+        void setTextSize(double d);
+        void setSpotSize(double d);
+        void enableSpots(bool b=true);
+        
     signals:  
         void projectedPointsUpdated();
         void wavevectorsUpdated();
+        void projectionParamsChanged();
+        void projectionSizeChanged();
+
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;
     
         QList<QGraphicsItem*> projectedItems;
         QList<QGraphicsItem*> decorationItems;
+        QList<QGraphicsItem*> textMarkerItems;
+        QList<QGraphicsEllipseItem*> markerItems;
     
         QPointer<Crystal> crystal;
 
         double QminVal;
         double QmaxVal;
+        unsigned int maxHklSqSum;
+        double textSize;
+        double spotSize;
+        bool showSpots;
         QGraphicsScene scene;
 };
 

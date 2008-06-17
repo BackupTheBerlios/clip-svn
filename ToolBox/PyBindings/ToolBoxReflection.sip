@@ -9,7 +9,8 @@ class  Reflection {
         int h;
         int k;
         int l;
-  
+        
+        int hklSqSum;
         // lowest order
         int lowestDiffOrder;
         

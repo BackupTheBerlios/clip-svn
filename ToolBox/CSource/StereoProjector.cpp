@@ -37,6 +37,17 @@ Vec3D StereoProjector::det2normal(const QPointF& p) {
 
 
 bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
+    bool doesReflect=false;
+    for (unsigned int i=0; i<r.orders.size(); i++) {
+        unsigned int n=r.orders[i];
+        if ((QminVal<=n*r.Q) and (n*r.Q<=QmaxVal)) {
+            doesReflect=true;
+            break;
+        }
+    }
+    if (not doesReflect)
+        return false;
+    
     Vec3D v=localCoordinates*r.normal;
     double s=1.0+v.x();
     if (s<1e-5) {
@@ -47,7 +58,6 @@ bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
     double w=0.015;
     e->setRect(QRectF(v.y()*s-0.5*w, v.z()*s-0.5*w,w,w));
     return true;
-    
 }
         
 QGraphicsItem* StereoProjector::itemFactory() {

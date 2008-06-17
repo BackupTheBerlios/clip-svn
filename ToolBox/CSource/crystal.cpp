@@ -99,32 +99,29 @@ void Crystal::setWavevectors(double _Qmin, double _Qmax) {
 
 void Crystal::generateReflections() {
     reflections.clear();
-    // Q=pi/d/sin(theta)
-    // n*lambda=2*d*sin(theta) => n=2*d/lambda = 2*d*Q/2/pi
-    int hMax = int(a*Qmax*M_1_PI);
+    // Q=0.5/d/sin(theta)
+    // n*lambda=2*d*sin(theta) => n=2*d/lambda = 2*Q*d
+    int hMax = int(2.0*a*Qmax);
     //cout << "hMax: " << hMax << endl;
     for (int h=-hMax; h<=hMax; h++) {
 
-        //|h*as+k*bs|^2=h^2*|as|^2+k^2*|bs|^2+2*h*k*as*bs==(2*Qmax/2/pi)^2
-        // k^2 +2*k *h*as*bs/|bs|^2 + (h^2*|as|^2-Qmax/pi)/|bs|^2 == 0
+        //|h*as+k*bs|^2=h^2*|as|^2+k^2*|bs|^2+2*h*k*as*bs==(2*Qmax)^2
+        // k^2 +2*k *h*as*bs/|bs|^2 + (h^2*|as|^2-4*Qmax^2)/|bs|^2 == 0
         double ns = 1.0/bstar.norm_sq();
         double p = astar*bstar*ns*h;
         double q1 = astar.norm_sq()*ns*h*h;
-        double q2 = ns*Qmax*Qmax*M_1_PI*M_1_PI;
+        double q2 = 4.0*ns*Qmax*Qmax;
         double s = p*p-q1+q2;
         int kMin = (s>0)?int(-p-sqrt(s)):0;
         int kMax = (s>0)?int(-p+sqrt(s)):0;
         
-        Vec3D v1=astar*h+bstar*kMin;
-        Vec3D v2=astar*h+bstar*kMax;
-        //cout << "kMin " << h << " " << kMin << " " << kMax << " " << v1.norm() << " " << v2.norm() << " " << Qmax*M_1_PI << endl;
         for (int k=kMin; k<=kMax; k++) {
-      
+
             Vec3D v = MReziprocal*Vec3D(h,k,0);
             ns = 1.0/cstar.norm_sq();      
             p = v*cstar*ns;
             q1 = v.norm_sq()*ns;
-            q2 = ns*Qmax*Qmax*M_1_PI*M_1_PI;
+            q2 = 4.0*ns*Qmax*Qmax;
             s = p*p-q1+q2;	
             int lMin = (s>0)?int(-p-sqrt(s)):0;
             int lMax = (s>0)?int(-p+sqrt(s)):0;
@@ -133,16 +130,17 @@ void Crystal::generateReflections() {
                 // store only lowest order reflections
                 if (ggt(h,ggt(k,l))==1) {
                     v=MReziprocal*Vec3D(h,k,l);
-                    double Q = 2.0*M_PI*v.norm();
+                    double Q = 0.5*v.norm();
 
-                    if (Q<=2.0*Qmax) {
+                    if (Q<=Qmax) {
                         Reflection r;
                         r.h=h;
                         r.k=k;
                         r.l=l;
+                        r.hklSqSum=h*h+k*k+l*l;
                         r.Q=Q;
-                        r.d = 2.0*M_PI/Q;
-                        for (unsigned int i=1; i<int(2.0*Qmax/r.Q+0.9); i++) {
+                        r.d = 0.5/Q;
+                        for (unsigned int i=1; i<int(2.0*Qmax*r.d+0.9); i++) {
                             // TODO: check sys absents
                             r.orders.push_back(i);
                         }
@@ -167,8 +165,8 @@ void Crystal::updateRotation() {
         // sin(theta) = v*e_x = v.x
         // x direction points toward source, z points upwards
         if (r.normal.x()>0.0) {
-            //Q=pi/d/sin(theta)=0.5*r.Q/sin(theta)
-            r.Qscatter = 0.25*M_1_PI*r.Q/r.normal.x();
+            //Q=0.5/d/sin(theta)=r.Q/sin(theta)
+            r.Qscatter = r.Q/r.normal.x();
             // Loop over higher orders
     
             for (unsigned int j=0; j<r.orders.size(); j++) {
@@ -255,4 +253,11 @@ void Crystal::updateWavevectorsFromProjectors() {
             hi=p->Qmax();
     }
     setWavevectors(lo,hi);
+}
+
+QList<Projector*> Crystal::getConnectedProjectors() {
+    QList<Projector*> r;
+    for (unsigned int i=0; i<connectedProjectors.size(); i++)
+        r << dynamic_cast<Projector*>(connectedProjectors.at(i));
+    return r;
 }

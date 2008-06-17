@@ -6,11 +6,8 @@
 using namespace std;
 
 LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(parent), localCoordinates() {
-    detWidth=3.0;
-    detHeight=4.0;
-
-    scene.setSceneRect(QRectF(-0.5*detWidth, -0.5*detHeight, detWidth, detHeight));
-    
+    setDetSize(30.0, 110.0, 140.0);
+    setDetOrientation(180.0, 0, 0);
 };
 
 
@@ -42,12 +39,10 @@ bool LauePlaneProjector::project(const Reflection &r, QGraphicsItem* item) {
     if (r.lowestDiffOrder==0) 
         return false;
 
-    double minN=QminVal/r.Qscatter;
-    double maxN=QmaxVal/r.Qscatter;
     bool doesReflect=false;
     for (unsigned int i=0; i<r.orders.size(); i++) {
         unsigned int n=r.orders[i];
-        if ((minN<=n) and (n<=maxN)) {
+        if ((QminVal<=n*r.Qscatter) and (n*r.Qscatter<=QmaxVal)) {
             doesReflect=true;
             break;
         }
@@ -63,8 +58,8 @@ bool LauePlaneProjector::project(const Reflection &r, QGraphicsItem* item) {
     
     QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
     s=1.0/s;
-    double w=0.015;
-    e->setRect(QRectF(v.y()*s-0.5*w, v.z()*s-0.5*w,w,w));
+    e->setRect(QRectF(-0.5*spotSize, -0.5*spotSize,spotSize,spotSize));
+    e->setPos(v.y()*s, v.z()*s);
     return true;
 }
         
@@ -80,9 +75,9 @@ void LauePlaneProjector::decorateScene() {
         scene.removeItem(item);
         delete item;
     }
-    QGraphicsEllipseItem* center=scene.addEllipse(-0.015, -0.015, 0.03, 0.03, QPen(Qt::red));
+    QGraphicsEllipseItem* center=scene.addEllipse(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize, QPen(Qt::red));
     center->setFlag(QGraphicsItem::ItemIsMovable, true);
-    QGraphicsEllipseItem* handle=scene.addEllipse(-0.015, -0.015, 0.03, 0.03, QPen(Qt::red));
+    QGraphicsEllipseItem* handle=scene.addEllipse(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize, QPen(Qt::red));
     handle->moveBy(0.1, 0);
     handle->setFlag(QGraphicsItem::ItemIsMovable, true);
     handle->setParentItem(center);
@@ -119,4 +114,47 @@ QString LauePlaneProjector::configName() {
     return QString("LauePlaneCfg");
 }
 
+void LauePlaneProjector::setDetSize(double dist, double width, double height) {
+    if ((detDist!=dist) or (detWidth!=width) or (detHeight!=height)) {
+        detDist=dist;
+        detWidth=width;
+        detHeight=height;
+        
+        scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
+        reflectionsUpdated();
+    }
+}
     
+void LauePlaneProjector::setDetOrientation(double omega, double chi, double phi) {
+    if ((detOmega!=omega) or (detChi!=chi) or (detPhi!=phi)) {
+        detOmega=omega;
+        detChi=chi;
+        detPhi=phi;
+    
+        localCoordinates=Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0)*Mat3D(Vec3D(0,1,0), M_PI*chi/180.0)*Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
+        reflectionsUpdated();
+    }
+}
+    
+double LauePlaneProjector::dist() {
+    return detDist;
+}
+
+double LauePlaneProjector::width() {
+    return detWidth;
+}
+
+double LauePlaneProjector::height() {
+    return detHeight;
+}
+double LauePlaneProjector::omega() {
+    return detOmega;
+}
+
+double LauePlaneProjector::chi() {
+    return detChi;
+}
+
+double LauePlaneProjector::phi() {
+    return detPhi;
+}

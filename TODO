@@ -1,6 +1,7 @@
+
+* Verschiedene Punkte in Bild-Koordinaten
 * Config für Projectoren
-* Aus / An für Reflexe,  Grid
-* hkls als Text im Projector
+* Aus / An Decorations
 * Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 * Qwt5 ersetzen
 * UI für Lösung
@@ -8,10 +9,8 @@
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
 * UI für Reflexe
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
-
+* Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
-* Punkte der Simulation -> Groesse aendern
-* Eigabe des Wellenlängenbandes / Spannung
 * Zone beim Fit vorgeben
 * Drucken
 * Aktuelle Einstellungen speichern

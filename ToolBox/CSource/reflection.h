@@ -13,16 +13,19 @@ class  Reflection {
         int k;
         int l;
   
+        //h^2+k^2+l^2
+        int hklSqSum;
+    
         // lowest order (if ==0, this reflection is not in scattering position)
         int lowestDiffOrder;
 
         // direct space d-Value
         double d;
             
-        // Reziprocal lattice Vector = 2pi/d
+        // Reziprocal lattice Vector = 1/(2*d)
         double Q;
             
-        // Order 1 scattering Wavevectors (Q/2/sin(theta)/2/pi)
+        // Order 1 scattering Wavevectors (Q/sin(theta))
         double Qscatter;
 
         // All contributing orders

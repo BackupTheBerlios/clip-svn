@@ -4,7 +4,7 @@ from Tools import SpaceGroup
 import ToolBox
 from ToolBox import Vec3D,  Mat3D
 import math
-
+from Indexing import Indexing
 
 class Crystal(QtGui.QWidget, Ui_CrystalWidget):
     def __init__(self, parent):
@@ -52,6 +52,8 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
         
         ac1=self.toolBar.addAction('Load')
         ac1=self.toolBar.addAction('Save')
+        ac1=self.toolBar.addAction('Index')
+        self.connect(ac1,  QtCore.SIGNAL('triggered()'),  self.startIndexing)
 
     def sizeHint(self):
         return self.minimumSizeHint()
@@ -170,4 +172,10 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
         
     def mouseReleaseEvent(self,  e):
         pass
+        
+    def startIndexing(self):
+        w=Indexing(self.crystal)
+        mdi=self.parent().mdiArea()
+        mdi.addSubWindow(w)
+        w.show()
         

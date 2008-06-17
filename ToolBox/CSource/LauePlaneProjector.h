@@ -13,7 +13,15 @@ class LauePlaneProjector: public Projector {
         virtual Vec3D det2normal(const QPointF&);
     
         virtual QString configName();
+        double dist();
+        double width();
+        double height();
+        double omega();
+        double chi();
+        double phi();
     public slots:
+        void setDetSize(double dist, double width, double height);
+        void setDetOrientation(double omega, double chi, double phi);
         virtual void decorateScene();
         void updatePBMarker();
     protected:
@@ -21,8 +29,12 @@ class LauePlaneProjector: public Projector {
         virtual QGraphicsItem* itemFactory();
     
         Mat3D localCoordinates;
+        double detDist;
         double detWidth;
         double detHeight;
+        double detOmega;
+        double detChi;
+        double detPhi;
 };
 
 #endif

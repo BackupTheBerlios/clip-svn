@@ -27,7 +27,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.gv.setScene(self.projector.getScene())
         self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
         
-        self.connect(self.projector, QtCore.SIGNAL('wavevectorsUpdated()'),  self.gv.viewport().update)
+        self.connect(self.projector, QtCore.SIGNAL('wavevectorsUpdated()'),  self.gv.update)
 
         self.toolBar=QtGui.QToolBar(self)
         
@@ -56,18 +56,18 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         
         self.mouseHandler=self.zoomHandler
         QtCore.QTimer.singleShot(0, self.startResize)
-
+        
     def startConfig(self):
         s=self.projector.configName()
-        try:
-            exec('from %s import %s'%(s, s))
-            w=eval('%s(self.projector,self)'%s)
-        except:
-           pass
-        else:           
-            mdi=self.parent().mdiArea()
-            mdi.addSubWindow(w)
-            w.show()
+        #try:
+        exec('from %s import %s'%(s, s))
+        w=eval('%s(self.projector,self.gv,self)'%s)
+        #except:
+        #  pass
+        #else:           
+        mdi=self.parent().mdiArea()
+        mdi.addSubWindow(w)
+        w.show()
             
 
     def mkActionGroup(self, n, args):
@@ -137,6 +137,9 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 if (1000*r.width()>self.gv.sceneRect().width() and 1000*r.height()>self.gv.sceneRect().height()):
                     self.mouseDragRect=r
                     self.mouseHandler(e, self.releaseContext)
+                else:
+                    # Mouse just pressed, no drag...
+                    self.projector.addMarker(self.gv.mapToScene(self.mousePressStart))
             elif self.mouseButtons==QtCore.Qt.RightButton:
                 if len(self.zoomSteps):
                     self.zoomSteps.pop()
@@ -147,7 +150,11 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
     def showContextMenu(self):
         if self.mousePressStart!=None:
-            print 'ContextMenu'
+            menu=QtGui.QMenu(self)
+            clearMarker=menu.addAction("Clear marker")
+            r=menu.exec_(self.mapToGlobal(self.lastMousePos))
+            if r==clearMarker:
+                self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
             self.mousePressStart=None
 
     def zoomRect(self):
@@ -216,6 +223,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 self.image.setTransferCurve(i, (1, ), (0, 1, 0, 0))
             self.image.setData(img.width, img.height, mode, img.tostring())        
             self.gv.setBGImage(self.image)
+            self.gv.resetCachedContent()
+            self.gv.viewport().update()
             
     def slotCloseImage(self):
         self.gv.setBGImage(None)
@@ -225,8 +234,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         QtGui.QGraphicsView.__init__(self, parent)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        #self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
-        self.setRenderHints(QtGui.QPainter.Antialiasing)
+        self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
         self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setDragMode(self.NoDrag)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
@@ -238,10 +246,13 @@ class MyGraphicsView(QtGui.QGraphicsView):
             QtGui.QGraphicsView.dragEnterEvent(self, e)
             
     def mousePressEvent(self, e):
-        QtGui.QGraphicsView.mousePressEvent(self, e)
-        if not e.isAccepted():
-            print 'Ignored'
+        if e.buttons()==QtCore.Qt.LeftButton:
+            QtGui.QGraphicsView.mousePressEvent(self, e)
+            if not e.isAccepted():
+                self.viewIgnoresThisMouseEvent=True
+        else:
             self.viewIgnoresThisMouseEvent=True
+            e.ignore()
             
     def mouseMoveEvent(self, e):
         if self.viewIgnoresThisMouseEvent:
@@ -264,7 +275,6 @@ class MyGraphicsView(QtGui.QGraphicsView):
         if self.BGImage==None:
             QtGui.QGraphicsView.drawBackground(self, p, to)
         else:
-            print "Draw"
             p.save()
             #p.setClipRect(to)
             qi=self.BGImage.qImg()
@@ -273,50 +283,3 @@ class MyGraphicsView(QtGui.QGraphicsView):
             
             p.drawImage(to, qi, source)
             p.restore()
-            print "end"
-
-
-
-
-#FIXME: Port to C++ and remove here
-
-class SignalingEllipse(QtCore.QObject, QtGui.QGraphicsEllipseItem):
-    def __init__(self, *args):
-        QtGui.QGraphicsEllipseItem.__init__(self, *args)
-        QtCore.QObject.__init__(self)
-        
-    def itemChange(self, c, v):
-        if c==QtGui.QGraphicsItem.ItemPositionChange:
-            self.emit('posChanged()')
-        return v
-        
-
-class PrimaryBeamMarker(SignalingEllipse):
-    def __init__(self, size, radius, parent=None):
-        SignalingEllipse.__init__(self, parent)
-        
-        r=QtCore.QRectF(-size, -size, 2*size, 2*size)
-        self.setRect(r)
-        r.translate(radius, 0)
-        self.handle=SignalingEllipse(self)
-        self.handle.setRect(r)
-        self.marker=QtGui.QGraphicsEllipseItem(self)
-
-        for w in (self,  self.handle):
-            w.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-
-        for w in (self, self.marker,  self.handle):
-            w.setPen(QtCore.Qt.red)
-            
-        self.updateSize()
-        self.setCursor(QtCore.Qt.SizeAllCursor)
-        self.handle.setCursor(QtCore.Qt.SizeAllCursor)
-        self.connect(self.handle, QtCore.SIGNAL('posChanged()'),  self.updateSize)
-        
-    def updateSize(self):
-        p=self.handle.rect().center()-self.rect().center()
-        l=math.hypot(p.x(), p.y())
-        r=QtCore.QRectF(-l, -l, 2*l, 2*l)
-        r.translate(self.marker.rect().center())
-        self.marker.setRect(r)
-        

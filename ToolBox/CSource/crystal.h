@@ -34,6 +34,7 @@ class Crystal: public QObject {
         Mat3D getReziprocalOrientationMatrix();
         Mat3D getRotationMatrix();
 
+        QList<Projector*> getConnectedProjectors();
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -64,9 +65,7 @@ class Crystal: public QObject {
         double a,b,c,alpha,beta,gamma;
         double Qmin;
         double Qmax;
-            
         ObjectStore connectedProjectors;
-        
 };
 
 

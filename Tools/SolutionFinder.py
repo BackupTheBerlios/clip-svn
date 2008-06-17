@@ -16,27 +16,51 @@ class Solution:
         self.HKLs=[]
         self.alphas=[]
         self.indexedVectors=[]
-        
+        self.HKLVectors=None
+        self.bestRotation=None
+        self.score=None
+        self.angularDeviation=None
+
     def addHkl(self,  hkl,  v,  alpha):
         self.HKLs.append(hkl)
         self.indexedVectors.append(v)
         self.alphas.append(alpha)
+        self.HKLVectors=None
+        self.bestRotation=None
+        self.score=None
+        self.angularDeviation=None
         
     def calcBestRotation(self):
         self.HKLVectors=[(self.OMat*Vec3D(x)).normalized() for x in self.HKLs]
         self.bestRotation=bestRotMatrix(self.indexedVectors,  self.HKLVectors)
         
     def calcSolutionScore(self):
+        if self.HKLVectors==None or self.bestRotation==None:
+            self.calcBestRotation()
         self.score=sum([(a-self.bestRotation*b).norm_sq() for a,b in zip(self.HKLVectors,  self.indexedVectors)])
-        return self.score
-  
+        
     def calcAngularDeviation(self):
-        self.angularDeviation=math.degrees(sum([abs(math.acos(a*(self.bestRotation*b))) for a,b in zip(self.HKLVectors,  self.indexedVectors)]))
-        return self.angularDeviation
+        if self.HKLVectors==None or self.bestRotation==None:
+            self.calcBestRotation()
+        self.angularDev=math.degrees(sum([abs(math.acos(a*(self.bestRotation*b))) for a,b in zip(self.HKLVectors,  self.indexedVectors)]))
+        
         
     def calcRealHKL(self):
+        if self.HKLVectors==None or self.bestRotation==None:
+            self.calcBestRotation()
         vs=[(self.OMatInv*self.bestRotation*iv).normalized()*alpha for iv, alpha in zip(self.indexedVectors,  self.alphas)]
         return [(v[0],  v[1],  v[2]) for v in vs]
+
+    def solutionScore(self):
+        if self.score==None:
+            self.calcSolutionScore()
+        return self.score
+
+    def angularDeviation(self):
+        if self.angularDev==None:
+            self.calcAngularDeviation()
+        return self.angularDev
+  
         
         
 class SolutionFinder:

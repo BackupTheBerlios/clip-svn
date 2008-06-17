@@ -5,15 +5,23 @@
 
 using namespace std;
 
-Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems() {
-    QminVal=0.0;
-    QmaxVal=4.0;
+Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems() {
+    enableSpots();
+    setWavevectors(0.0, 2.0*M_1_PI);
+    setMaxHklSqSum(0);
+    setTextSize(4.0);
+    setSpotSize(4.0);
     QTimer::singleShot(0, this, SLOT(decorateScene()));
+    connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
 };
 
 Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems()  {
-    QminVal=p.QminVal;
-    QmaxVal=p.QmaxVal;
+    enableSpots(p.spotsEnabled());
+    setWavevectors(p.Qmin(), p.Qmax());
+    setMaxHklSqSum(p.getMaxHklSqSum());
+    setTextSize(p.getTextSize());
+    setSpotSize(p.getSpotSize());
+    connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
 }; 
 
 
@@ -25,15 +33,15 @@ void Projector::connectToCrystal(Crystal *c) {
     crystal=c;
     crystal->addProjector(this);
     connect(crystal, SIGNAL(reflectionsUpdate()), this, SLOT(reflectionsUpdated()));
-    reflectionsUpdated();
+    emit projectionParamsChanged();
 }
     
 
-double Projector::Qmin() {
+double Projector::Qmin() const {
     return QminVal;
 }
 
-double Projector::Qmax() {
+double Projector::Qmax() const {
     return QmaxVal;
 }
 
@@ -42,35 +50,77 @@ void Projector::setWavevectors(double Qmin, double Qmax)  {
     if ((Qmin<Qmax) and ((Qmin!=QminVal) or (Qmax!=QmaxVal))) {
         QmaxVal=Qmax;
         QminVal=Qmin;
+        emit projectionParamsChanged();
         emit wavevectorsUpdated();
     }
 }
 
+QString formatOveline(int i) {
+    if (i<0)
+        return QString("<span style=""text-decoration:overline"">%1</span>").arg(-i);
+    return QString("<span>%1</span>").arg(i);
+}
+
+QString formatHklText(int h, int k, int l) {
+    if (h<10 and k<10 and l<10) {
+        return formatOveline(h)+formatOveline(k)+formatOveline(l);
+    } else {
+        return formatOveline(h)+" "+formatOveline(k)+" "+formatOveline(l);
+    }
+}
 
 void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
         return;
     
+    //FIXME: Do Better
+    while (textMarkerItems.size()>0) {
+        QGraphicsItem* item=textMarkerItems.takeLast();
+        scene.removeItem(item);
+        delete item;
+    }
+    
     std::vector<Reflection>& r = crystal->getReflectionList();
     int n=0;
     int i=0;
+    #ifdef __DEBUG__
+    int beginSize=projectedItems.size();
+    #endif
 
+    if (!showSpots) {
+        i=r.size();
+    }
     for (; i<r.size() and n<projectedItems.size(); i++) {
         if (project(r[i], projectedItems.at(n))) {
+            if (r[i].hklSqSum<=maxHklSqSum) {
+                QGraphicsTextItem*  t = scene.addText("");
+                t->setHtml(formatHklText(r[i].h, r[i].k, r[i].l));
+                t->setPos(projectedItems.at(n)->pos());
+                QRectF r=t->boundingRect();
+                double sx=textSize*scene.width()/r.width();
+                double sy=textSize*scene.height()/r.height();
+                double s=sx<sy?sy:sx;
+                t->scale(s,s);
+                textMarkerItems.append(t);
+            }
             n++;
         }
     }
+    
     #ifdef __DEBUG__
     int rewritten=n;
-    int deleted=projectedItems.size()-n;
-    int added=r.size()-i;
+    int deleted=0;
+    int added=0;
     int projected=n;
     #endif
     QGraphicsItem* item;
-    for (; n<projectedItems.size(); n++) {
+    while (projectedItems.size()>n) {
         item = projectedItems.takeLast();
         scene.removeItem(item);
         delete item;
+        #ifdef __DEBUG__
+        deleted++;
+        #endif
     }
 
 
@@ -82,19 +132,19 @@ void Projector::reflectionsUpdated() {
             item = itemFactory();
             #ifdef __DEBUG__
             projected++;
+            added++;
             #endif
         }
     }
     delete item;
     
     #ifdef __DEBUG__
-/* 
- *     cout << "rewrite:" << rewritten;
- *     cout << " det:" << deleted;
- *     cout << " add:" << added;
- *     cout << " projected:" << projected;
- *     cout << " itemSize:" << projectedItems.size() << endl;
- */ 
+    cout << "startSize:" << beginSize;
+    cout << " rewrite:" << rewritten;
+    cout << " del:" << deleted;
+    cout << " add:" << added;
+    cout << " projected:" << projected;
+    cout << " itemSize:" << projectedItems.size() << endl;
    #endif
        
     emit projectedPointsUpdated();
@@ -140,4 +190,73 @@ QGraphicsScene* Projector::getScene() {
     return &scene;
 }
 
+unsigned int Projector::getMaxHklSqSum() const {
+    return maxHklSqSum;
+}
 
+double Projector::getSpotSize() const {
+    return 100.0*spotSize;
+}
+    
+double Projector::getTextSize() const {
+    return 100.0*textSize;
+}
+
+bool Projector::spotsEnabled() const {
+    return showSpots;
+}
+
+void Projector::setMaxHklSqSum(unsigned int m) {
+    maxHklSqSum=m;
+    emit projectionParamsChanged();
+}
+
+void Projector::setTextSize(double d) {
+    textSize=0.01*d;
+    emit projectionParamsChanged();
+}
+
+void Projector::setSpotSize(double d) {
+    spotSize=0.01*d;
+    emit projectionParamsChanged();
+}
+
+void Projector::enableSpots(bool b) {
+    showSpots=b;
+    emit projectionParamsChanged();
+}
+
+void Projector::addMarker(const QPointF& p) {
+    QRectF r(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize);
+    
+    QGraphicsEllipseItem* marker=scene.addEllipse(r, QPen(Qt::yellow));
+    marker->setPos(p);
+    marker->setFlag(QGraphicsItem::ItemIsMovable, true);
+    markerItems.append(marker);
+};
+
+void Projector::delMarkerNear(const QPointF& p) {
+    if (markerItems.isEmpty())
+        return;
+    double minDist;
+    unsigned int minIdx=-1;
+    QGraphicsEllipseItem* m;
+    for (unsigned int i=0; i<markerItems.size(); i++) {
+        m=markerItems.at(i);
+        double d=hypot(p.x()-m->pos().x(), p.y()-m->pos().y());
+        if (i==0 or d<minDist) {
+            minDist=d;
+            minIdx=i;
+        }
+    }
+    m=markerItems.takeAt(minIdx);
+    scene.removeItem(m);
+    delete m;
+};
+
+QList<Vec3D> Projector::getMarkerNormals() {
+    QList<Vec3D> r;
+    for (unsigned int i=0; i<markerItems.size(); i++) 
+        r << det2normal(markerItems.at(i)->pos());
+    return r;
+}
