@@ -19,46 +19,52 @@ class Solution:
         self.HKLVectors=None
         self.bestRotation=None
         self.score=None
-        self.angularDeviation=None
+        self.angularDev=None
 
     def addHkl(self,  hkl,  v,  alpha):
         self.HKLs.append(hkl)
         self.indexedVectors.append(v)
         self.alphas.append(alpha)
-        self.HKLVectors=None
+        self.normalVectors=None
         self.bestRotation=None
         self.score=None
-        self.angularDeviation=None
+        self.angularDev=None
         
     def calcBestRotation(self):
-        self.HKLVectors=[(self.OMat*Vec3D(x)).normalized() for x in self.HKLs]
-        self.bestRotation=bestRotMatrix(self.indexedVectors,  self.HKLVectors)
+        self.normalVectors=[(self.OMat*Vec3D(x)).normalized() for x in self.HKLs]
+        self.bestRotation=bestRotMatrix(self.indexedVectors,  self.normalVectors)
         
-    def calcSolutionScore(self):
-        if self.HKLVectors==None or self.bestRotation==None:
+    def calcSolutionScore(self, i):
+        if self.normalVectors==None or self.bestRotation==None:
             self.calcBestRotation()
-        self.score=sum([(a-self.bestRotation*b).norm_sq() for a,b in zip(self.HKLVectors,  self.indexedVectors)])
+        a=self.normalVectors[i]
+        b=self.indexedVectors[i]
+        return (a-self.bestRotation*b).norm_sq()
         
-    def calcAngularDeviation(self):
-        if self.HKLVectors==None or self.bestRotation==None:
+        
+    def calcAngularDeviation(self, i):
+        if self.normalVectors==None or self.bestRotation==None:
             self.calcBestRotation()
-        self.angularDev=math.degrees(sum([abs(math.acos(a*(self.bestRotation*b))) for a,b in zip(self.HKLVectors,  self.indexedVectors)]))
+        a=self.normalVectors[i]
+        b=self.indexedVectors[i]
+        return math.degrees(abs(math.acos(a*(self.bestRotation*b))))
         
-        
-    def calcRealHKL(self):
-        if self.HKLVectors==None or self.bestRotation==None:
+    def calcFractionalHKL(self, i):
+        if self.normalVectors==None or self.bestRotation==None:
             self.calcBestRotation()
-        vs=[(self.OMatInv*self.bestRotation*iv).normalized()*alpha for iv, alpha in zip(self.indexedVectors,  self.alphas)]
-        return [(v[0],  v[1],  v[2]) for v in vs]
+        iv=self.indexedVectors[i]
+        alpha=self.alphas[i]
+        v=self.OMatInv*self.bestRotation*iv
+        return (v[0],  v[1],  v[2])
 
     def solutionScore(self):
         if self.score==None:
-            self.calcSolutionScore()
+            self.score=sum([self.calcSolutionScore(i) for i in range(len(self.alphas))])
         return self.score
 
     def angularDeviation(self):
         if self.angularDev==None:
-            self.calcAngularDeviation()
+            self.angularDev=sum([self.calcAngularDeviation(i) for i in range(len(self.alphas))])
         return self.angularDev
   
         
@@ -71,16 +77,17 @@ class SolutionFinder:
         self.maxAngularDev=math.radians(2.0)
         self.maxTriedIndex=25
         self.maxDeviationFromInt=0.05
-        
+        self.workQueue=Queue(0)
+        self.solutionQueue=Queue(0)
+        self.solutions=[]        
         self.workers=[]
         for i in range(1):
             w=Thread(target=self.worker, args=[i])
             w.setDaemon(True)
             w.start()
             self.workers.append(w)
-        self.solutions=[]
-        self.workQueue=Queue(0)
-        self.solutionQueue=Queue(0)
+
+
         
     def worker(self, workerNr):
         while True:
