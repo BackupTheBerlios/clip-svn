@@ -26,9 +26,15 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.gv=MyGraphicsView(self)
         self.gv.setScene(self.projector.getScene())
         self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
+        self.updateGVScreenRect()
         
+        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.updateGVScreenRect)
+        self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateGVScreenRect)
         self.connect(self.projector, QtCore.SIGNAL('wavevectorsUpdated()'),  self.gv.update)
+        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.resizeView)
+        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.updateZoom)
 
+    #self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateZoom)
         self.toolBar=QtGui.QToolBar(self)
         
         a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.rotate, 'Pan'), (Icons.rotate, 'Rotate')))
@@ -56,6 +62,14 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         
         self.mouseHandler=self.zoomHandler
         QtCore.QTimer.singleShot(0, self.startResize)
+        
+        
+    def updateGVScreenRect(self):
+        r=self.gv.scene().sceneRect()
+        self.toUnitTransform=QtGui.QTransform()
+        self.toUnitTransform.scale(1.0/r.width(),  1.0/r.height())
+        self.toUnitTransform.translate(-r.x(),  -r.y())
+        #self.updateZoom()        
         
     def startConfig(self):
         s=self.projector.configName()
@@ -159,13 +173,21 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
     def zoomRect(self):
         if len(self.zoomSteps)>0:
-            return self.zoomSteps[-1]
+            t, b=self.toUnitTransform.inverted()
+            r=t.mapRect(self.zoomSteps[-1])
+            return r
         else:
             return self.gv.scene().sceneRect()
         
     def updateZoom(self):
-        self.gv.fitInView(self.zoomRect(), QtCore.Qt.KeepAspectRatio)
-
+        #self.gv.fitInView(self.zoomRect(), QtCore.Qt.KeepAspectRatio)
+        print "updateZoom"
+        r=self.zoomRect()
+        self.gv.fitInView(r, QtCore.Qt.KeepAspectRatio)
+        r=self.gv.scene().sceneRect()
+        self.gv.setSceneRect(r)
+        
+        
     def zoomHandler(self, *args):
         if len(args)==1 and args[0]:
             self.mouseHandler=self.zoomHandler
@@ -177,7 +199,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             elif context==self.moveContext:
                 self.rubberBand.setGeometry(QtCore.QRect(self.mousePressStart, self.gv.mapFromParent(e.pos())).normalized())
             elif context==self.releaseContext:
-                self.zoomSteps.append(self.mouseDragRect)
+                r=self.toUnitTransform.mapRect(self.mouseDragRect)
+                self.zoomSteps.append(r)
                 self.resizeView()
                 self.updateZoom()
 
@@ -237,7 +260,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
         self.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
         self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setDragMode(self.NoDrag)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+        #self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+        self.setResizeAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
+        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
         self.viewIgnoresThisMouseEvent=False
         self.BGImage=None
         

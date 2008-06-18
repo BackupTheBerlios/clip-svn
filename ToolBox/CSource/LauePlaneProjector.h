@@ -24,6 +24,7 @@ class LauePlaneProjector: public Projector {
         void setDetOrientation(double omega, double chi, double phi);
         virtual void decorateScene();
         void updatePBMarker();
+        void movedPBMarker();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();

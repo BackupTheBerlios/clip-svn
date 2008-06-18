@@ -126,9 +126,9 @@ class SolutionDisplayModel(QtCore.QAbstractTableModel):
                     v=self.solution.calcFractionalHKL(index.row())
                     return QtCore.QVariant('%.2f %.2f %.2f'%v)
                 elif index.column()==2:
-                    QtCore.QVariant(self.solution.calcSolutionScore(index.row()))
+                    return QtCore.QVariant(self.solution.calcSolutionScore(index.row()))
                 elif index.column()==3:
-                    QtCore.QVariant(self.solution.calcAngularDeviation(index.row()))
+                    return QtCore.QVariant(self.solution.calcAngularDeviation(index.row()))
                 
                 
                 

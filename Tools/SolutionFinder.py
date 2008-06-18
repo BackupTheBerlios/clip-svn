@@ -131,7 +131,7 @@ class SolutionFinder:
 
 
         print 'Creating candidates'
-        self.Candidates=[(self.OMat*Vec3D(hkl)).normalized() for hkl in genHkl(1)+genHkl(2)]
+        self.Candidates=[(self.OMat*Vec3D(hkl)).normalized() for hkl in genHkl(1)+genHkl(2)+genHkl(3)]
         self.solutions=[]
         print 'creating work'
         if self.OMat!=None and self.V!=None and self.maxAngularDev!=None and self.maxDeviationFromInt!=None and self.maxTriedIndex!=None:

@@ -61,8 +61,9 @@ class Projector: public QObject {
         void projectedPointsUpdated();
         void wavevectorsUpdated();
         void projectionParamsChanged();
-        void projectionSizeChanged();
-
+        void projectionRectPosChanged();
+        void projectionRectSizeChanged();
+        
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;

@@ -1,6 +1,7 @@
 #include <LauePlaneProjector.h>
 #include <cmath>
 #include <QtGui/QGraphicsEllipseItem>
+#include <SignalingEllipse.h>
 #include <iostream>
 
 using namespace std;
@@ -75,12 +76,16 @@ void LauePlaneProjector::decorateScene() {
         scene.removeItem(item);
         delete item;
     }
-    QGraphicsEllipseItem* center=scene.addEllipse(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize, QPen(Qt::red));
+    SignalingEllipseItem* center=new SignalingEllipseItem(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize);
+    center->setPen(QPen(Qt::red));
     center->setFlag(QGraphicsItem::ItemIsMovable, true);
-    QGraphicsEllipseItem* handle=scene.addEllipse(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize, QPen(Qt::red));
+    scene.addItem(center);
+    
+    SignalingEllipseItem* handle=new SignalingEllipseItem(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize,center);
+    handle->setPen(QPen(Qt::red));
     handle->moveBy(0.1, 0);
     handle->setFlag(QGraphicsItem::ItemIsMovable, true);
-    handle->setParentItem(center);
+    
 
     QGraphicsEllipseItem* marker=scene.addEllipse(0.1, 0.1, 0.13, 0.13, QPen(Qt::red));
     marker->setParentItem(center);
@@ -89,7 +94,8 @@ void LauePlaneProjector::decorateScene() {
     decorationItems.append(handle);
     decorationItems.append(marker);
     
-    connect(&scene, SIGNAL(changed(const QList<QRectF> &)), this, SLOT(updatePBMarker()));
+    connect(center, SIGNAL(positionChanged()), this, SLOT(movedPBMarker()));
+    connect(handle, SIGNAL(positionChanged()), this, SLOT(updatePBMarker()));
     updatePBMarker();
 }
 
@@ -101,15 +107,23 @@ void LauePlaneProjector::updatePBMarker() {
     
     QPointF p=handle->pos();
     double l=hypot(p.x(), p.y());
-    #ifdef __DEBUG__
-    cout << "bpmarker (" << center->pos().x() << "," << center->pos().y() << ") l=" << l << endl;
-    #endif
 
     QRectF r(-l, -l, 2*l, 2*l);
     r.moveCenter(center->rect().center());
     marker->setRect(r);
 }
-    
+
+void LauePlaneProjector::movedPBMarker() {
+    SignalingEllipseItem* center=dynamic_cast<SignalingEllipseItem*>(decorationItems[0]);
+    QPointF p=center->pos();
+    cout << "BPMove " << p.x() << " " << p.y() << endl;
+    QRectF r=scene.sceneRect();
+    r.translate(-1.0*center->pos());
+    scene.setSceneRect(r);
+    center->setPosNoSig(QPointF(0.0,0.0));
+    emit projectionRectPosChanged();
+}
+
 QString LauePlaneProjector::configName() {
     return QString("LauePlaneCfg");
 }
@@ -121,7 +135,9 @@ void LauePlaneProjector::setDetSize(double dist, double width, double height) {
         detHeight=height;
         
         scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
-        reflectionsUpdated();
+        emit projectionRectPosChanged();
+        emit projectionRectSizeChanged();
+        emit projectionParamsChanged();
     }
 }
     
@@ -132,7 +148,7 @@ void LauePlaneProjector::setDetOrientation(double omega, double chi, double phi)
         detPhi=phi;
     
         localCoordinates=Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0)*Mat3D(Vec3D(0,1,0), M_PI*chi/180.0)*Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
-        reflectionsUpdated();
+        emit projectionParamsChanged();
     }
 }
     
