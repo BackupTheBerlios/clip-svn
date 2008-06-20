@@ -158,7 +158,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         if self.mousePressStart!=None:
             menu=QtGui.QMenu(self)
             clearMarker=menu.addAction("Clear marker")
-            r=menu.exec_(self.mapToGlobal(self.lastMousePos))
+            r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos))
             if r==clearMarker:
                 self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
             self.mousePressStart=None

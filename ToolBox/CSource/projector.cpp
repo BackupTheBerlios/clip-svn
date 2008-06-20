@@ -17,6 +17,7 @@ Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), 
     connect(&scene, SIGNAL(sceneRectChanged(const QRectF&)), this, SLOT(updateImgTransformations()));
     scene.addItem(&imgGroup);
     imgGroup.setHandlesChildEvents(false);
+    //imgGroup.setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     updateImgTransformations();
 };
 
@@ -234,15 +235,23 @@ void Projector::enableSpots(bool b) {
 
 void Projector::addMarker(const QPointF& p) {
     QRectF r(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize);
+    //QRectF r(-5.0,-5.0,10.0,10.0);
     
     QGraphicsEllipseItem* marker=new QGraphicsEllipseItem(&imgGroup);
     marker->setFlag(QGraphicsItem::ItemIsMovable, true);
     //marker->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     marker->setCursor(QCursor(Qt::SizeAllCursor));
     marker->setPen(QPen(Qt::black));
-    marker->setPos(det2img.map(p));
     marker->setRect(r);
-    
+    marker->setPos(det2img.map(p));
+    QTransform t;
+    t.scale(det2img.m11(), det2img.m22());
+    marker->setTransform(t);
+
+    QPointF mp=marker->scenePos();
+    cout << "Marker " << p.x() << "  "<< p.y() << " " << mp.x() << "  "<< mp.y() << " ";
+    mp=marker->pos();
+    cout << mp.x() << "  "<< mp.y() << endl;
     markerItems.append(marker);
 };
 
@@ -285,5 +294,9 @@ void Projector::updateImgTransformations() {
         img2det=det2img.inverted();
     }
     imgGroup.setTransform(img2det);
+    QTransform t;
+    t.scale(det2img.m11(), det2img.m22());
+    for (unsigned int i=imgGroup.childItems().size(); i--; ) 
+        imgGroup.childItems().at(i)->setTransform(t);
     emit imgTransformUpdated();
 }

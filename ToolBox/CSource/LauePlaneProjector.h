@@ -36,6 +36,8 @@ class LauePlaneProjector: public Projector {
         double detOmega;
         double detChi;
         double detPhi;
+        double detDx;
+        double detDy;
 };
 
 #endif
