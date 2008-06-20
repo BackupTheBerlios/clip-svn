@@ -21,7 +21,10 @@ class Projector: public QObject {
 
         static Vec3D normal2scattered(const Vec3D&);
         static Vec3D scattered2normal(const Vec3D&);
-
+        
+        QTransform det2img;
+        QTransform img2det;
+    
         virtual QPointF scattered2det(const Vec3D&)=0;
         virtual Vec3D det2scattered(const QPointF&)=0;
         virtual QPointF normal2det(const Vec3D&)=0;
@@ -63,10 +66,12 @@ class Projector: public QObject {
         void projectionParamsChanged();
         void projectionRectPosChanged();
         void projectionRectSizeChanged();
+        void imgTransformUpdated();
         
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;
+    
     
         QList<QGraphicsItem*> projectedItems;
         QList<QGraphicsItem*> decorationItems;
@@ -81,7 +86,15 @@ class Projector: public QObject {
         double textSize;
         double spotSize;
         bool showSpots;
+        
         QGraphicsScene scene;
+        
+        QTransform img2detTransform;
+        QTransform det2imgTransform;
+        
+        QGraphicsItemGroup imgGroup;
+    protected slots:
+        virtual void updateImgTransformations();
 };
 
 

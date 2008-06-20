@@ -13,6 +13,9 @@ class Projector: QObject {
         static Vec3D normal2scattered(const Vec3D&);
         static Vec3D scattered2normal(const Vec3D&);
         
+        QTransform det2img;
+        QTransform img2det;
+        
         virtual QPointF scattered2det(const Vec3D&)=0;
         virtual Vec3D det2scattered(const QPointF&)=0;
         virtual QPointF normal2det(const Vec3D&)=0;
@@ -48,6 +51,7 @@ class Projector: QObject {
         void projectionParamsChanged();
         void projectionRectSizeChanged();
         void projectionRectPosChanged();
+        void imgTransformUpdated();
         
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
@@ -104,7 +108,7 @@ class LauePlaneProjector: Projector {
         void setDetSize(double dist, double width, double height);
         void setDetOrientation(double omega, double chi, double phi);
         virtual void decorateScene();
-        void updatePBMarker();
+        void resizePBMarker();
         void movedPBMarker();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);

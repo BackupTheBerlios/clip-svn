@@ -95,12 +95,12 @@ void LauePlaneProjector::decorateScene() {
     decorationItems.append(marker);
     
     connect(center, SIGNAL(positionChanged()), this, SLOT(movedPBMarker()));
-    connect(handle, SIGNAL(positionChanged()), this, SLOT(updatePBMarker()));
-    updatePBMarker();
+    connect(handle, SIGNAL(positionChanged()), this, SLOT(resizePBMarker()));
+    resizePBMarker();
 }
 
 
-void LauePlaneProjector::updatePBMarker() {
+void LauePlaneProjector::resizePBMarker() {
     QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
     QGraphicsEllipseItem* handle=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[1]);
     QGraphicsEllipseItem* marker=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[2]);
@@ -114,14 +114,7 @@ void LauePlaneProjector::updatePBMarker() {
 }
 
 void LauePlaneProjector::movedPBMarker() {
-    SignalingEllipseItem* center=dynamic_cast<SignalingEllipseItem*>(decorationItems[0]);
-    QPointF p=center->pos();
-    cout << "BPMove " << p.x() << " " << p.y() << endl;
-    QRectF r=scene.sceneRect();
-    r.translate(-1.0*center->pos());
-    scene.setSceneRect(r);
-    center->setPosNoSig(QPointF(0.0,0.0));
-    emit projectionRectPosChanged();
+
 }
 
 QString LauePlaneProjector::configName() {
@@ -135,7 +128,6 @@ void LauePlaneProjector::setDetSize(double dist, double width, double height) {
         detHeight=height;
         
         scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
-        emit projectionRectPosChanged();
         emit projectionRectSizeChanged();
         emit projectionParamsChanged();
     }

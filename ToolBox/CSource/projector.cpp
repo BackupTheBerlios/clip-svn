@@ -2,10 +2,11 @@
 #import <cmath>
 #import <iostream>
 #import <QtCore/QTimer>
+#import <QtGui/QCursor>
 
 using namespace std;
 
-Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems() {
+Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
     setWavevectors(0.0, 2.0*M_1_PI);
     setMaxHklSqSum(0);
@@ -13,15 +14,20 @@ Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), 
     setSpotSize(4.0);
     QTimer::singleShot(0, this, SLOT(decorateScene()));
     connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
+    connect(&scene, SIGNAL(sceneRectChanged(const QRectF&)), this, SLOT(updateImgTransformations()));
+    scene.addItem(&imgGroup);
+    imgGroup.setHandlesChildEvents(false);
+    updateImgTransformations();
 };
 
-Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems()  {
+Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems(), markerItems()  {
     enableSpots(p.spotsEnabled());
     setWavevectors(p.Qmin(), p.Qmax());
     setMaxHklSqSum(p.getMaxHklSqSum());
     setTextSize(p.getTextSize());
     setSpotSize(p.getSpotSize());
     connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
+    updateImgTransformations();
 }; 
 
 
@@ -229,9 +235,14 @@ void Projector::enableSpots(bool b) {
 void Projector::addMarker(const QPointF& p) {
     QRectF r(-0.5*spotSize, -0.5*spotSize, spotSize, spotSize);
     
-    QGraphicsEllipseItem* marker=scene.addEllipse(r, QPen(Qt::yellow));
-    marker->setPos(p);
+    QGraphicsEllipseItem* marker=new QGraphicsEllipseItem(&imgGroup);
     marker->setFlag(QGraphicsItem::ItemIsMovable, true);
+    //marker->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
+    marker->setCursor(QCursor(Qt::SizeAllCursor));
+    marker->setPen(QPen(Qt::black));
+    marker->setPos(det2img.map(p));
+    marker->setRect(r);
+    
     markerItems.append(marker);
 };
 
@@ -239,11 +250,12 @@ void Projector::delMarkerNear(const QPointF& p) {
     if (markerItems.isEmpty())
         return;
     double minDist;
-    unsigned int minIdx=-1;
+    unsigned int minIdx;
     QGraphicsEllipseItem* m;
+    QPointF imgPos=det2img.map(p);
     for (unsigned int i=0; i<markerItems.size(); i++) {
         m=markerItems.at(i);
-        double d=hypot(p.x()-m->pos().x(), p.y()-m->pos().y());
+        double d=hypot(imgPos.x()-m->pos().x(), imgPos.y()-m->pos().y());
         if (i==0 or d<minDist) {
             minDist=d;
             minIdx=i;
@@ -257,6 +269,21 @@ void Projector::delMarkerNear(const QPointF& p) {
 QList<Vec3D> Projector::getMarkerNormals() {
     QList<Vec3D> r;
     for (unsigned int i=0; i<markerItems.size(); i++) 
-        r << det2normal(markerItems.at(i)->pos());
+        r << det2normal(img2det.map(markerItems.at(i)->pos()));
     return r;
+}
+
+void Projector::updateImgTransformations() {
+    cout << "updateImgTransform" << endl;
+    const QRectF r=scene.sceneRect();
+    det2img.reset();
+    if (r.isEmpty()) {
+        img2det.reset();
+    } else {
+        det2img.scale(1.0/r.width(),  1.0/r.height());
+        det2img.translate(-r.x(),  -r.y());
+        img2det=det2img.inverted();
+    }
+    imgGroup.setTransform(img2det);
+    emit imgTransformUpdated();
 }

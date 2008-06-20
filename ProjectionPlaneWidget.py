@@ -26,13 +26,10 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.gv=MyGraphicsView(self)
         self.gv.setScene(self.projector.getScene())
         self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
-        self.updateGVScreenRect()
-        
-        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.updateGVScreenRect)
-        self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateGVScreenRect)
+
         self.connect(self.projector, QtCore.SIGNAL('wavevectorsUpdated()'),  self.gv.update)
-        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.resizeView)
-        self.connect(self.projector, QtCore.SIGNAL('projectionRectSizeChanged()'),  self.updateZoom)
+        self.connect(self.projector, QtCore.SIGNAL('imgTransformUpdated()'),  self.resizeView)
+        self.connect(self.projector, QtCore.SIGNAL('imgTransformUpdated()'),  self.updateZoom)
 
     #self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateZoom)
         self.toolBar=QtGui.QToolBar(self)
@@ -63,13 +60,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.mouseHandler=self.zoomHandler
         QtCore.QTimer.singleShot(0, self.startResize)
         
-        
-    def updateGVScreenRect(self):
-        r=self.gv.scene().sceneRect()
-        self.toUnitTransform=QtGui.QTransform()
-        self.toUnitTransform.scale(1.0/r.width(),  1.0/r.height())
-        self.toUnitTransform.translate(-r.x(),  -r.y())
-        #self.updateZoom()        
+            
         
     def startConfig(self):
         s=self.projector.configName()
@@ -104,13 +95,14 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.updateZoom()
         
     def resizeView(self):
+        print "resizeView"
         toolBarGeometry=QtCore.QRect(0, 0, self.width(),  self.toolBar.sizeHint().height())
         self.toolBar.setGeometry(toolBarGeometry)
         spareSize=QtCore.QSizeF(self.width(),  self.height()-toolBarGeometry.height())
         scaledZoom=self.zoomRect().size()
         scaledZoom.scale(spareSize, QtCore.Qt.KeepAspectRatio)
         scaleFactor=scaledZoom.width()/self.zoomRect().width()
-        fullScene=self.gv.sceneRect().size()
+        fullScene=self.projector.getScene().sceneRect().size()
         fullScene*=scaleFactor
         maxScene=fullScene.boundedTo(spareSize)
         maxSceneRect=QtCore.QRectF(QtCore.QPointF(0.5*(self.width()-maxScene.width()), 0.5*(self.height()-maxScene.height()+toolBarGeometry.height())), maxScene)
@@ -173,9 +165,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
     def zoomRect(self):
         if len(self.zoomSteps)>0:
-            t, b=self.toUnitTransform.inverted()
-            r=t.mapRect(self.zoomSteps[-1])
-            return r
+            return self.projector.img2det.mapRect(self.zoomSteps[-1])
         else:
             return self.gv.scene().sceneRect()
         
@@ -199,7 +189,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             elif context==self.moveContext:
                 self.rubberBand.setGeometry(QtCore.QRect(self.mousePressStart, self.gv.mapFromParent(e.pos())).normalized())
             elif context==self.releaseContext:
-                r=self.toUnitTransform.mapRect(self.mouseDragRect)
+                r=self.projector.det2img.mapRect(self.mouseDragRect)
                 self.zoomSteps.append(r)
                 self.resizeView()
                 self.updateZoom()
