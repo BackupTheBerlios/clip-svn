@@ -25,7 +25,6 @@ class Mat3D {
     PyObject* coliter;
     double t;
     for (PyObject* item=PyIter_Next(iter); item && itercount<9; item=PyIter_Next(iter)) {
-      //std::cout << "Iter loop" << std::endl;
       if (PyFloat_Check(item) || PyInt_Check(item)) {
         PyArg_Parse(item, "d", &t);
   	//std::cout << "parsed Float " << t << std::endl;
@@ -83,32 +82,38 @@ class Mat3D {
   Mat3D inverse() const;
   double sqSum() const;
   double det() const;
-
-  double __getitem__(SIP_PYOBJECT _x);
+  
+  Mat3D QR();
+  Mat3D QL();
+  void upperBidiagonal(Mat3D& L /Out/, Mat3D& R /Out/);
+  
+  
+  
+  SIP_PYOBJECT __getitem__(SIP_PYOBJECT _x);
 %MethodCode
-  PyObject* iter=PyObject_GetIter(a0);
-  if (iter==NULL) {
-    sipIsErr=1;
-  } else {
-    vector<int> m;
-    unsigned int itercount=0;
-    PyObject* coliter;
-    int t;
-    for (PyObject* item=PyIter_Next(iter); item && itercount<9; item=PyIter_Next(iter)) {
-      if (PyInt_Check(item)) {
-        PyArg_Parse(item, "i", &t);
-     	m.push_back(t);
-        itercount++;
-      }
-    }
-    if (m.size()==2) {
-      Py_BEGIN_ALLOW_THREADS
-        sipRes = *((*sipCpp).at(m[0],m[1]));
-      Py_END_ALLOW_THREADS
+    int idx1;
+    PyObject* iter;
+    if (PyArg_Parse(a0, "i", &idx1)) {
+        Vec3D *v;
+        Py_BEGIN_ALLOW_THREADS
+        v=new Vec3D((*sipCpp)[idx1]);
+        Py_END_ALLOW_THREADS
+        sipRes=sipConvertFromNewInstance(v,sipClass_Vec3D,NULL);
+    } else if (iter=PyObject_GetIter(a0)) {
+        int idx2;
+        PyObject* item;
+        if ((item=PyIter_Next(iter)) && PyArg_Parse(item, "i", &idx1) && (item=PyIter_Next(iter)) && PyArg_Parse(item, "i", &idx2)) {
+            double d;
+            Py_BEGIN_ALLOW_THREADS
+            d = *((*sipCpp).at(idx1,idx2));
+            Py_END_ALLOW_THREADS
+            sipRes=PyFloat_FromDouble(d);
+        } else {
+            sipIsErr=1;
+        }
     } else {
-      sipIsErr=1;
+        sipIsErr=1;
     }
-  }
 %End
   
   void __setitem__(int i, int j, double d);

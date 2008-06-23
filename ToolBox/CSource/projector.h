@@ -8,8 +8,8 @@
 #include <QtCore/QPointF>
 #include <QtCore/QPointer>
 #include <QtGui/QGraphicsScene>
- #include <QtGui/QGraphicsItem>
- #include <QtCore/QString>
+#include <QtGui/QGraphicsItem>
+#include <QtCore/QString>
 #include <crystal.h>
 
 

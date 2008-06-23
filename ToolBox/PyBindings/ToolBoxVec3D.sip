@@ -51,6 +51,7 @@ public:
   Vec3D operator*(double a);
   double operator*(const Vec3D& v);
   Vec3D operator%(const Vec3D &v);
+  Mat3D operator^(const Vec3D &v);
   Vec3D operator/(double a);
 
   bool operator==(const Vec3D& v);
@@ -64,12 +65,11 @@ public:
   //Vec3D operator*=(double a);
   //Vec3D operator/=(double a);
 
+  Mat3D outer();
   double norm();
   double norm_sq();
   void normalize();
   Vec3D normalized() const;
-
-  //char* __repr__() const;
   
   double __getitem__(int i);
 %MethodCode
@@ -78,7 +78,7 @@ public:
         sipRes = (*sipCpp)[a0];
     Py_END_ALLOW_THREADS
     } else {
-        PyErr_SetString(PyExc_IndexError, "3d vectors only have 3 items");
+        PyErr_SetString(PyExc_IndexError, "3d vectors only have 3 components");
         sipIsErr=1;
         sipRes=0.0;
     }

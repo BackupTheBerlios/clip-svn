@@ -1,5 +1,6 @@
 #include "mat3D.h"
 #include <cmath>
+#include <stdio.h>
 
 Mat3D::Mat3D() {
   for (unsigned int i=3; i--; ) 
@@ -7,12 +8,13 @@ Mat3D::Mat3D() {
       M[i][j]=(i==j)?1.0:0.0;
 }
 
-Mat3D::Mat3D(const Mat3D *t) {
-  for (unsigned int i=3; i--; ) 
-    for (unsigned int j=3; j--; ) 
-      M[i][j]=t->M[i][j];
+Mat3D::Mat3D(const Mat3D* t) {
+  memcpy(&M, &(t->M), 9*sizeof(double));
 }
 
+Mat3D::Mat3D(const Mat3D& t) {
+  memcpy(&M, &(t.M), 9*sizeof(double));
+}
 
 Mat3D::Mat3D(Vec3D v1,Vec3D v2,Vec3D v3) {
   for (unsigned int i=3; i--; ) {
@@ -113,7 +115,19 @@ Mat3D Mat3D::operator*=(const Mat3D& m) {
 	tmp+=r.M[i][k]*m.M[k][j];
       M[i][j]=tmp;
     }
-  return Mat3D(this);
+  return *this;
+}
+
+Mat3D Mat3D::lmult(const Mat3D& m) {
+  Mat3D r(this);
+  for (unsigned int i=3; i--; ) 
+    for (unsigned int j=3; j--; ) {
+      double tmp=0.0;
+      for (unsigned int k=3; k--; ) 
+	tmp+=m.M[i][k]*r.M[k][j];
+      M[i][j]=tmp;
+    }
+  return *this;
 }
 
 Mat3D Mat3D::operator*=(double a) {
@@ -140,7 +154,7 @@ double* Mat3D::at(unsigned int i, unsigned int j) {
 
 
 Mat3D Mat3D::orthogonalize() const {
-  Mat3D C=(Mat3D()*3.0-((*this)*this->transpose()))*0.5;
+  Mat3D C=(Mat3D()*3.0-((*this)*transpose()))*0.5;
   return C*(*this);
 }
 
@@ -191,3 +205,59 @@ double Mat3D::det() const {
   return d;
 }
 
+Mat3D Mat3D::QR() {
+    Mat3D Q;
+    for (unsigned int n=0; n<2; n++) {
+        Vec3D u;
+        for (unsigned int i=3-n; i--; ) u[2-i]=M[2-i][n];
+        u[n]+=u.norm();
+        u.normalize();
+        Mat3D Qt(u.outer());
+        Qt*=2.0;
+        for (unsigned int i=3; i--; ) Qt.M[i][i]-=1.0;
+        lmult(Qt);
+        Q*=Qt;
+    }
+    return Q;
+}
+
+Mat3D Mat3D::QL() {
+    Mat3D Q;
+    for (unsigned int n=0; n<2; n++) {
+        Vec3D u;
+        for (unsigned int i=3-n; i--; ) u[i]=M[i][2-n];
+        u[2-n]+=u.norm();
+        u.normalize();
+        Mat3D Qt(u.outer());
+        Qt*=2.0;
+        for (unsigned int i=3; i--; ) Qt.M[i][i]-=1.0;
+        lmult(Qt);
+        Q*=Qt;
+    }
+    return Q;
+}
+
+void Mat3D::upperBidiagonal(Mat3D& L, Mat3D& R) {
+    for (unsigned int n=0; n<2; n++) {
+        Vec3D u;
+        for (unsigned int i=3-n; i--; ) u[2-i]=M[2-i][n];
+        u[n]+=u.norm();
+        u.normalize();
+        Mat3D T(u.outer());
+        T*=2.0;
+        for (unsigned int i=3; i--; ) T.M[i][i]-=1.0;
+        lmult(T);
+        L*=T;
+        
+        if (n<1) {
+            for (unsigned int i=3; i--; ) u[i]=(i<=n)?0.0:M[n][i];
+            u[n+1]+=u.norm();
+            u.normalize();
+            T=u.outer();
+            T*=2.0;
+            for (unsigned int i=3; i--; ) T.M[i][i]-=1.0;
+            (*this)*=T;
+            R.lmult(T);
+        }
+    }
+}

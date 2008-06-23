@@ -1,6 +1,9 @@
 #ifndef __VEC3D__
 #define __VEC3D__
 
+#include <Mat3D.h> 
+class Mat3D;
+
 class Vec3D {
   public:
     Vec3D();
@@ -13,6 +16,7 @@ class Vec3D {
     Vec3D operator*(double a) const;
     double operator*(const Vec3D& v) const;
     Vec3D operator%(const Vec3D &v) const;
+    Mat3D operator^(const Vec3D &v) const;
     Vec3D operator/(double a) const;
 
     bool operator==(const Vec3D& v) const;
@@ -26,20 +30,18 @@ class Vec3D {
 
     double& operator[](unsigned int i);
     double operator[](unsigned int i) const;
-    
+
+    Mat3D outer() const;
     double norm() const;
     double norm_sq() const;
     void normalize();
     Vec3D normalized() const;
-
-    char* __repr__() const;
-    //bool __eq__(Vec3D &v);
     
     double x() const;
     double y() const ;
     double z() const;
 
-  private:
+  protected:
     double X[3]; 
 };
 

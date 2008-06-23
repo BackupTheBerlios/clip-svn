@@ -55,6 +55,17 @@ Vec3D Vec3D::operator%(const Vec3D &v) const {
   return r;
 }
 
+Mat3D Vec3D::operator^(const Vec3D &v) const {
+    Mat3D M;
+    for (int i=3; i--; ) {
+        for (int j=3; j--; ) {
+            double tmp=X[i]*v.X[j];
+            M.M[i][j]=tmp;
+        }
+    }
+    return M;
+}
+
 Vec3D Vec3D::operator/(double a)  const {
   if (a==0) return Vec3D(this);
   Vec3D r(this);
@@ -82,6 +93,20 @@ Vec3D Vec3D::operator/=(double a) {
   if (a!=0)
     for (unsigned int i=3; i--; ) X[i] /= a;
   return Vec3D(this);
+}
+
+
+Mat3D Vec3D::outer() const {
+    Mat3D M;
+    for (unsigned int i=3; i--; ) {
+        M.M[i][i]=X[i]*X[i];
+        for (unsigned int j=i; j--; ) {
+            double tmp=X[i]*X[j];
+            M.M[i][j]=tmp;
+            M.M[j][i]=tmp;
+        }
+    }
+    return M;
 }
 
 double Vec3D::norm()  const {
@@ -141,28 +166,3 @@ bool Vec3D::operator!=(const Vec3D& v)  const {
 bool Vec3D::isNull()  const {
   return (X[0]==0.0) && (X[1]==0.0) && (X[2]==0.0);
 }
-
-
-
-  char* Vec3D::__repr__()  const {
-  char c[1024];
-  sprintf (c, "[%f %f %f]", X[0], X[1], X[2]);
-  return c;
-  }
-/*
-
-  double Vec3D::__getitem__(int i) {
-  return X[i];
-  }
-
-  void Vec3D::__setitem__(int i, double d) {
-  X[i]=d;
-  }
-  
-  bool Vec3D::__eq__(Vec3D &v) {
-  for (unsigned int i=0; i<3; i++)
-  if (X[i]!=v.X[i])
-  return false;
-  return true;
-  }
-*/
