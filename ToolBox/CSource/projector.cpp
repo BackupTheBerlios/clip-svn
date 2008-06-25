@@ -87,7 +87,7 @@ void Projector::reflectionsUpdated() {
         delete item;
     }
     
-    std::vector<Reflection>& r = crystal->getReflectionList();
+    QList<Reflection> r = crystal->getReflectionList();
     int n=0;
     int i=0;
     #ifdef __DEBUG__
@@ -98,10 +98,10 @@ void Projector::reflectionsUpdated() {
         i=r.size();
     }
     for (; i<r.size() and n<projectedItems.size(); i++) {
-        if (project(r[i], projectedItems.at(n))) {
-            if (r[i].hklSqSum<=maxHklSqSum) {
+        if (project(r.at(i), projectedItems.at(n))) {
+            if (r.at(i).hklSqSum<=maxHklSqSum) {
                 QGraphicsTextItem*  t = scene.addText("");
-                t->setHtml(formatHklText(r[i].h, r[i].k, r[i].l));
+                t->setHtml(formatHklText(r.at(i).h, r.at(i).k, r.at(i).l));
                 t->setPos(projectedItems.at(n)->pos());
                 QRectF r=t->boundingRect();
                 double sx=textSize*scene.width()/r.width();
@@ -133,7 +133,7 @@ void Projector::reflectionsUpdated() {
 
     item = itemFactory();
     for (; i<r.size(); i++) {
-        if (project(r[i], item))  {
+        if (project(r.at(i), item))  {
             projectedItems.append(item);
             scene.addItem(item);
             item = itemFactory();

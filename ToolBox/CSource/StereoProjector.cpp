@@ -32,7 +32,7 @@ Vec3D StereoProjector::det2normal(const QPointF& p) {
     double y=p.y();
     double n=1.0/(x*x+y*y+1.0);
     
-    return localCoordinates.transpose()*Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
+    return localCoordinates.transposed()*Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
 }
 
 

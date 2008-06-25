@@ -10,7 +10,11 @@
 #include <netinet/in.h>
 #endif
 
-ParamSet::ParamSet() : D(4) {
+ParamSet::ParamSet() : D() {
+    D.append(0.0);
+    D.append(0.0);
+    D.append(0.0);
+    D.append(0.0);
     upper=0.0;
 }
 
@@ -35,7 +39,11 @@ class mySort {
         float* weight;
 };
 
-ImageTransfer::ImageTransfer(): sortedIdx(),curves(4) {
+ImageTransfer::ImageTransfer(): sortedIdx(),curves() {
+    curves.append(QList<ParamSet>());
+    curves.append(QList<ParamSet>());
+    curves.append(QList<ParamSet>());
+    curves.append(QList<ParamSet>());
     rawData=NULL;
     rawLen=0;
     transferedData=NULL;
@@ -106,7 +114,7 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
 }
 
 
-void ImageTransfer::setTransferCurve(int channel, std::vector<double> upper, std::vector<double> D) {
+void ImageTransfer::setTransferCurve(int channel, QList<double> upper, QList<double> D) {
 #ifdef __DEBUG__
     cout << "setTransferCurve #" << channel << endl;
 #endif
@@ -173,7 +181,7 @@ void ImageTransfer::doFloatTransfer() {
 }
 
 void ImageTransfer::doRGBTransfer() {
-    vector< vector<unsigned int> > Cmaps(3);
+    QVector< QVector<unsigned int> > Cmaps(3);
     unsigned int vPos=0;
     unsigned int cPos[3];
 

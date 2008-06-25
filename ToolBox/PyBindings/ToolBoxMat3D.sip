@@ -72,13 +72,14 @@ class Mat3D {
 
   Mat3D operator-(const Mat3D& m) const;
   Mat3D operator+(const Mat3D& m) const;
-
+  Mat3D lmult(const Mat3D& m);
   // SIP Bug :-(
   //Mat3D operator*=(const Mat3D& m) /Numeric/;
   //Mat3D operator*=(double a) /Numeric/;
   
   Mat3D orthogonalize() const;
-  Mat3D transpose() const;
+  Mat3D transposed() const;
+  void transpose();
   Mat3D inverse() const;
   double sqSum() const;
   double det() const;
@@ -86,33 +87,34 @@ class Mat3D {
   Mat3D QR();
   Mat3D QL();
   void upperBidiagonal(Mat3D& L /Out/, Mat3D& R /Out/);
-  
+  void svd(Mat3D& L /Out/, Mat3D& R /Out/);
   
   
   SIP_PYOBJECT __getitem__(SIP_PYOBJECT _x);
 %MethodCode
     int idx1;
     PyObject* iter;
-    if (PyArg_Parse(a0, "i", &idx1)) {
+    if (PyInt_Check(a0) && PyArg_Parse(a0, "i", &idx1)) {
         Vec3D *v;
         Py_BEGIN_ALLOW_THREADS
         v=new Vec3D((*sipCpp)[idx1]);
         Py_END_ALLOW_THREADS
         sipRes=sipConvertFromNewInstance(v,sipClass_Vec3D,NULL);
-    } else if (iter=PyObject_GetIter(a0)) {
+        sipIsErr=0;
+    } else if ((iter=PyObject_GetIter(a0))) {
         int idx2;
         PyObject* item;
-        if ((item=PyIter_Next(iter)) && PyArg_Parse(item, "i", &idx1) && (item=PyIter_Next(iter)) && PyArg_Parse(item, "i", &idx2)) {
+        if ((item=PyIter_Next(iter)) && PyInt_Check(item) && PyArg_Parse(item, "i", &idx1) && (item=PyIter_Next(iter)) && PyInt_Check(item) && PyArg_Parse(item, "i", &idx2)) {
             double d;
             Py_BEGIN_ALLOW_THREADS
             d = *((*sipCpp).at(idx1,idx2));
             Py_END_ALLOW_THREADS
             sipRes=PyFloat_FromDouble(d);
         } else {
-            sipIsErr=1;
+          sipIsErr=1;
         }
     } else {
-        sipIsErr=1;
+      sipIsErr=1;
     }
 %End
   

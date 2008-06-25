@@ -23,7 +23,7 @@ class Crystal: public QObject {
         void updateRotation();
         unsigned int reflectionCount();
         Reflection getReflection(unsigned int i);
-        std::vector<Reflection>& getReflectionList();
+        QList<Reflection> getReflectionList();
 
         Vec3D uvw2Real(const Vec3D&);
         Vec3D uvw2Real(int u, int v, int w);
@@ -61,7 +61,7 @@ class Crystal: public QObject {
         Vec3D bstar;
         Vec3D cstar;
 
-        vector<Reflection> reflections;
+        QList<Reflection> reflections;
         double a,b,c,alpha,beta,gamma;
         double Qmin;
         double Qmax;

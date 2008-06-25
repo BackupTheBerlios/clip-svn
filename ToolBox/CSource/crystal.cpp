@@ -1,4 +1,3 @@
-
 #include <cmath>
 #include <iostream>
 #include <projector.h>
@@ -60,7 +59,8 @@ void Crystal::setCell(double _a, double _b, double _c, double _alpha, double _be
         MReal=Mat3D(a_real, b_real, c_real);
 
         // reciprocal orientation matrix is inverse transposed of real one!
-        MReziprocal = MReal.inverse().transpose();
+        MReziprocal = MReal.inverse();
+        MReziprocal.transpose();
         astar=MReziprocal[0];
         bstar=MReziprocal[1];
         cstar=MReziprocal[2];
@@ -186,12 +186,12 @@ void Crystal::updateRotation() {
                             
 
 unsigned int Crystal::reflectionCount() {
-    std::vector<Reflection>& r = getReflectionList();
+    QList<Reflection> r = getReflectionList();
     return r.size();
 }
 
 Reflection Crystal::getReflection(unsigned int i) {
-    std::vector<Reflection>& r = getReflectionList();
+    QList<Reflection> r = getReflectionList();
     if (i<r.size()) {
         return r[i];
     } else {
@@ -199,7 +199,7 @@ Reflection Crystal::getReflection(unsigned int i) {
     }
 }
   
-std::vector<Reflection>& Crystal::getReflectionList() {
+QList<Reflection> Crystal::getReflectionList() {
     if (reflections.empty()) 
         generateReflections();
     return reflections;
@@ -261,3 +261,5 @@ QList<Projector*> Crystal::getConnectedProjectors() {
         r << dynamic_cast<Projector*>(connectedProjectors.at(i));
     return r;
 }
+
+

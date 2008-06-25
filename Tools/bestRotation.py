@@ -24,30 +24,31 @@ def outer(v):
       M[i,j]=v[i]*v[j]
   return(M)
 
-for s in range(10):
+for s in range(10000):
     C=[]
-    for n in range(10):
+    for n in range(2):
         C.append(rVn())
-    RMat=Mat3D(rVn(),  3*random())
-    V=[(RMat*x+rV(0.1)).normalized() for x in C]
-    #V=[RMat*x for x in C]
+    RMat=Mat3D(rVn(),  10.0*random())
+    V=[(RMat*x+rV(0.0)).normalized() for x in C]
 
-    M=scipy.zeros((3, 3))
+    M=Mat3D((0, 0, 0, 0, 0, 0, 0, 0, 0))
     for c, v in zip(C, V):
-        for i in range(3):
-            for j in range(3):
-                M[i, j]+=c[i]*v[j]
+        M=M+(c^v)
                 
-    U, s, V=scipy.linalg.svd(M)
-    M=Mat3D(M)
-    U=Mat3D(U)
-    V=Mat3D(V)
-    S=Mat3D()
-    for i in range(3):
-        S[i, i]=s[i]
+    S=Mat3D(M)
+    L, R=S.svd()
     
-    sco=(RMat-V*U).sqSum()
-    print (M-V*S*U).sqSum(), sco
+    T=Mat3D()
+    T[2, 2]=L.det()*R.det()
+    BestR=L*T*R
+    BestR.transpose()
+    
+    sco1=(RMat-BestR).sqSum()
+    sco2=(M-L*S*R).sqSum()
+    if sco1>1e-4 or sco2>1e-5:
+        print sco1,  sco2,  L.det(),  R.det()
+        break
+    
     
     
 

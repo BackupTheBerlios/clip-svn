@@ -1,7 +1,7 @@
 #ifndef __REFLECTION_H__
 #define __REFLECTION_H__
 
-#include <vector>
+#include <QtCore/QList>
 #include <mat3D.h>
 #include <vec3D.h>
 
@@ -29,7 +29,7 @@ class  Reflection {
         double Qscatter;
 
         // All contributing orders
-        std::vector<int> orders;
+        QList<int> orders;
         // Real and imaginary part of Structure factor
         //vector<double> Fr;
         //vector<double> Fi;

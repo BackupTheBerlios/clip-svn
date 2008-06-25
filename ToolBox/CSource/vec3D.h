@@ -1,7 +1,8 @@
 #ifndef __VEC3D__
 #define __VEC3D__
 
-#include <Mat3D.h> 
+#include <mat3D.h> 
+
 class Mat3D;
 
 class Vec3D {

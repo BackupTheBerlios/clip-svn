@@ -22,7 +22,7 @@ class  Reflection {
         double Qscatter;
 
         // All contributing orders
-        std::vector<int> orders;
+        QList<int> orders;
         // Real and imaginary part of Structure factor
         //vector<double> Fr;
         //vector<double> Fi;

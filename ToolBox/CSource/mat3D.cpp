@@ -1,6 +1,9 @@
 #include "mat3D.h"
 #include <cmath>
 #include <stdio.h>
+#include <iostream>
+
+using namespace std;
 
 Mat3D::Mat3D() {
   for (unsigned int i=3; i--; ) 
@@ -130,6 +133,24 @@ Mat3D Mat3D::lmult(const Mat3D& m) {
   return *this;
 }
 
+Mat3D Mat3D::operator+=(const Mat3D& m) {
+    for (unsigned int i=3; i--; ) {
+        for (unsigned int j=3; j--; ) {
+            M[i][j]+=m.M[i][j];
+        }
+    }
+    return *this;
+}
+
+Mat3D Mat3D::operator-=(const Mat3D& m) {
+    for (unsigned int i=3; i--; ) {
+        for (unsigned int j=3; j--; ) {
+            M[i][j]-=m.M[i][j];
+        }
+    }
+    return *this;
+}
+
 Mat3D Mat3D::operator*=(double a) {
   for (unsigned int i=3; i--; ) 
     for (unsigned int j=3; j--; ) 
@@ -154,16 +175,25 @@ double* Mat3D::at(unsigned int i, unsigned int j) {
 
 
 Mat3D Mat3D::orthogonalize() const {
-  Mat3D C=(Mat3D()*3.0-((*this)*transpose()))*0.5;
+  Mat3D C=(Mat3D()*3.0-((*this)*transposed()))*0.5;
   return C*(*this);
 }
 
 
-Mat3D Mat3D::transpose() const {
-  Mat3D r;
-  for (unsigned int i=3; i--; ) 
-    for (unsigned int j=3; j--; ) 
-      r.M[j][i]=M[i][j];
+void Mat3D::transpose() {
+    for (unsigned int i=3; i--; ) {
+        for (unsigned int j=i; j--; ) {
+            double t=M[i][j];
+            M[i][j]=M[j][i];
+            M[j][i]=t;
+        }
+    }
+}
+    
+
+Mat3D Mat3D::transposed() const {
+  Mat3D r(this);
+  r.transpose();
   return r;
 }
 
@@ -261,3 +291,78 @@ void Mat3D::upperBidiagonal(Mat3D& L, Mat3D& R) {
         }
     }
 }
+
+void givens(double a, double b, double &c, double &s) {
+    if (b==0.0) {
+        c=1.0;
+        s=0.0;
+    } else if (fabs(a)>fabs(b)) {
+        double t=-b/a;
+        c=1.0/sqrt(1.0+t*t);
+        s=c*t;
+    } else {
+        double t=-a/b;
+        s=1.0/sqrt(1.0+t*t);
+        c=t*s;
+    }
+}
+
+
+
+void Mat3D::svd(Mat3D& L, Mat3D& R) {
+
+    upperBidiagonal(L,R);
+    L.transpose();
+    
+    unsigned int loops=250;
+    double sumDiag=0.0;
+    double sumOffdiag=0.0;
+        
+    do {
+
+        // Givens rotation
+        // TODO: Could be done without the whole matrix multiplications!!! See GSL
+        for (unsigned int n=0; n<2; n++) {
+            double c,s;
+            givens(M[0][n],M[0][n+1], c, s);
+            Mat3D G1;
+            G1.M[n][n]=c;
+            G1.M[n+1][n+1]=c;
+            G1.M[n+1][n]=-s;
+            G1.M[n][n+1]=s;
+            
+            (*this)*=G1;
+            R*=G1;
+            
+            givens(M[n][n], M[n+1][n], c, s);
+            Mat3D G2;
+            G2.M[n][n]=c;
+            G2.M[n+1][n+1]=c;
+            G2.M[n][n+1]=-s;
+            G2.M[n+1][n]=s;
+            
+            this->lmult(G2);
+            L.lmult(G2);
+        }    
+        
+        // Make singular values positive!
+        Mat3D T;
+        for (unsigned int n=3; n--; )
+            T.M[n][n]=(M[n][n]<0.0)?-1.0:1.0;
+        this->lmult(T);
+        L.lmult(T);
+        
+        
+        
+        sumDiag=0.0;
+        sumOffdiag=0.0;
+        
+        for (unsigned int i=3; i--; ) sumDiag+=fabs(M[i][i]);
+        for (unsigned int i=2; i--; ) sumOffdiag+=fabs(M[i][i+1]);
+            
+    } while (loops-- and sumDiag<1e20*sumOffdiag);
+    L.transpose();
+    R.transpose();
+};    
+    
+

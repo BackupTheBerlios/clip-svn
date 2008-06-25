@@ -6,13 +6,14 @@
 
 using namespace std;
 
+class Vec3D;
 
 class Mat3D {
     friend class Vec3D;
  public:
   Mat3D();
   Mat3D(Vec3D v1, Vec3D v2,  Vec3D v3);
-  Mat3D(vector<double> m);
+  Mat3D(vector<double>M);
   Mat3D(Vec3D axis, double angle);
   Mat3D(const Mat3D* m);
   Mat3D(const Mat3D& m);
@@ -27,12 +28,17 @@ class Mat3D {
 
   Mat3D operator*=(const Mat3D& m);
   Mat3D operator*=(double a);
+  Mat3D operator+=(const Mat3D& m);
+  Mat3D operator-=(const Mat3D& m);
+
+  
       
   Vec3D operator[](unsigned int i) const;
   double* at(unsigned int i, unsigned int j);
   
   Mat3D orthogonalize() const;
-  Mat3D transpose() const;
+  Mat3D transposed() const;
+  void transpose();
   Mat3D inverse() const;
   double sqSum() const;
   double det() const;
@@ -41,7 +47,7 @@ class Mat3D {
   Mat3D QR();
   Mat3D QL();
   void upperBidiagonal(Mat3D& L, Mat3D& R);
-
+  void svd(Mat3D& L, Mat3D& R);
  protected:
   double M[3][3];
 };

@@ -26,7 +26,7 @@ QPointF LauePlaneProjector::scattered2det(const Vec3D &v) {
 Vec3D LauePlaneProjector::det2scattered(const QPointF& p) {
     Vec3D v(1.0 , p.x()-detDx, p.y()-detDy);
     v.normalize();
-    return localCoordinates.transpose()*v;
+    return localCoordinates.transposed()*v;
 }
 
 QPointF LauePlaneProjector::normal2det(const Vec3D& n) {
