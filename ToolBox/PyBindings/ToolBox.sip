@@ -2,10 +2,11 @@
 
 %Import QtGui/QtGuimod.sip
 
-%Include ToolBoxVec3D.sip
-%Include ToolBoxMat3D.sip
-%Include ToolBoxImageTools.sip
-%Include ToolBoxCrystal.sip
-%Include ToolBoxReflection.sip
-%Include ToolBoxObjectStore.sip
-%Include ToolBoxProjector.sip
+%Include Vec3D.sip
+%Include Mat3D.sip
+%Include ImageTools.sip
+%Include Crystal.sip
+%Include Reflection.sip
+%Include ObjectStore.sip
+%Include Projector.sip
+%Include Indexer.sip
