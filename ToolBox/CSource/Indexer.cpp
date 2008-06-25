@@ -122,7 +122,6 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
     R+=(c2.normalLocal^markerNormals[a.index2]);
     
     R=bestRotation(R);
-    Mat3D T(OMatInv*R);
 
 
     // Try Indexation of missing reflexions
@@ -131,22 +130,26 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
     
     for (unsigned int n=markerNormals.size(); n--; ) {
         SolutionItem si;
-        si.bestScale=0.0;
-        si.marker=markerNormals.at(n);
-        si.hklUnitVect=T*si.marker;
-        si.hklUnitVect.normalize();
+        Vec3D hklUnitVect(OMatInv*R*markerNormals.at(n));
+        hklUnitVect.normalize();
         si.initialIndexed=true;
         if (n==a.index1) {
-            si.bestScale=sqrt(c1.hklSqSum);
+            si.h=c1.h;
+            si.k=c1.k;
+            si.l=c1.l;
+            s.items.append(si);
         } else if (n==a.index2) {
-            si.bestScale=sqrt(c2.hklSqSum);
+            si.h=c2.h;
+            si.k=c2.k;
+            si.l=c2.l;
+            s.items.append(si);
         } else {
             si.initialIndexed=false;
+            bool ok=true;
             for (unsigned int order=1; order<=maxOrder; order++) {
                 // TODO: Not all ints are possible!!!
                 double scale=sqrt(order);
-                Vec3D t(si.hklUnitVect*scale);
-                bool ok=true;
+                Vec3D t(hklUnitVect*scale);
                 for (unsigned int i=3; i--; ) {
                     if (fabs(fabs(t[i])-round(fabs(t[i])))>maxIntDev) {
                         ok=false;
@@ -154,20 +157,16 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
                     }
                 }
                 if (ok) {
-                    si.bestScale=scale;
+                    hklUnitVect*=scale;
+                    si.h=(int)round(hklUnitVect[0]);
+                    si.k=(int)round(hklUnitVect[1]);
+                    si.l=(int)round(hklUnitVect[2]);
+                    s.items.append(si);
                     break;
                 }
             }
-        }
-        if (si.bestScale!=0.0) {
-            otimizeScale(si);
-            si.rationalHkl=si.hklUnitVect*si.bestScale;
-            si.h=(int)round(si.rationalHkl[0]);
-            si.k=(int)round(si.rationalHkl[1]);
-            si.l=(int)round(si.rationalHkl[2]);
-            s.items.append(si);
-        } else {
-            break;
+            if (not ok) 
+                break;
         }
     }
     
@@ -179,8 +178,11 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
             Vec3D v(si.h, si.k, si.l);
             v=OMat*v;
             v.normalize();
-            R+=v^si.marker;
+            si.latticeVector=v;
+            R+=v^markerNormals[n];
         }
+        si.rotatedMarker=R*markerNormals.at(n);
+        otimizeScale(si);
         s.bestRotation=bestRotation(R);
         solutionCount++;
     }
@@ -188,7 +190,13 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
 }
 
 void IndexWorker::otimizeScale(SolutionItem& si) {
-    //TODO: Implementation!!!
+    Vec3D hkl(si.h,si.k,si.l);
+    si.rationalHkl=OMatInv*si.rotatedMarker;
+    si.rationalHkl*=hkl*si.rationalHkl/si.rationalHkl.norm_sq();
+    
+    //sum (hkl-scale*rhkl)^2 = min
+    // dsum/scale = 2sum (hkl_i-s*rhkl_i)*rhkl_i == 0!
+    // => s* sum( rhkl_i^2 ) = sum ( rhkl_i * hkl_i )
 }
 
 bool IndexWorker::nextWork(int &i, int &j) {

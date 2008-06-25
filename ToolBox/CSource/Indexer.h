@@ -29,13 +29,10 @@ class SolutionItem {
         int h;
         int k;
         int l;
-        Vec3D marker;
         Vec3D rotatedMarker;
         Vec3D rationalHkl;
         Vec3D latticeVector;
-        bool initialIndexed;
-        double bestScale;
-        
+        bool initialIndexed;        
 };
 
 class Solution {
