@@ -1,13 +1,14 @@
 from Tools import SolutionFinder
 from PyQt4 import QtCore,  QtGui
 from Ui_Indexing import Ui_Indexing
-from Tools import SolutionFinder
 from Queue import Empty
+from ToolBox import Indexer
+
+
 class Indexing(QtGui.QWidget, Ui_Indexing):
     def __init__(self, crystal, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setupUi(self)
-        self.sf=SolutionFinder.SolutionFinder()
         self.crystal=crystal
         self.connect(self.startButton, QtCore.SIGNAL('pressed()'), self.startIndexing)
         
@@ -15,87 +16,41 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             height = tv.fontMetrics().height()
             tv.verticalHeader().setDefaultSectionSize(height); 
         
-        self.solutions=SolutionArrayModel()
+        self.solutions=Indexer()
         self.SolutionSelector.setModel(self.solutions)
         self.solDisp=SolutionDisplayModel()
         self.SolutionDisplay.setModel(self.solDisp)
-        self.connect(self.SolutionSelector, QtCore.SIGNAL('clicked(const QModelIndex &)'), self.updateSolutionDisplay)
+        self.connect(self.SolutionSelector.selectionModel (), QtCore.SIGNAL('currentRowChanged ( const QModelIndex&, const QModelIndex&)'), self.updateSolutionDisplay)
+        
     def startIndexing(self):
+        params=self.solutions.IndexingParameter() 
+        
         V=[]
         for p in self.crystal.getConnectedProjectors():
             V+=p.getMarkerNormals()
-        print V
-        self.sf.setOMat(self.crystal.getReziprocalOrientationMatrix())
-        self.sf.setVectors(V)
-        self.sf.setMaxAngularDeviation(self.AngDev.value())
-        self.sf.setMaxDeviationFromInt(self.IntDev.value())
-        self.sf.setMaxTriedIndex(self.MaxIdx.value())
-        self.sf.startWork()
-        self.solutions.clearSolutions()
-        self.pollSolutionFinder()
+        params.markerNormals=V
         
-    def pollSolutionFinder(self):
-        print "Poll"
-        ok=True
-        grown=False
-        while ok:
-            try:
-                s=self.sf.solutionQueue.get_nowait()
-            except Empty:
-                ok=False
-            else:
-                self.sf.solutionQueue.task_done()
-                self.solutions.addSolution(s)
-                grown=True
-
-
-        if not self.sf.workQueue.empty() and not self.sf.solutionQueue.empty():
-            QtCore.QTimer.singleShot(500, self.pollSolutionFinder)
+        V=[]
+        for r in  self.crystal.getReflectionList():
+            if r.Q<0.5:
+                V.append(r)
+        params.refs=V
+        
+        params.maxAngularDeviation=self.AngDev.value()
+        params.maxIntegerDeviation=self.IntDev.value()
+        params.maxOrder=self.MaxIdx.value()
+        params.orientationMatrix=self.crystal.getReziprocalOrientationMatrix()
+        
+        self.solutions.startIndexing(params)
             
 
-    def updateSolutionDisplay(self, index):
-        sol=self.solutions.store[index.row()]
-        self.solDisp.setSolution(sol)
-        self.crystal.setRotation(sol.bestRotation.inverse())
+    def updateSolutionDisplay(self, index, prev):
+        n=index.row()
+        if n>=0:
+            s=self.solutions.getSolution(n)
+            self.solDisp.setSolution(s)
+            self.crystal.setRotation(s.bestRotation.transposed())
 
-class SolutionArrayModel(QtCore.QAbstractTableModel):
-    def __init__(self, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        self.store=[]
-        
-    def rowCount(self, p):
-        return len(self.store)
-        
-    def columnCount(self, p):
-        return 2
-        
-    def addSolution(self, s):
-        self.store.append(s)
-        self.reset()
-        
-    def clearSolutions(self):
-        self.store=[]
-        self.reset()
-        
-    def data(self, index, role):
-        if index.isValid() and role==QtCore.Qt.DisplayRole:
-            if index.row()<len(self.store):
-                if index.column()==0:
-                    return QtCore.QVariant(self.store[index.row()].solutionScore())
-                elif index.column()==1:
-                    return QtCore.QVariant(self.store[index.row()].angularDeviation())
-        return QtCore.QVariant()
-     
-    def sort(self, col, order):
-        if col==0:
-            field=lambda x:x.solutionScore()
-        else:
-            field=lambda x:x.angularDeviation()
-        if order==QtCore.Qt.AscendingOrder:
-            self.store.sort(lambda x, y:cmp(field(x), field(y)))
-        else:
-            self.store.sort(lambda x, y:-cmp(field(x), field(y)))
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
         
         
 class SolutionDisplayModel(QtCore.QAbstractTableModel):
@@ -106,31 +61,30 @@ class SolutionDisplayModel(QtCore.QAbstractTableModel):
     def rowCount(self, p):
         if self.solution==None:
             return 0
-        return len(self.solution.alphas)
+        return len(self.solution.items)
         
     def columnCount(self, p):
-        return 4
+        return 9
         
     def setSolution(self, s):
         self.solution=s
         self.reset()
     
-        
     def data(self, index, role):
-        if index.isValid() and role==QtCore.Qt.DisplayRole:
-            if index.row()<self.rowCount(None):
-                if index.column()==0:
-                    h, k, l=self.solution.HKLs[index.row()]
-                    return QtCore.QVariant('%i %i %i'%(h, k, l))
-                elif index.column()==1:
-                    v=self.solution.calcFractionalHKL(index.row())
-                    return QtCore.QVariant('%.2f %.2f %.2f'%v)
-                elif index.column()==2:
-                    return QtCore.QVariant(self.solution.calcSolutionScore(index.row()))
-                elif index.column()==3:
-                    return QtCore.QVariant(self.solution.calcAngularDeviation(index.row()))
-                
-                
-                
-                    
+        si=self.solution.items[index.row()]
+        if role==QtCore.Qt.DisplayRole:
+            if index.column() in (0, 1, 2):
+                v=(si.h,  si.k,  si.l)[index.column()]
+                return QtCore.QVariant('%2i'%v)
+            elif index.column() in (3, 4, 5):
+                v=si.rationalHkl[index.column()-3]
+                return QtCore.QVariant('%.2f'%v)
+            elif index.column()==6:
+                return QtCore.QVariant(si.angularDeviation())
+            elif index.column()==7:
+                return QtCore.QVariant(si.spatialDeviation())
+            elif index.column()==8:
+                return QtCore.QVariant(si.hklDeviation())
+        elif  role==QtCore.Qt.BackgroundRole and si.initialIndexed:
+            return QtCore.QVariant(QtGui.QBrush(QtCore.Qt.green))
         return QtCore.QVariant()

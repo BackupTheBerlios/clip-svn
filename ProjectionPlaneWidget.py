@@ -233,7 +233,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         if mode!=None:
             self.image=ImageTransfer()
             for i in range(4):
-                self.image.setTransferCurve(i, (1, ), (0, 1, 0, 0))
+                self.image.setTransferCurve(i, [1.], [0., 1., 0., 0.])
             self.image.setData(img.width, img.height, mode, img.tostring())        
             self.gv.setBGImage(self.image)
             self.gv.resetCachedContent()

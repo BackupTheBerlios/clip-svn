@@ -8,22 +8,6 @@
 #include <reflection.h>
 
 
-
-
-class Indexer: QAbstractTableModel {
-    public:
-        Indexer();
-        int rowCount(const QModelIndex & parent = QModelIndex());
-        int columnCount(const QModelIndex & parent = QModelIndex());
-        QVariant data(const QModelIndex & index, int role = Qt::DisplayRole);
-        void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-    
-        void startIndexing();
-    
-    
-};
-
-
 class SolutionItem {
     public:            
         int h;
@@ -33,42 +17,107 @@ class SolutionItem {
         Vec3D rationalHkl;
         Vec3D latticeVector;
         bool initialIndexed;        
+        double angularDeviation() const;
+        double spatialDeviation() const;
+        double hklDeviation() const;
 };
 
 class Solution {
     public:
+        Solution() {};
+        Solution(const Solution& s) {
+            items=s.items;
+            indexingRotation=s.indexingRotation;
+            bestRotation=s.bestRotation;
+        };
+        Solution operator=(const Solution& s) {
+            items=s.items;
+            indexingRotation=s.indexingRotation;
+            bestRotation=s.bestRotation;
+            return *this;                
+        };
         QList<SolutionItem> items;
         Mat3D indexingRotation;
         Mat3D bestRotation;
+        double angularDeviationSum() const;
+        double spatialDeviationSum() const;
+        double hklDeviationSum() const;
+        
 };
 
+Q_DECLARE_METATYPE(Solution)
 
-
-class AngleInfo {
+class Indexer: public QAbstractTableModel {
+    Q_OBJECT
     public:
-        bool operator<(const AngleInfo &o) const  {return cosAng<o.cosAng; };
-        int index1, index2;
-        double lowerBound;
-        double cosAng;
-        double upperBound;
+        struct IndexingParameter {
+            QList<Vec3D> markerNormals;
+            QList<Reflection> refs;
+            double maxAngularDeviation;
+            double maxIntegerDeviation;
+            unsigned int maxOrder;
+            Mat3D orientationMatrix;
+        };
+            
+
+
+        Indexer(QObject* parent=0);
+        virtual int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        virtual int columnCount(const QModelIndex & parent = QModelIndex()) const ;
+        virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+        virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+        virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) ;
+        
+    
+        void startIndexing(IndexingParameter& p);
+        Solution getSolution(unsigned int n);
+        
+    public slots:
+        void addSolution(Solution s);
+        void threadFinished();
+    
+    private:
+        class SolSort {
+            public:
+                SolSort(int col, Qt::SortOrder order);
+                bool operator()(const Solution& s1,const Solution& s2);
+            private:
+                int sortColumn;
+                Qt::SortOrder sortOrder;
+        };
+            
+    
+        QList<Solution> solution;
+        int sortColumn;
+        Qt::SortOrder sortOrder;
+    
 };
 
-class IndexWorker: public QRunnable {
+class IndexWorker: public QObject, public QRunnable {
+    Q_OBJECT
+    protected:
+        class AngleInfo {
+            public:
+                bool operator<(const AngleInfo &o) const;
+                static bool cmpAngleInfoLowerBound(const AngleInfo &a1, const AngleInfo &a2);
+                static bool cmpAngleInfoUpperBound(const AngleInfo &a1, const AngleInfo &a2);
+                int index1, index2;
+                double lowerBound;
+                double cosAng;
+                double upperBound;
+        };
     public:
-        IndexWorker();
-        void setMarkerNormals(QList<Vec3D> _markerNormals);
-        void setRefs(QList<Reflection> _refs);
-        void setMaxAngularDeviation(double _maxAng);
-        void setMaxIntegerDeviation(double _maxSpace);
-        void setMaxVectorOrder(unsigned int _maxOrder);
-        void setOrientationMatrix(const Mat3D& _OM);
+        IndexWorker(Indexer::IndexingParameter& p);
 
         void run();
         
-        void checkGuess(const Reflection &c1, const Reflection &c2,  const AngleInfo &a);
+        void checkGuess(const Reflection &c1, const Reflection &c2,  const IndexWorker::AngleInfo &a);
         void otimizeScale(SolutionItem& si);
     
         bool nextWork(int &i, int &j);
+        
+    signals:
+        void publishSolution(Solution s);
     protected:
         int indexI;
         int indexJ;
@@ -82,8 +131,8 @@ class IndexWorker: public QRunnable {
         unsigned int maxOrder;
         Mat3D OMat;
         Mat3D OMatInv;
-        
-        unsigned int solutionCount;
+
+
 };
 
 #endif

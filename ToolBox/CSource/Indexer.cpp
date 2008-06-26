@@ -13,24 +13,177 @@
 
 using namespace std;
 
-bool cmpAngleInfoLowerBound(const AngleInfo &a1, const AngleInfo &a2) {
-    return a1.lowerBound<a2.lowerBound;
+Indexer::Indexer(QObject* parent): QAbstractTableModel(parent) {}
+
+int Indexer::rowCount(const QModelIndex & parent) const {
+    return solution.count();
+}
+
+int Indexer::columnCount(const QModelIndex & parent) const {
+    return 3;
+}
+
+QVariant Indexer::data(const QModelIndex & index, int role) const {
+    if (role==Qt::DisplayRole) {
+        if (index.column()==0) {
+            return QVariant(solution.at(index.row()).spatialDeviationSum());
+        } else if (index.column()==1) {
+            return QVariant(solution.at(index.row()).angularDeviationSum());
+        } else if (index.column()==2) {
+            return QVariant(solution.at(index.row()).hklDeviationSum());
+        }
+    }
+    return QVariant();
+}
+
+QVariant Indexer::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role==Qt::DisplayRole) {
+        if (orientation==Qt::Horizontal) {
+            if (section==0) {
+                return QVariant("Spacial");
+            } else if (section==1) {
+                return QVariant("Angular");
+            } else if (section==2) {
+                return QVariant("HKL");
+            }
+        } else {
+            return QVariant(section+1);
+        }
+    } 
+    return QVariant();
+}
+    
+
+void Indexer::sort(int column, Qt::SortOrder order) {
+    sortColumn=column;
+    sortOrder=order;
+    qSort(solution.begin(), solution.end(), SolSort(sortColumn, sortOrder));
+    reset();
+}
+    
+void Indexer::startIndexing(Indexer::IndexingParameter& p) {
+    solution.clear();
+    reset();
+    IndexWorker* worker=new IndexWorker(p);
+    qRegisterMetaType<Solution>();
+    connect(worker, SIGNAL(publishSolution(Solution)), this, SLOT(addSolution(Solution)));
+    connect(worker, SIGNAL(destroyed()), this, SLOT(threadFinished()));
+    QThreadPool::globalInstance()->start(worker);
+}
+    
+void Indexer::addSolution(Solution s) {
+    QList<Solution>::iterator iter=qLowerBound(solution.begin(), solution.end(), s, SolSort(sortColumn, sortOrder));
+    QList<Solution>::iterator saveiter=iter;
+    SolSort less(sortColumn, sortOrder);
+    bool differs=true;
+    while (iter!=solution.end() and s.angularDeviationSum()==iter->angularDeviationSum()) {
+        // TODO: Try Matrics from Laue Group
+        Mat3D M(s.bestRotation);
+        M*=iter->bestRotation.transposed();
+        M-=Mat3D();
+        if (M.sqSum()<1e-15) {
+            differs=false;
+            iter=solution.end();
+        } else {
+            iter++;
+        }
+    }
+    if (differs) {
+        int n=saveiter-solution.begin();
+        beginInsertRows(QModelIndex(),n,n);
+        solution.insert(saveiter,s);
+        endInsertRows();
+    } else {
+        cout << "Skip Sol" <<  endl;
+    }
+}
+
+Solution Indexer::getSolution(unsigned int n) {
+    return solution[n];
+}
+
+void Indexer::threadFinished() {
+    cout << "Thread finished and destroyed" << endl;
+}
+
+
+Indexer::SolSort::SolSort(int col, Qt::SortOrder order) {
+    sortColumn=col;
+    sortOrder=order;
 };
 
-bool cmpAngleInfoUpperBound(const AngleInfo &a1, const AngleInfo &a2) {
-    return a1.upperBound<a2.upperBound;
-};
+bool Indexer::SolSort::operator()(const Solution& s1,const Solution& s2) {
+    bool b=true;
+    if (sortColumn==0) {
+        b=s1.angularDeviationSum()<s2.angularDeviationSum();
+    } else if (sortColumn==1) {
+        b=s1.spatialDeviationSum()<s2.spatialDeviationSum();
+    } else if (sortColumn==2) {
+        b=s1.hklDeviationSum()<s2.hklDeviationSum();
+    }
+    if (sortOrder==Qt::DescendingOrder)
+        b=not b;
+    return b;
+}
 
 
-IndexWorker::IndexWorker(): indexMutex(), refs(), markerNormals(), angles() {
+
+
+
+
+
+
+
+
+double SolutionItem::angularDeviation() const {
+    return fabs(acos(rotatedMarker*latticeVector));
+}
+
+double SolutionItem::spatialDeviation() const {
+    return fabs((rotatedMarker-latticeVector).norm());
+}
+
+double SolutionItem::hklDeviation() const {
+    return fabs(rationalHkl[0]-h)+fabs(rationalHkl[1]-k)+fabs(rationalHkl[2]-l);
+}
+
+double Solution::angularDeviationSum() const {
+    double s=0.0;
+    for (unsigned int n=items.size(); n--; )
+        s+=items.at(n).angularDeviation();
+    return s;
+}
+
+double Solution::spatialDeviationSum() const {
+    double s=0.0;
+    for (unsigned int n=items.size(); n--; )
+        s+=items.at(n).spatialDeviation();
+    return s;
+}
+
+double Solution::hklDeviationSum() const {
+    double s=0.0;
+    for (unsigned int n=items.size(); n--; )
+        s+=items.at(n).hklDeviation();
+    return s;
+}
+
+
+
+
+
+IndexWorker::IndexWorker(Indexer::IndexingParameter &p): QObject(), QRunnable(), indexMutex(), refs(), markerNormals(), angles() {
     indexI=1;
     indexJ=0;
     isInitiatingThread=true;
-    solutionCount=0;
-}
-
-void IndexWorker::setMarkerNormals(QList<Vec3D> _markerNormals) {
-    markerNormals=_markerNormals;
+    markerNormals=p.markerNormals;
+    refs=p.refs;
+    maxAng=M_PI*p.maxAngularDeviation/180.0;
+    maxIntDev=p.maxIntegerDeviation;
+    maxOrder=p.maxOrder;
+    OMat=p.orientationMatrix;    
+    OMatInv=OMat.inverse();
+        
     for (unsigned int i=markerNormals.size(); i--; ) {
         for (unsigned int j=i; j--; ) {
             AngleInfo info;
@@ -46,33 +199,6 @@ void IndexWorker::setMarkerNormals(QList<Vec3D> _markerNormals) {
         }
     }
     qSort(angles);
-}
-void IndexWorker::setRefs(QList<Reflection> _refs) {
-    refs=_refs;  
-}
-
-void IndexWorker::setMaxAngularDeviation(double _maxAng) {
-    maxAng=M_PI*_maxAng/180.0;
-    for (unsigned int i=angles.size(); i--; ) {
-        double c=acos(angles.at(i).cosAng);
-        double c1=cos(c+maxAng);
-        double c2=cos(c-maxAng);
-        angles[i].lowerBound=(c1<c2)?c1:c2;
-        angles[i].upperBound=(c1>c2)?c1:c2;
-    }
-}
-
-void IndexWorker::setMaxIntegerDeviation(double _maxIntDev) {
-    maxIntDev=_maxIntDev;
-}
-
-void IndexWorker::setMaxVectorOrder(unsigned int _maxOrder) {
-    maxOrder=_maxOrder;
-}
-
-void IndexWorker::setOrientationMatrix(const Mat3D& _OM) {
-    OMat=_OM;
-    OMatInv=OMat.inverse();
 }
 
 void IndexWorker::run() {
@@ -90,7 +216,7 @@ void IndexWorker::run() {
     while (nextWork(i,j)) {
         double cosAng=refs.at(i).normalLocal*refs.at(j).normalLocal;
         lower.upperBound=cosAng;
-        QList<AngleInfo>::iterator iter=qLowerBound(angles.begin(), angles.end(), lower, cmpAngleInfoUpperBound);
+        QList<IndexWorker::AngleInfo>::iterator iter=qLowerBound(angles.begin(), angles.end(), lower, IndexWorker::AngleInfo::cmpAngleInfoUpperBound);
         bool ok=false;
         while (iter!=angles.end() && cosAng>=iter->lowerBound) {
             if (iter->lowerBound<=cosAng && cosAng<iter->upperBound) {
@@ -100,7 +226,6 @@ void IndexWorker::run() {
             iter++;
         }
     }
-    cout << "Solutions: " << solutionCount << endl;
 }
 
 Mat3D bestRotation(Mat3D M) {
@@ -145,8 +270,9 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
             s.items.append(si);
         } else {
             si.initialIndexed=false;
-            bool ok=true;
+            bool ok;
             for (unsigned int order=1; order<=maxOrder; order++) {
+                ok=true;
                 // TODO: Not all ints are possible!!!
                 double scale=sqrt(order);
                 Vec3D t(hklUnitVect*scale);
@@ -157,10 +283,9 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
                     }
                 }
                 if (ok) {
-                    hklUnitVect*=scale;
-                    si.h=(int)round(hklUnitVect[0]);
-                    si.k=(int)round(hklUnitVect[1]);
-                    si.l=(int)round(hklUnitVect[2]);
+                    si.h=(int)round(t[0]);
+                    si.k=(int)round(t[1]);
+                    si.l=(int)round(t[2]);
                     s.items.append(si);
                     break;
                 }
@@ -174,17 +299,20 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
         // yes, we have a solution!!!
         R*=0.0;
         for (unsigned int n=s.items.size(); n--; ) {
-            const SolutionItem& si = s.items.at(n);
+            SolutionItem& si = s.items[n];
             Vec3D v(si.h, si.k, si.l);
             v=OMat*v;
             v.normalize();
-            si.latticeVector=v;
+            si.latticeVector=v;            
             R+=v^markerNormals[n];
         }
-        si.rotatedMarker=R*markerNormals.at(n);
-        otimizeScale(si);
         s.bestRotation=bestRotation(R);
-        solutionCount++;
+        for (unsigned int n=s.items.size(); n--; ) {
+            SolutionItem& si = s.items[n];
+            si.rotatedMarker=s.bestRotation*markerNormals.at(n);
+            otimizeScale(si);
+        }
+        emit publishSolution(s);
     }
     
 }
@@ -193,7 +321,6 @@ void IndexWorker::otimizeScale(SolutionItem& si) {
     Vec3D hkl(si.h,si.k,si.l);
     si.rationalHkl=OMatInv*si.rotatedMarker;
     si.rationalHkl*=hkl*si.rationalHkl/si.rationalHkl.norm_sq();
-    
     //sum (hkl-scale*rhkl)^2 = min
     // dsum/scale = 2sum (hkl_i-s*rhkl_i)*rhkl_i == 0!
     // => s* sum( rhkl_i^2 ) = sum ( rhkl_i * hkl_i )
@@ -214,3 +341,16 @@ bool IndexWorker::nextWork(int &i, int &j) {
     }
     return true;
 }    
+
+bool IndexWorker::AngleInfo::operator<(const AngleInfo& o) const {
+    return cosAng<o.cosAng;
+}
+
+bool IndexWorker::AngleInfo::cmpAngleInfoLowerBound(const AngleInfo &a1, const AngleInfo &a2) {
+    return a1.lowerBound<a2.lowerBound;
+}
+bool IndexWorker::AngleInfo::cmpAngleInfoUpperBound(const AngleInfo &a1, const AngleInfo &a2) {
+    return a1.upperBound<a2.upperBound;
+}
+
+
