@@ -8,6 +8,7 @@ class Indexer: QAbstractTableModel {
         struct IndexingParameter {
             QList<Vec3D> markerNormals;
             QList<Reflection> refs;
+            QList<Mat3D> pointGroup;
             double maxAngularDeviation;
             double maxIntegerDeviation;
             unsigned int maxOrder;

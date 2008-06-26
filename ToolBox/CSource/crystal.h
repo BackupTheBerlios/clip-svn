@@ -33,6 +33,7 @@ class Crystal: public QObject {
         Mat3D getRealOrientationMatrix();
         Mat3D getReziprocalOrientationMatrix();
         Mat3D getRotationMatrix();
+        QString getSpacegroupSymbol();
 
         QList<Projector*> getConnectedProjectors();
     public slots:
@@ -43,6 +44,7 @@ class Crystal: public QObject {
         void setWavevectors(double Qmin, double Qmax);
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
+        void setSpacegroupSymbol(const QString& s);
     signals:
         void cellChanged();
         void orientationChanged();
@@ -66,6 +68,7 @@ class Crystal: public QObject {
         double Qmin;
         double Qmax;
         ObjectStore connectedProjectors;
+        QString spacegroupSymbol;
 };
 
 

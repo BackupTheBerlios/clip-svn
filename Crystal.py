@@ -95,6 +95,7 @@ class Crystal(QtGui.QWidget, Ui_CrystalWidget):
     def sgtest(self, s):
         if self.sg.parseGroupSymbol(str(s)):
             self.sgName=str(s)
+            self.crystal.setSpacegroupSymbol(s)
         else:
             self.sgName=None
         self.symConstrain()

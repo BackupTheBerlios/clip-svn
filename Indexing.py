@@ -3,7 +3,7 @@ from PyQt4 import QtCore,  QtGui
 from Ui_Indexing import Ui_Indexing
 from Queue import Empty
 from ToolBox import Indexer
-
+from Tools import SpaceGroup
 
 class Indexing(QtGui.QWidget, Ui_Indexing):
     def __init__(self, crystal, parent=None):
@@ -35,6 +35,10 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             if r.Q<0.5:
                 V.append(r)
         params.refs=V
+        
+        sg=SpaceGroup.SpaceGroup()
+        sg.parseGroupSymbol(self.crystal.getSpacegroupSymbol())
+        params.pointGroup=sg.getLaueGroup()
         
         params.maxAngularDeviation=self.AngDev.value()
         params.maxIntegerDeviation=self.IntDev.value()

@@ -53,6 +53,7 @@ class Indexer: public QAbstractTableModel {
         struct IndexingParameter {
             QList<Vec3D> markerNormals;
             QList<Reflection> refs;
+            QList<Mat3D> pointGroup;
             double maxAngularDeviation;
             double maxIntegerDeviation;
             unsigned int maxOrder;
@@ -90,6 +91,7 @@ class Indexer: public QAbstractTableModel {
         QList<Solution> solution;
         int sortColumn;
         Qt::SortOrder sortOrder;
+        IndexingParameter p;
     
 };
 
@@ -124,14 +126,10 @@ class IndexWorker: public QObject, public QRunnable {
         QMutex indexMutex;
         bool isInitiatingThread;
         QList<AngleInfo> angles;
-        QList<Vec3D> markerNormals;
-        QList<Reflection> refs;
-        double maxAng;
-        double maxIntDev;
-        unsigned int maxOrder;
-        Mat3D OMat;
+        
+        Indexer::IndexingParameter p;
+        
         Mat3D OMatInv;
-
 
 };
 

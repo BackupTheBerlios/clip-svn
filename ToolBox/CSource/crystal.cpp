@@ -262,4 +262,10 @@ QList<Projector*> Crystal::getConnectedProjectors() {
     return r;
 }
 
+QString Crystal::getSpacegroupSymbol() {
+    return spacegroupSymbol;
+}
 
+void Crystal::setSpacegroupSymbol(const QString& s) {
+    spacegroupSymbol=s;
+}

@@ -25,6 +25,7 @@ class Crystal: QObject {
         Mat3D getReziprocalOrientationMatrix();
         Mat3D getRotationMatrix();
         QList<Projector*> getConnectedProjectors();
+        QString getSpacegroupSymbol();
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -33,6 +34,8 @@ class Crystal: QObject {
         void setWavevectors(double lower, double upper);
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
+        void setSpacegroupSymbol(const QString& s);
+
     signals:
         void cellChanged();
         void orientationChanged();

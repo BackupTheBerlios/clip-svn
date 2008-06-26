@@ -61,7 +61,9 @@ void Indexer::sort(int column, Qt::SortOrder order) {
     reset();
 }
     
-void Indexer::startIndexing(Indexer::IndexingParameter& p) {
+void Indexer::startIndexing(Indexer::IndexingParameter& _p) {
+    p=_p;
+    cout << p.pointGroup.size() << endl;
     solution.clear();
     reset();
     IndexWorker* worker=new IndexWorker(p);
@@ -72,26 +74,28 @@ void Indexer::startIndexing(Indexer::IndexingParameter& p) {
 }
     
 void Indexer::addSolution(Solution s) {
-    QList<Solution>::iterator iter=qLowerBound(solution.begin(), solution.end(), s, SolSort(sortColumn, sortOrder));
-    QList<Solution>::iterator saveiter=iter;
-    SolSort less(sortColumn, sortOrder);
+    QList<Solution>::iterator iter=solution.begin();
     bool differs=true;
-    while (iter!=solution.end() and s.angularDeviationSum()==iter->angularDeviationSum()) {
+    while (differs and (iter!=solution.end())) {
         // TODO: Try Matrics from Laue Group
         Mat3D M(s.bestRotation);
         M*=iter->bestRotation.transposed();
-        M-=Mat3D();
-        if (M.sqSum()<1e-15) {
-            differs=false;
-            iter=solution.end();
-        } else {
-            iter++;
+        
+        for (unsigned int n=p.pointGroup.size(); n--; ) {
+            Mat3D D(M-p.pointGroup[n]);
+            if (D.sqSum()<1e-10) {
+                differs=false;
+                break;
+            }
         }
+        if (differs)
+            iter++;
     }
     if (differs) {
-        int n=saveiter-solution.begin();
+        iter=qLowerBound(solution.begin(), solution.end(), s, SolSort(sortColumn, sortOrder));
+        int n=iter-solution.begin();
         beginInsertRows(QModelIndex(),n,n);
-        solution.insert(saveiter,s);
+        solution.insert(iter,s);
         endInsertRows();
     } else {
         cout << "Skip Sol" <<  endl;
@@ -172,27 +176,23 @@ double Solution::hklDeviationSum() const {
 
 
 
-IndexWorker::IndexWorker(Indexer::IndexingParameter &p): QObject(), QRunnable(), indexMutex(), refs(), markerNormals(), angles() {
+IndexWorker::IndexWorker(Indexer::IndexingParameter &_p): QObject(), QRunnable(), indexMutex(), angles() {
     indexI=1;
     indexJ=0;
     isInitiatingThread=true;
-    markerNormals=p.markerNormals;
-    refs=p.refs;
-    maxAng=M_PI*p.maxAngularDeviation/180.0;
-    maxIntDev=p.maxIntegerDeviation;
-    maxOrder=p.maxOrder;
-    OMat=p.orientationMatrix;    
-    OMatInv=OMat.inverse();
+    
+    p=_p;
+    OMatInv=p.orientationMatrix.inverse();
         
-    for (unsigned int i=markerNormals.size(); i--; ) {
+    for (unsigned int i=p.markerNormals.size(); i--; ) {
         for (unsigned int j=i; j--; ) {
             AngleInfo info;
             info.index1=i;
             info.index2=j;
-            info.cosAng=markerNormals.at(i)*markerNormals.at(j);
+            info.cosAng=p.markerNormals.at(i)*p.markerNormals.at(j);
             double c=acos(info.cosAng);
-            double c1=cos(c+maxAng);
-            double c2=cos(c-maxAng);
+            double c1=cos(c+p.maxAngularDeviation);
+            double c2=cos(c-p.maxAngularDeviation);
             info.lowerBound=(c1<c2)?c1:c2;
             info.upperBound=(c1>c2)?c1:c2;
             angles.append(info);
@@ -214,14 +214,14 @@ void IndexWorker::run() {
     AngleInfo lower;
 
     while (nextWork(i,j)) {
-        double cosAng=refs.at(i).normalLocal*refs.at(j).normalLocal;
+        double cosAng=p.refs.at(i).normalLocal*p.refs.at(j).normalLocal;
         lower.upperBound=cosAng;
         QList<IndexWorker::AngleInfo>::iterator iter=qLowerBound(angles.begin(), angles.end(), lower, IndexWorker::AngleInfo::cmpAngleInfoUpperBound);
         bool ok=false;
         while (iter!=angles.end() && cosAng>=iter->lowerBound) {
             if (iter->lowerBound<=cosAng && cosAng<iter->upperBound) {
-                checkGuess(refs.at(i), refs.at(j),  *iter);
-                checkGuess(refs.at(j), refs.at(i),  *iter);
+                checkGuess(p.refs.at(i), p.refs.at(j),  *iter);
+                checkGuess(p.refs.at(j), p.refs.at(i),  *iter);
             }
             iter++;
         }
@@ -243,8 +243,8 @@ Mat3D bestRotation(Mat3D M) {
 
 void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const AngleInfo &a) {
     // Prepare Best Rotation Matrix from c1,c2 -> a(1) a(2)
-    Mat3D R=c1.normalLocal^markerNormals[a.index1];
-    R+=(c2.normalLocal^markerNormals[a.index2]);
+    Mat3D R=c1.normalLocal^p.markerNormals[a.index1];
+    R+=(c2.normalLocal^p.markerNormals[a.index2]);
     
     R=bestRotation(R);
 
@@ -253,9 +253,9 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
     Solution s;
     s.indexingRotation=R;
     
-    for (unsigned int n=markerNormals.size(); n--; ) {
+    for (unsigned int n=p.markerNormals.size(); n--; ) {
         SolutionItem si;
-        Vec3D hklUnitVect(OMatInv*R*markerNormals.at(n));
+        Vec3D hklUnitVect(OMatInv*R*p.markerNormals.at(n));
         hklUnitVect.normalize();
         si.initialIndexed=true;
         if (n==a.index1) {
@@ -271,13 +271,13 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
         } else {
             si.initialIndexed=false;
             bool ok;
-            for (unsigned int order=1; order<=maxOrder; order++) {
+            for (unsigned int order=1; order<=p.maxOrder; order++) {
                 ok=true;
                 // TODO: Not all ints are possible!!!
                 double scale=sqrt(order);
                 Vec3D t(hklUnitVect*scale);
                 for (unsigned int i=3; i--; ) {
-                    if (fabs(fabs(t[i])-round(fabs(t[i])))>maxIntDev) {
+                    if (fabs(fabs(t[i])-round(fabs(t[i])))>p.maxIntegerDeviation) {
                         ok=false;
                         break;
                     }
@@ -295,21 +295,21 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
         }
     }
     
-    if (markerNormals.size()==s.items.size()) {
+    if (p.markerNormals.size()==s.items.size()) {
         // yes, we have a solution!!!
         R*=0.0;
         for (unsigned int n=s.items.size(); n--; ) {
             SolutionItem& si = s.items[n];
             Vec3D v(si.h, si.k, si.l);
-            v=OMat*v;
+            v=p.orientationMatrix*v;
             v.normalize();
             si.latticeVector=v;            
-            R+=v^markerNormals[n];
+            R+=v^p.markerNormals[n];
         }
         s.bestRotation=bestRotation(R);
         for (unsigned int n=s.items.size(); n--; ) {
             SolutionItem& si = s.items[n];
-            si.rotatedMarker=s.bestRotation*markerNormals.at(n);
+            si.rotatedMarker=s.bestRotation*p.markerNormals.at(n);
             otimizeScale(si);
         }
         emit publishSolution(s);
@@ -328,7 +328,7 @@ void IndexWorker::otimizeScale(SolutionItem& si) {
 
 bool IndexWorker::nextWork(int &i, int &j) {
     QMutexLocker lock(&indexMutex);
-    if (indexI>=refs.size())
+    if (indexI>=p.refs.size())
         return false;
 
     i=indexI;
