@@ -77,6 +77,9 @@ class Indexer: public QAbstractTableModel {
         void addSolution(Solution s);
         void threadFinished();
     
+    signals:
+        void stopWorker();
+    
     private:
         class SolSort {
             public:
@@ -92,7 +95,6 @@ class Indexer: public QAbstractTableModel {
         int sortColumn;
         Qt::SortOrder sortOrder;
         IndexingParameter p;
-    
 };
 
 class IndexWorker: public QObject, public QRunnable {
@@ -117,13 +119,22 @@ class IndexWorker: public QObject, public QRunnable {
         void otimizeScale(SolutionItem& si);
     
         bool nextWork(int &i, int &j);
+    
+    public slots:
+        void stop();
         
     signals:
         void publishSolution(Solution s);
     protected:
+    
+        bool newSolution(const Mat3D& M);
+
+    
         int indexI;
         int indexJ;
+        bool shouldStop;
         QMutex indexMutex;
+    
         bool isInitiatingThread;
         QList<AngleInfo> angles;
         
@@ -131,6 +142,9 @@ class IndexWorker: public QObject, public QRunnable {
         
         Mat3D OMatInv;
 
+        QMutex solRotLock;
+        QList<Mat3D> solutionRotations;
+    
 };
 
 #endif

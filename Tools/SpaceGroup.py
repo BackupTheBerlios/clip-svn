@@ -150,8 +150,19 @@ class SpaceGroup:
     def parseGroupSymbol(self, s):
         pointGrp=None
         cSym=None
+
+        self.pointGrp=None
+        self.system=None
+        self.symbol=s
+        self.centering=None
+
+
         s=str(s)
         s=s.replace(' ','').capitalize()
+        
+        if len(s)<1:
+            return False
+        
         pGrp=s[1:]  
         
         for grps in self.allPointGrps:
@@ -165,10 +176,6 @@ class SpaceGroup:
           self.symbol=s
           self.centering=s[0]
           return True
-        self.pointGrp=None
-        self.system=None
-        self.symbol=s
-        self.centering=None
         return False
     
     def contrainCellToSymmetry(self, cell):

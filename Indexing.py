@@ -12,16 +12,22 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         self.crystal=crystal
         self.connect(self.startButton, QtCore.SIGNAL('pressed()'), self.startIndexing)
         
-        for tv in (self.SolutionDisplay, self.SolutionSelector):
-            height = tv.fontMetrics().height()
-            tv.verticalHeader().setDefaultSectionSize(height); 
-        
+            
         self.solutions=Indexer()
         self.SolutionSelector.setModel(self.solutions)
         self.solDisp=SolutionDisplayModel()
         self.SolutionDisplay.setModel(self.solDisp)
         self.connect(self.SolutionSelector.selectionModel (), QtCore.SIGNAL('currentRowChanged ( const QModelIndex&, const QModelIndex&)'), self.updateSolutionDisplay)
-        
+
+        for tv in (self.SolutionDisplay, self.SolutionSelector):
+            height = tv.fontMetrics().height()
+            tv.verticalHeader().setDefaultSectionSize(height); 
+        self.SolutionSelector.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.SolutionDisplay.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        for n in (6, 7, 8):
+            self.SolutionDisplay.horizontalHeader().setResizeMode(n, QtGui.QHeaderView.Stretch)
+
+
     def startIndexing(self):
         params=self.solutions.IndexingParameter() 
         
@@ -54,7 +60,6 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             s=self.solutions.getSolution(n)
             self.solDisp.setSolution(s)
             self.crystal.setRotation(s.bestRotation.transposed())
-
         
         
 class SolutionDisplayModel(QtCore.QAbstractTableModel):
@@ -90,5 +95,12 @@ class SolutionDisplayModel(QtCore.QAbstractTableModel):
             elif index.column()==8:
                 return QtCore.QVariant(si.hklDeviation())
         elif  role==QtCore.Qt.BackgroundRole and si.initialIndexed:
-            return QtCore.QVariant(QtGui.QBrush(QtCore.Qt.green))
+            return QtCore.QVariant(QtGui.QBrush(QtGui.QColor(225, 255, 225)))
         return QtCore.QVariant()
+
+    def headerData(self, section, orientation, role):
+        if role==QtCore.Qt.DisplayRole and orientation==QtCore.Qt.Horizontal:
+            data=('h', 'k', 'l', 'h', 'k', 'l', 'Angular', 'Spatial', 'HKL')
+            return QtCore.QVariant(data[section])
+        return QtCore.QVariant()
+

@@ -13,7 +13,9 @@
 
 using namespace std;
 
-Indexer::Indexer(QObject* parent): QAbstractTableModel(parent) {}
+Indexer::Indexer(QObject* parent): QAbstractTableModel(parent) {
+
+}
 
 int Indexer::rowCount(const QModelIndex & parent) const {
     return solution.count();
@@ -62,6 +64,7 @@ void Indexer::sort(int column, Qt::SortOrder order) {
 }
     
 void Indexer::startIndexing(Indexer::IndexingParameter& _p) {
+    emit stopWorker();
     p=_p;
     cout << p.pointGroup.size() << endl;
     solution.clear();
@@ -70,36 +73,17 @@ void Indexer::startIndexing(Indexer::IndexingParameter& _p) {
     qRegisterMetaType<Solution>();
     connect(worker, SIGNAL(publishSolution(Solution)), this, SLOT(addSolution(Solution)));
     connect(worker, SIGNAL(destroyed()), this, SLOT(threadFinished()));
+    connect(this, SIGNAL(stopWorker()), worker, SLOT(stop()));
+    connect(this, SIGNAL(destroyed()), worker, SLOT(stop()));
     QThreadPool::globalInstance()->start(worker);
 }
     
 void Indexer::addSolution(Solution s) {
-    QList<Solution>::iterator iter=solution.begin();
-    bool differs=true;
-    while (differs and (iter!=solution.end())) {
-        // TODO: Try Matrics from Laue Group
-        Mat3D M(s.bestRotation);
-        M*=iter->bestRotation.transposed();
-        
-        for (unsigned int n=p.pointGroup.size(); n--; ) {
-            Mat3D D(M-p.pointGroup[n]);
-            if (D.sqSum()<1e-10) {
-                differs=false;
-                break;
-            }
-        }
-        if (differs)
-            iter++;
-    }
-    if (differs) {
-        iter=qLowerBound(solution.begin(), solution.end(), s, SolSort(sortColumn, sortOrder));
-        int n=iter-solution.begin();
-        beginInsertRows(QModelIndex(),n,n);
-        solution.insert(iter,s);
-        endInsertRows();
-    } else {
-        cout << "Skip Sol" <<  endl;
-    }
+    QList<Solution>::iterator iter=qLowerBound(solution.begin(), solution.end(), s, SolSort(sortColumn, sortOrder));
+    int n=iter-solution.begin();
+    beginInsertRows(QModelIndex(),n,n);
+    solution.insert(iter,s);
+    endInsertRows();
 }
 
 Solution Indexer::getSolution(unsigned int n) {
@@ -175,12 +159,11 @@ double Solution::hklDeviationSum() const {
 
 
 
-
-IndexWorker::IndexWorker(Indexer::IndexingParameter &_p): QObject(), QRunnable(), indexMutex(), angles() {
+IndexWorker::IndexWorker(Indexer::IndexingParameter &_p): QObject(), QRunnable(), indexMutex(), angles(), solRotLock(), solutionRotations() {
     indexI=1;
     indexJ=0;
     isInitiatingThread=true;
-    
+    shouldStop=false;
     p=_p;
     OMatInv=p.orientationMatrix.inverse();
         
@@ -253,29 +236,33 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
     Solution s;
     s.indexingRotation=R;
     
-    for (unsigned int n=p.markerNormals.size(); n--; ) {
+    for (unsigned int n=0; n<p.markerNormals.size(); n++) {
         SolutionItem si;
-        Vec3D hklUnitVect(OMatInv*R*p.markerNormals.at(n));
-        hklUnitVect.normalize();
         si.initialIndexed=true;
+        #ifdef __DEBUG__
+        si.rotatedMarker=R*p.markerNormals.at(n);
+        #endif
+        bool ok=true;
         if (n==a.index1) {
             si.h=c1.h;
             si.k=c1.k;
             si.l=c1.l;
-            s.items.append(si);
         } else if (n==a.index2) {
             si.h=c2.h;
             si.k=c2.k;
             si.l=c2.l;
-            s.items.append(si);
         } else {
+            Vec3D hklUnitVect(OMatInv*R*p.markerNormals.at(n));
+            hklUnitVect.normalize();
             si.initialIndexed=false;
-            bool ok;
             for (unsigned int order=1; order<=p.maxOrder; order++) {
-                ok=true;
                 // TODO: Not all ints are possible!!!
                 double scale=sqrt(order);
                 Vec3D t(hklUnitVect*scale);
+                #ifdef __DEBUG__
+                si.rationalHkl=t;
+                #endif
+                ok=true;
                 for (unsigned int i=3; i--; ) {
                     if (fabs(fabs(t[i])-round(fabs(t[i])))>p.maxIntegerDeviation) {
                         ok=false;
@@ -286,12 +273,14 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
                     si.h=(int)round(t[0]);
                     si.k=(int)round(t[1]);
                     si.l=(int)round(t[2]);
-                    s.items.append(si);
                     break;
                 }
             }
-            if (not ok) 
-                break;
+        }
+        if (ok) {
+            s.items.append(si);
+        } else {
+            break;
         }
     }
     
@@ -299,20 +288,24 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
         // yes, we have a solution!!!
         R*=0.0;
         for (unsigned int n=s.items.size(); n--; ) {
-            SolutionItem& si = s.items[n];
+            SolutionItem& si=s.items[n];
             Vec3D v(si.h, si.k, si.l);
             v=p.orientationMatrix*v;
             v.normalize();
             si.latticeVector=v;            
             R+=v^p.markerNormals[n];
         }
+
         s.bestRotation=bestRotation(R);
-        for (unsigned int n=s.items.size(); n--; ) {
-            SolutionItem& si = s.items[n];
-            si.rotatedMarker=s.bestRotation*p.markerNormals.at(n);
-            otimizeScale(si);
+
+        if (newSolution(s.bestRotation)) {
+            for (unsigned int n=s.items.size(); n--; ) {
+                SolutionItem& si=s.items[n];
+                si.rotatedMarker=s.bestRotation*p.markerNormals.at(n);
+                otimizeScale(si);
+            }
+            emit publishSolution(s);
         }
-        emit publishSolution(s);
     }
     
 }
@@ -326,9 +319,27 @@ void IndexWorker::otimizeScale(SolutionItem& si) {
     // => s* sum( rhkl_i^2 ) = sum ( rhkl_i * hkl_i )
 }
 
+bool IndexWorker::newSolution(const Mat3D& M) {
+    //TODO: This is possibly a performance lock. The threads might serialize here
+    QMutexLocker lock(&solRotLock);
+    Mat3D T1(M.transposed());
+    for (unsigned int n=solutionRotations.size(); n--; ) {
+        Mat3D T2(solutionRotations.at(n)*T1);
+        for (unsigned int m=p.pointGroup.size(); m--; ) {
+            Mat3D T3(T2-p.pointGroup.at(m));
+            if (T3.sqSum()<1e-10) {
+                return false;
+            }
+        }
+    }
+    solutionRotations.append(M);
+    return true;
+}
+
+
 bool IndexWorker::nextWork(int &i, int &j) {
     QMutexLocker lock(&indexMutex);
-    if (indexI>=p.refs.size())
+    if (indexI>=p.refs.size() or shouldStop)
         return false;
 
     i=indexI;
@@ -353,4 +364,7 @@ bool IndexWorker::AngleInfo::cmpAngleInfoUpperBound(const AngleInfo &a1, const A
     return a1.upperBound<a2.upperBound;
 }
 
-
+void IndexWorker::stop() {
+    QMutexLocker lock(&indexMutex);
+    shouldStop=true;
+}
