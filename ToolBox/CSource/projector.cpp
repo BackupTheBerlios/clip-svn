@@ -197,6 +197,10 @@ QGraphicsScene* Projector::getScene() {
     return &scene;
 }
 
+Crystal* Projector::getCrystal() {
+    return crystal;
+}
+
 unsigned int Projector::getMaxHklSqSum() const {
     return maxHklSqSum;
 }
@@ -300,3 +304,4 @@ void Projector::updateImgTransformations() {
         imgGroup.childItems().at(i)->setTransform(t);
     emit imgTransformUpdated();
 }
+

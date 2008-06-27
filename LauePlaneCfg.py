@@ -44,8 +44,9 @@ class LauePlaneCfg(QtGui.QWidget, Ui_LauePlaneCfgUI):
         self.connect(self.detSpotsEnabled, QtCore.SIGNAL('clicked(bool)'),  self.projector.enableSpots);
 
     def updateQDisplay(self, d):
-        self.QDispA.setValue(2.0*math.pi/d)
-        self.QDispKEV.setValue(0.5*12.398*d/math.pi)
+        if d>0:
+            self.QDispA.setValue(2.0*math.pi/d)
+            self.QDispKEV.setValue(0.5*12.398*d/math.pi)
         
     def updateQs(self):
         s=0.5/math.pi

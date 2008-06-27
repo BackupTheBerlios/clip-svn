@@ -216,8 +216,22 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.mouseHandler=self.rotateHandler
         elif len(args)==2:
             e, context=args
-            if context==self.pressContext:
-                pass
+            if context==self.moveContext:
+                p1=self.gv.mapToScene(self.lastMousePos)
+                p2=self.gv.mapToScene(self.gv.mapFromParent(e.pos()))
+                v1=self.projector.det2normal(p1)
+                v2=self.projector.det2normal(p2)
+                c=self.projector.getCrystal()
+                if c:
+                    ax=c.getLabSystamRotationAxis()
+                    v1=v1-ax*(v1*ax)
+                    v2=v2-ax*(v2*ax)
+                    v1.normalize()
+                    v2.normalize()
+                    a=math.acos(v1*v2)
+                    if Mat3D(ax, v1, v2).det()<0:
+                        a*=-1
+                    self.projector.addRotation(ax, a)
                 
                 
     def slotLoadImage(self):

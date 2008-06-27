@@ -14,13 +14,13 @@ int ggt(int a, int b) {
     return abs(a);
 }
 
-Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this) {
+Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this), rotationAxis(1,0,0) {
     setCell(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     Qmin=0.0;
     Qmax=1.0;
     connect(&connectedProjectors, SIGNAL(objectAdded()), this, SLOT(updateWavevectorsFromProjectors()));
     connect(&connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavevectorsFromProjectors()));
-
+    axisType=LabSystem;
 }
 
 Crystal::Crystal(const Crystal& c) {};
@@ -269,3 +269,30 @@ QString Crystal::getSpacegroupSymbol() {
 void Crystal::setSpacegroupSymbol(const QString& s) {
     spacegroupSymbol=s;
 }
+
+void Crystal::setRotationAxis(const Vec3D& axis, RotationAxisType type) {
+    rotationAxis=axis;
+    axisType=type;
+}
+
+Vec3D Crystal::getRotationAxis() {
+    return rotationAxis;
+}
+
+Vec3D Crystal::getLabSystamRotationAxis() {
+    if (axisType==ReziprocalSpace) {
+        Vec3D v(MRot*MReziprocal*rotationAxis);
+        v.normalize();
+        return v;
+    } else if (axisType==DirectSpace) {
+        Vec3D v(MRot*MReal*rotationAxis);
+        v.normalize();
+        return v;
+    }
+    return rotationAxis;
+}
+
+Crystal::RotationAxisType Crystal::getRotationAxisType() {
+    return axisType;
+}
+

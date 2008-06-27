@@ -14,6 +14,11 @@ class Projector;
 class Crystal: public QObject {
     Q_OBJECT 
     public:
+        enum RotationAxisType {
+            LabSystem,
+            ReziprocalSpace,
+            DirectSpace
+        };
 
         Crystal();
         Crystal(const Crystal &);
@@ -34,6 +39,10 @@ class Crystal: public QObject {
         Mat3D getReziprocalOrientationMatrix();
         Mat3D getRotationMatrix();
         QString getSpacegroupSymbol();
+        
+        Vec3D getRotationAxis();
+        Vec3D getLabSystamRotationAxis();
+        RotationAxisType getRotationAxisType();
 
         QList<Projector*> getConnectedProjectors();
     public slots:
@@ -45,6 +54,8 @@ class Crystal: public QObject {
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
         void setSpacegroupSymbol(const QString& s);
+        void setRotationAxis(const Vec3D& axis, RotationAxisType type=LabSystem);
+        
     signals:
         void cellChanged();
         void orientationChanged();
@@ -69,6 +80,11 @@ class Crystal: public QObject {
         double Qmax;
         ObjectStore connectedProjectors;
         QString spacegroupSymbol;
+        
+        Vec3D rotationAxis;
+        RotationAxisType axisType;
+        
+        
 };
 
 

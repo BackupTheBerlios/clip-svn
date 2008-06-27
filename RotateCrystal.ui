@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>Form</class>
- <widget class="QWidget" name="Form" >
+ <class>RotateCrystal</class>
+ <widget class="QWidget" name="RotateCrystal" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -14,7 +14,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout" >
    <item row="0" column="0" colspan="2" >
-    <widget class="QComboBox" name="comboBox" >
+    <widget class="QComboBox" name="axisChooser" >
      <item>
       <property name="text" >
        <string>Primary Beam (x)</string>
@@ -48,7 +48,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="2" >
-    <widget class="QLineEdit" name="lineEdit_2" />
+    <widget class="QLineEdit" name="axisEdit" />
    </item>
    <item row="2" column="0" colspan="2" >
     <layout class="QHBoxLayout" name="horizontalLayout" >
@@ -59,7 +59,7 @@
       <enum>QLayout::SetMinAndMaxSize</enum>
      </property>
      <item>
-      <widget class="QToolButton" name="toolButton_10" >
+      <widget class="QToolButton" name="butArbNeg" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -75,10 +75,13 @@
        <property name="text" >
         <string>-</string>
        </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton_8" >
+      <widget class="QToolButton" name="but5Neg" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -94,10 +97,13 @@
        <property name="text" >
         <string>-5</string>
        </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton_7" >
+      <widget class="QToolButton" name="but1Neg" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -113,10 +119,13 @@
        <property name="text" >
         <string>-1</string>
        </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton" >
+      <widget class="QToolButton" name="but1Pos" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -138,10 +147,13 @@
        <property name="text" >
         <string>+1</string>
        </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton_2" >
+      <widget class="QToolButton" name="but5Pos" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -157,10 +169,13 @@
        <property name="text" >
         <string>+5</string>
        </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton_4" >
+      <widget class="QToolButton" name="butArbPos" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
          <horstretch>30</horstretch>
@@ -175,6 +190,9 @@
        </property>
        <property name="text" >
         <string>+</string>
+       </property>
+       <property name="autoRepeat" >
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -197,16 +215,28 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
       <widget class="QLabel" name="label_3" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Preferred" hsizetype="Maximum" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text" >
         <string>Angle</string>
        </property>
        <property name="buddy" >
-        <cstring>doubleSpinBox</cstring>
+        <cstring>arbAngle</cstring>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox" >
+      <widget class="QDoubleSpinBox" name="arbAngle" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="buttonSymbols" >
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -219,12 +249,34 @@
        <property name="maximum" >
         <double>360.000000000000000</double>
        </property>
+       <property name="value" >
+        <double>10.000000000000000</double>
+       </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2" >
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
    <item row="4" column="0" colspan="2" >
     <widget class="QLabel" name="label" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Preferred" hsizetype="Maximum" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text" >
       <string>summed rotation</string>
      </property>
@@ -232,15 +284,19 @@
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
      <property name="buddy" >
-      <cstring>lineEdit</cstring>
+      <cstring>angSumDisplay</cstring>
      </property>
     </widget>
    </item>
    <item row="5" column="0" >
-    <widget class="QLineEdit" name="lineEdit" />
+    <widget class="QLineEdit" name="angSumDisplay" >
+     <property name="readOnly" >
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item row="5" column="1" >
-    <widget class="QPushButton" name="pushButton_13" >
+    <widget class="QPushButton" name="resetButton" >
      <property name="text" >
       <string>Reset</string>
      </property>
@@ -249,16 +305,16 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>comboBox</tabstop>
-  <tabstop>doubleSpinBox</tabstop>
-  <tabstop>toolButton_10</tabstop>
-  <tabstop>toolButton_8</tabstop>
-  <tabstop>toolButton_7</tabstop>
-  <tabstop>toolButton</tabstop>
-  <tabstop>toolButton_2</tabstop>
-  <tabstop>toolButton_4</tabstop>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>pushButton_13</tabstop>
+  <tabstop>axisChooser</tabstop>
+  <tabstop>arbAngle</tabstop>
+  <tabstop>butArbNeg</tabstop>
+  <tabstop>but5Neg</tabstop>
+  <tabstop>but1Neg</tabstop>
+  <tabstop>but1Pos</tabstop>
+  <tabstop>but5Pos</tabstop>
+  <tabstop>butArbPos</tabstop>
+  <tabstop>angSumDisplay</tabstop>
+  <tabstop>resetButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

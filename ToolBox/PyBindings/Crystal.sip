@@ -4,7 +4,12 @@ class Crystal: QObject {
 #include <crystal.h>
 %End
     public:
-
+        enum RotationAxisType {
+            LabSystem,
+            ReziprocalSpace,
+            DirectSpace
+        };
+        
         Crystal();
         Crystal(const Crystal &);
         ~Crystal();
@@ -26,6 +31,11 @@ class Crystal: QObject {
         Mat3D getRotationMatrix();
         QList<Projector*> getConnectedProjectors();
         QString getSpacegroupSymbol();
+        
+        Vec3D getRotationAxis();
+        Vec3D getLabSystamRotationAxis();
+        RotationAxisType getRotationAxisType();
+        
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -35,6 +45,7 @@ class Crystal: QObject {
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
         void setSpacegroupSymbol(const QString& s);
+        void setRotationAxis(const Vec3D& axis, RotationAxisType type=LabSystem);
 
     signals:
         void cellChanged();

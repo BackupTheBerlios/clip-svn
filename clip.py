@@ -12,6 +12,7 @@ import Crystal
 #import ImgTransferCurve
 from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
+from RotateCrystal import RotateCrystal
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -30,6 +31,13 @@ class clip(QtGui.QMainWindow):
         self.transferCurveMapper=QtCore.QSignalMapper()
         #self.connect(self.TransferCurveMapper,  QtCore.SIGNAL('mapped(QWidget*)'),  self.)
         
+        
+
+        w=RotateCrystal()
+        self.rotateCrystal=self.MdiArea.addSubWindow(w)
+        self.rotateCrystal.hide()
+        self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  w.updateAxis)
+        
         self.initActions()
         self.initMenu()
         self.initToolbar()
@@ -44,7 +52,9 @@ class clip(QtGui.QMainWindow):
         w.crystal.setCell(5, 5, 5, 90, 90, 90)
         self.slotNewStereoProjector()
         self.slotNewLauePlaneProjector()
+
         
+
     def initMenu(self):
         menudef = [
             ('&File',
@@ -52,7 +62,8 @@ class clip(QtGui.QMainWindow):
               ('New Crystal',  self.slotNewCrystal), 
               ('New Stereographic Projection',  self.slotNewStereoProjector)]),
             ('&Tools', 
-             [('New TransferCurve', self.slotShowTransferCurve)]), 
+             [('New TransferCurve', self.slotShowTransferCurve), 
+              ('Rotate Crystal', self.rotateCrystal.show)]), 
             ('&Windows',
              []),
             ('&Help',

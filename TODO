@@ -1,17 +1,15 @@
+* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 
 * Verschiedene Punkte in Bild-Koordinaten
 * Config für Projectoren
 * Aus / An Decorations
-* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
 * Qwt5 ersetzen
-* UI für Lösung
 * bild rotieren / spiegeln
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
 * UI für Reflexe
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
 * Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
-* Zone beim Fit vorgeben
 * Drucken
 * Aktuelle Einstellungen speichern
 * Symmetrisch equivalente Loesungen bei (search axis) zusammenfassen (Laue Groups)

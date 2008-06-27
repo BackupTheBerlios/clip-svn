@@ -31,7 +31,7 @@ class Projector: public QObject {
         virtual Vec3D det2normal(const QPointF&)=0;
         
         QGraphicsScene* getScene();
-        
+        Crystal* getCrystal();
         virtual QString configName()=0;
 
         double Qmin() const;
