@@ -1,5 +1,5 @@
 from Ui_ImgTransferCurveWidget import Ui_TransferCurve
-from PyQt4 import QtCore, QtGui, Qwt5
+from PyQt4 import QtCore, QtGui
 import bisect
 import scipy
 import sys

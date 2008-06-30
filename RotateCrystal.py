@@ -1,13 +1,14 @@
 from Ui_RotateCrystal import Ui_RotateCrystal
 from PyQt4 import QtCore,  QtGui
-from Crystal import Crystal as CrystalObject
-from ProjectionPlaneWidget import ProjectionPlaneWidget as ProjectionObject
 from ToolBox import Crystal,  Vec3D,  Mat3D
 import math
+from Tools import parseHKL
+from ToolWidget import ToolWidget
 
-class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
+
+class RotateCrystal(ToolWidget, Ui_RotateCrystal):
     def __init__(self,  parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        ToolWidget.__init__(self, parent)
         self.setupUi(self)
         self.connect(self.axisChooser,  QtCore.SIGNAL('activated(int)'),  self.indexChanged)
         self.connect(self.axisEdit,  QtCore.SIGNAL('editingFinished()'),  self.indexChanged)
@@ -71,16 +72,10 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
             axis[index]=1
         elif index in (3, 4, 5):
             s=str(self.axisEdit.text())
-            try:
-                axis=Vec3D(map(float, s.split()))
-            except:
-                if len(s)==3:
-                    try:
-                        axis=Vec3D([float(s[i]) for i in (0, 1, 2)])
-                    except:
-                        pass
+            axis=parseHKL(s)
         c=self.searchCrystal()
         if c and axis:
+            axis=Vec3D(axis)
             if index in (0, 1, 2, 3):
                 c.setRotationAxis(axis, Crystal.LabSystem)
             elif index==4:
@@ -117,23 +112,7 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
             
             
         
-    def closeEvent(self, e):
-        e.ignore()
-        self.parent().hide()
+
         
-    def searchCrystal(self):
-        try:
-            mdi=self.parent().mdiArea()
-        except:
-            return
-        windows=mdi.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
-        windows.reverse()
-        for w in windows:
-            if isinstance(w.widget(), CrystalObject):
-                return w.widget().crystal
-            elif isinstance(w.widget(), ProjectionObject):
-                return w.widget().projector.getCrystal()
-        return None
-        
-        
+
         

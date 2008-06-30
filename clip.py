@@ -9,10 +9,11 @@ import math
 from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
 import Crystal
-#import ImgTransferCurve
+import ImgTransferCurve
 from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
+from Reorient import Reorient
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -34,9 +35,11 @@ class clip(QtGui.QMainWindow):
         
 
         self.rotateCrystal=RotateCrystal()
-        w=self.MdiArea.addSubWindow(self.rotateCrystal)
-        w.hide()
-        self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  self.rotateCrystal.windowChanged)
+        self.reorientCrystal=Reorient()
+        for tools in (self.rotateCrystal, self.reorientCrystal):
+            w=self.MdiArea.addSubWindow(tools)
+            w.hide()
+            self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  tools.windowChanged)
         
         self.initActions()
         self.initMenu()
@@ -63,7 +66,8 @@ class clip(QtGui.QMainWindow):
               ('New Stereographic Projection',  self.slotNewStereoProjector)]),
             ('&Tools', 
              [('New TransferCurve', self.slotShowTransferCurve), 
-              ('Rotate Crystal', self.rotateCrystal.show)]), 
+              ('Rotate Crystal', self.rotateCrystal.show), 
+              ('Reorientate Crystal', self.reorientCrystal.show)]), 
             ('&Windows',
              []),
             ('&Help',
@@ -197,6 +201,7 @@ class clip(QtGui.QMainWindow):
         wid = Crystal.Crystal(self)
         self.crystalStore.addObject(wid.crystal)
         self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), self.rotateCrystal.rotAxisChanged)
+        self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), self.reorientCrystal.updateDisplay)
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()

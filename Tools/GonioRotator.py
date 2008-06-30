@@ -2,11 +2,13 @@ from ToolBox import Vec3D, Mat3D
 import math
 
 def calcAngles(v1,  v2,  phi,  chi):
-    u1, u2=calcLine(v1, v2, phi, chi)
-    intermediates=calcIntermediates(u1, u2)
+    line=calcLine(v1, v2, phi, chi)
+    if line==None:
+        return []
+    intermediates=calcIntermediates(*line)
     
     if intermediates==None:
-        return None
+        return []
     
     r=[]
     for c in intermediates:
@@ -52,6 +54,6 @@ def calcRotationAngle(fromV,  toV,  axis):
     
     M=Mat3D(fromV, toV, axis)
     if M.det()<0:
-        return -math.acos(v1*v2)
+        return -math.acos(min(1.0, max(-1.0, v1*v2)))
     else:
-        return math.acos(v1*v2)
+        return math.acos(min(1.0, max(-1.0, v1*v2)))
