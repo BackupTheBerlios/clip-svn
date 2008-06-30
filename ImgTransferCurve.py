@@ -1,4 +1,4 @@
-from Ui_ImgTransferCurveWidget import Ui_TransferCurve
+from Ui_ImgTransferCurve import Ui_TransferCurve
 from PyQt4 import QtCore, QtGui
 import bisect
 import scipy
@@ -24,39 +24,51 @@ class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
         self.img=None
  
         # PlotDisplay Setup
-        self.CurveDisplay.enableAxis(Qwt5.QwtPlot.xBottom, False)
-        self.CurveDisplay.enableAxis(Qwt5.QwtPlot.yLeft, False)
-        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.xBottom,  0.0,  1.0,  0.25)
-        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.yLeft    ,  0.0,  1.0,  0.25)
+        self.gs=QtGui.QGraphicsScene()
+        self.gs.setSceneRect(0, 0, 1, 1)
+        self.gv.setScene(self.gs)
+        
+        linePen=QtGui.QPen(QtCore.Qt.DashLine)
+        linePen.setColor(QtCore.Qt.gray)
+        for d in (0.0,  0.25,  0.5,  0,.75,  1.0):
+            self.gs.addLine(0, d, 1, d, linePen)
+            self.gs.addLine(d, 0, d, 1, linePen)
+
+        self.gv.fitInView(0, 0, 1, 1)
+
+        #self.CurveDisplay.enableAxis(Qwt5.QwtPlot.xBottom, False)
+#        self.CurveDisplay.enableAxis(Qwt5.QwtPlot.yLeft, False)
+#        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.xBottom,  0.0,  1.0,  0.25)
+#        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.yLeft    ,  0.0,  1.0,  0.25)
         
         # Plot Grid setup
-        self.plotGrid=Qwt5.QwtPlotGrid()
-        pen=QtGui.QPen()
-        pen.setStyle(QtCore.Qt.DashLine)
-        pen.setColor(QtCore.Qt.gray)
-        self.plotGrid.setPen(pen)
-        self.plotGrid.attach(self.CurveDisplay)
+#        self.plotGrid=Qwt5.QwtPlotGrid()
+#        pen=QtGui.QPen()
+#        pen.setStyle(QtCore.Qt.DashLine)
+#        pen.setColor(QtCore.Qt.gray)
+#        self.plotGrid.setPen(pen)
+#        self.plotGrid.attach(self.CurveDisplay)
         
         # Curve for the Bezier Point handles
-        self.handlesCurve=Qwt5.QwtPlotCurve()
-        self.handlesCurve.setSymbol(Qwt5.QwtSymbol(Qwt5.QwtSymbol.Ellipse,  QtCore.Qt.black,  QtCore.Qt.black,  QtCore.QSize(5, 5)))
-        self.handlesCurve.setStyle(Qwt5.QwtPlotCurve.NoCurve)
+#        self.handlesCurve=Qwt5.QwtPlotCurve()
+#        self.handlesCurve.setSymbol(Qwt5.QwtSymbol(Qwt5.QwtSymbol.Ellipse,  QtCore.Qt.black,  QtCore.Qt.black,  QtCore.QSize(5, 5)))
+#        self.handlesCurve.setStyle(Qwt5.QwtPlotCurve.NoCurve)
         
         # Curve for the Image Histogram
-        self.histogramCurves=[Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve()]
-        
-        for c in self.histogramCurves+[self.handlesCurve]:
-            c.attach(self.CurveDisplay)
-
-        self.splineCurves=[Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve()]
-        for col, curve in zip((QtCore.Qt.blue, QtCore.Qt.green, QtCore.Qt.red, QtCore.Qt.black),  self.splineCurves):
-            curve.setPen(col)
-            curve.attach(self.CurveDisplay)
-        self.splineCurves.reverse()
-        self.splineCurves=tuple(self.splineCurves)
-        
-        self.updateAllCurves()
-        self.makeScales()
+#        self.histogramCurves=[Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve()]
+#        
+#        for c in self.histogramCurves+[self.handlesCurve]:
+#            c.attach(self.CurveDisplay)
+#
+#        self.splineCurves=[Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve()]
+#        for col, curve in zip((QtCore.Qt.blue, QtCore.Qt.green, QtCore.Qt.red, QtCore.Qt.black),  self.splineCurves):
+#            curve.setPen(col)
+#            curve.attach(self.CurveDisplay)
+#        self.splineCurves.reverse()
+#        self.splineCurves=tuple(self.splineCurves)
+#        
+#        self.updateAllCurves()
+ #       self.makeScales()
 
     def colorSelChanged(self,  i):
         data=zip(*self.VRGB_BezierParams[self.ColorSelector.currentIndex()])
@@ -65,7 +77,9 @@ class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
         self.makeScales()
         
     def resizeEvent(self, e):
-        self.makeScales()
+        self.gv.fitInView(0, 0, 1, 1)
+
+        #self.makeScales()
         
     def updateCurves(self):
         data=zip(*self.VRGB_BezierParams[self.ColorSelector.currentIndex()])
@@ -123,6 +137,7 @@ class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
         pass
         
     def makeScales(self):
+        return
         pix=QtGui.QPixmap(self.verticalScale.size())
         p=QtGui.QPainter()
         p.begin(pix)
