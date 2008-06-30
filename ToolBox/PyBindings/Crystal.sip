@@ -51,4 +51,6 @@ class Crystal: QObject {
         void cellChanged();
         void orientationChanged();
         void reflectionsUpdate();
+        void rotationAxisChanged();
+
 };

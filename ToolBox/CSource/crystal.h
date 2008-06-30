@@ -60,7 +60,7 @@ class Crystal: public QObject {
         void cellChanged();
         void orientationChanged();
         void reflectionsUpdate();
-    
+        void rotationAxisChanged();
     private:
         // Real and reziprocal orientation Matrix
         Mat3D MReal;

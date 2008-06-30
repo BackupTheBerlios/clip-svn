@@ -1,32 +1,29 @@
-* Schnelle Reorientierung (Christian: +/-5 10 45 90°)
+* Config für StereoProjector
+* UI für Reflexeinfo
+* Reorientation
+* fit
+* bild rotieren / spiegeln
 
-* Verschiedene Punkte in Bild-Koordinaten
-* Config für Projectoren
+
 * Aus / An Decorations
 * Qwt5 ersetzen
-* bild rotieren / spiegeln
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
-* UI für Reflexe
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
 * Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
 * Drucken
 * Aktuelle Einstellungen speichern
-* Symmetrisch equivalente Loesungen bei (search axis) zusammenfassen (Laue Groups)
 * Windows installation mit libqt ohne den Rest
 * Sys absents
 * CIF-Import der Kristallstruktur
-* Nomenklatur Axis, Axes, Zone, ...
 
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
 * image-size -> sceneRect
 * bildstörung?
-* config für projectoren
 * Kommentare
 * LaueCylinder Projector   
 * Bild des CoordinatenSystems
 * Icons
-* Setzen von Punkten für Lösung / Verschieben der Punkte (einfach per GV)
 * Aufräumen von clip.py
 * Upload to Sourceforge / CCP13
 * Hauptmenü verbessern

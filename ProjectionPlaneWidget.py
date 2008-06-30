@@ -158,9 +158,13 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         if self.mousePressStart!=None:
             menu=QtGui.QMenu(self)
             clearMarker=menu.addAction("Clear marker")
+            setRotAxis=menu.addAction("Set rotation Axis")
             r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos))
             if r==clearMarker:
                 self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
+            elif r==setRotAxis:
+                pass
+                #FIXME: Implement
             self.mousePressStart=None
 
     def zoomRect(self):
@@ -228,11 +232,12 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     v2=v2-ax*(v2*ax)
                     v1.normalize()
                     v2.normalize()
-                    a=math.acos(v1*v2)
+                    a=math.acos(min(1, v1*v2))
                     if Mat3D(ax, v1, v2).det()<0:
                         a*=-1
                     self.projector.addRotation(ax, a)
-                
+                    self.emit(QtCore.SIGNAL('projectorAddedRotation(double)'), a)
+
                 
     def slotLoadImage(self):
       fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Laue pattern', '', 'Image Plate Files (*.img);;All Images (*.jpg *.jpeg *.bmp *.png *.tif *.tiff *.gif *.img);;All Files (*)'))
@@ -248,7 +253,9 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.image=ImageTransfer()
             for i in range(4):
                 self.image.setTransferCurve(i, [1.], [0., 1., 0., 0.])
-            self.image.setData(img.width, img.height, mode, img.tostring())        
+            self.image.setData(img.width, img.height, mode, img.tostring())
+            if hasattr(img, 'resx') and hasattr(img, 'resy'):
+                self.projector.setDetSize(self.projector.dist(), img.width/img.resx, img.height/img.resy)
             self.gv.setBGImage(self.image)
             self.gv.resetCachedContent()
             self.gv.viewport().update()

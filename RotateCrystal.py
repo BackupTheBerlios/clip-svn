@@ -23,8 +23,22 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
         self.connect(bgroup,  QtCore.SIGNAL('buttonClicked(int)'),  self.addRotation)
         self.connect(self.resetButton,  QtCore.SIGNAL('clicked()'),  self.resetSum)
         self.angSum=0.0
+        self.lastcrystal=None
+        self.indexChanged()
         
+    def windowChanged(self):
+        if (self.lastcrystal!=self.searchCrystal()):
+            self.resetSum()
+            self.loadAxisFromCrystal()
+            
+    def rotAxisChanged(self):    
+        #emitted from crystal
+        self.resetSum()
+        self.loadAxisFromCrystal()
         
+    def projectorAddedRotation(self, a):
+        self.angSum+=math.degrees(a)
+        self.angSumDisplay.setText('%.2f'%self.angSum)
         
     def resetSum(self):
         self.angSum=0.0
@@ -47,8 +61,10 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
         
     def indexChanged(self):
         index=self.axisChooser.currentIndex()
-        self.resetSum()
-        self.axisEdit.setVisible(index>=3)
+        if (self.axisEdit.isVisible() ^ (index>=3)):
+            self.axisEdit.setVisible(index>=3)
+            self.update()
+        
         axis=None
         if index in (0, 1, 2):
             axis=Vec3D(0, 0, 0)
@@ -72,9 +88,10 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
             elif index==5:
                 c.setRotationAxis(axis, Crystal.ReziprocalSpace)
                 
-    def updateAxis(self):
+    def loadAxisFromCrystal(self):
         c=self.searchCrystal()
         if c:
+            self.lastcrystal=c
             if c.getRotationAxisType()==Crystal.LabSystem:
                 v=c.getRotationAxis()
                 if v==Vec3D(1, 0, 0):
@@ -96,7 +113,6 @@ class RotateCrystal(QtGui.QWidget, Ui_RotateCrystal):
             #format='%%.%if'%(n-1)
             #format=format+' '+format+' '+format
             self.axisEdit.setText(' '.join(l))
-        self.indexChanged()
                 
             
             

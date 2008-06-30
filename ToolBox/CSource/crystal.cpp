@@ -271,8 +271,11 @@ void Crystal::setSpacegroupSymbol(const QString& s) {
 }
 
 void Crystal::setRotationAxis(const Vec3D& axis, RotationAxisType type) {
-    rotationAxis=axis;
-    axisType=type;
+    if ((axis!=rotationAxis) or (axisType!=type)) {
+        rotationAxis=axis;
+        axisType=type;
+        emit rotationAxisChanged();
+    }
 }
 
 Vec3D Crystal::getRotationAxis() {
@@ -289,7 +292,7 @@ Vec3D Crystal::getLabSystamRotationAxis() {
         v.normalize();
         return v;
     }
-    return rotationAxis;
+    return rotationAxis.normalized();
 }
 
 Crystal::RotationAxisType Crystal::getRotationAxisType() {

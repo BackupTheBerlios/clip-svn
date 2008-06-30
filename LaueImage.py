@@ -119,8 +119,8 @@ class FujiBASImageFile(ImageFile.ImageFile):
         self.fp=self.imgFile
         
         self.header = self.infFile.readlines()
-        self.resx=int(self.header[3])
-        self.resy=int(self.header[4])
+        self.resx=0.1*int(self.header[3])
+        self.resy=0.1*int(self.header[4])
         self.bpp=int(self.header[5])
         self.width=int(self.header[6])
         self.height=int(self.header[7])

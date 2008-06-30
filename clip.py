@@ -33,10 +33,10 @@ class clip(QtGui.QMainWindow):
         
         
 
-        w=RotateCrystal()
-        self.rotateCrystal=self.MdiArea.addSubWindow(w)
-        self.rotateCrystal.hide()
-        self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  w.updateAxis)
+        self.rotateCrystal=RotateCrystal()
+        w=self.MdiArea.addSubWindow(self.rotateCrystal)
+        w.hide()
+        self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  self.rotateCrystal.windowChanged)
         
         self.initActions()
         self.initMenu()
@@ -196,6 +196,7 @@ class clip(QtGui.QMainWindow):
     def slotNewCrystal(self):
         wid = Crystal.Crystal(self)
         self.crystalStore.addObject(wid.crystal)
+        self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), self.rotateCrystal.rotAxisChanged)
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()
@@ -203,6 +204,7 @@ class clip(QtGui.QMainWindow):
 
     def slotNewStereoProjector(self):
         wid = ProjectionPlaneWidget(0, self)
+        self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('Stereographic Projection')
@@ -212,6 +214,8 @@ class clip(QtGui.QMainWindow):
         
     def slotNewLauePlaneProjector(self):
         wid = ProjectionPlaneWidget(1, self)
+        self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
+
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('LauePlane')
