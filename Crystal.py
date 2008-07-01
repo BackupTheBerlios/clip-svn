@@ -1,4 +1,4 @@
-from Ui_CrystalWidget import Ui_CrystalWidget
+from Ui_Crystal import Ui_Crystal
 from PyQt4 import QtCore, QtGui
 from Tools import SpaceGroup
 import ToolBox
@@ -6,7 +6,7 @@ from ToolBox import Vec3D,  Mat3D
 import math
 from Indexing import Indexing
 
-class Crystal(QtGui.QWidget, Ui_CrystalWidget):
+class Crystal(QtGui.QWidget, Ui_Crystal):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         self.setupUi(self)

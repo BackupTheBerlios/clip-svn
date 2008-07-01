@@ -10,3 +10,4 @@
 %Include ObjectStore.sip
 %Include Projector.sip
 %Include Indexer.sip
+%Include SignalingEllipse.sip

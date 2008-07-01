@@ -1,12 +1,12 @@
 <ui version="4.0" >
- <class>CrystalWidget</class>
- <widget class="QWidget" name="CrystalWidget" >
+ <class>Crystal</class>
+ <widget class="QWidget" name="Crystal" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>591</height>
+    <height>253</height>
    </rect>
   </property>
   <property name="sizePolicy" >
@@ -25,22 +25,10 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" >
-   <property name="leftMargin" >
+   <property name="margin" >
     <number>0</number>
    </property>
-   <property name="topMargin" >
-    <number>0</number>
-   </property>
-   <property name="rightMargin" >
-    <number>0</number>
-   </property>
-   <property name="bottomMargin" >
-    <number>0</number>
-   </property>
-   <property name="horizontalSpacing" >
-    <number>0</number>
-   </property>
-   <property name="verticalSpacing" >
+   <property name="spacing" >
     <number>0</number>
    </property>
    <item row="0" column="0" colspan="3" >

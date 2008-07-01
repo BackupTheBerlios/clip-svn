@@ -5,19 +5,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>200</width>
-    <height>219</height>
+    <width>188</width>
+    <height>155</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Rotation</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" >
-   <property name="sizeConstraint" >
-    <enum>QLayout::SetMinAndMaxSize</enum>
+   <property name="margin" >
+    <number>3</number>
    </property>
-   <item row="0" column="0" colspan="2" >
+   <property name="spacing" >
+    <number>3</number>
+   </property>
+   <item row="0" column="0" >
     <widget class="QComboBox" name="axisChooser" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <item>
       <property name="text" >
        <string>Primary Beam (x)</string>
@@ -50,16 +59,23 @@
      </item>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2" >
-    <widget class="QLineEdit" name="axisEdit" />
+   <item row="1" column="0" >
+    <widget class="QLineEdit" name="axisEdit" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
-   <item row="2" column="0" colspan="2" >
+   <item row="2" column="0" >
     <layout class="QHBoxLayout" name="horizontalLayout" >
      <property name="spacing" >
       <number>0</number>
      </property>
      <property name="sizeConstraint" >
-      <enum>QLayout::SetMinAndMaxSize</enum>
+      <enum>QLayout::SetDefaultConstraint</enum>
      </property>
      <item>
       <widget class="QToolButton" name="butArbNeg" >
@@ -206,7 +222,7 @@
        </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -214,7 +230,7 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0" colspan="2" >
+   <item row="3" column="0" >
     <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
       <widget class="QLabel" name="label_3" >
@@ -235,7 +251,7 @@
      <item>
       <widget class="QDoubleSpinBox" name="arbAngle" >
        <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Maximum" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -262,9 +278,12 @@
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -272,7 +291,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0" colspan="2" >
+   <item row="4" column="0" >
     <widget class="QLabel" name="label" >
      <property name="sizePolicy" >
       <sizepolicy vsizetype="Preferred" hsizetype="Maximum" >
@@ -292,18 +311,34 @@
     </widget>
    </item>
    <item row="5" column="0" >
-    <widget class="QLineEdit" name="angSumDisplay" >
-     <property name="readOnly" >
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1" >
-    <widget class="QPushButton" name="resetButton" >
-     <property name="text" >
-      <string>Reset</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_3" >
+     <item>
+      <widget class="QLineEdit" name="angSumDisplay" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Maximum" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="readOnly" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="resetButton" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string>Reset</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

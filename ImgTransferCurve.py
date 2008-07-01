@@ -1,32 +1,34 @@
-from Ui_ImgTransferCurve import Ui_TransferCurve
+from Ui_ImgTransferCurve import Ui_ImgTransferCurve
 from PyQt4 import QtCore, QtGui
 import bisect
-import scipy
 import sys
 sys.path.append('Tools')
-import BezierCurve
+from BezierCurve import BezierCurve
 from copy import deepcopy
+from Tools import Icons
+from ToolBox import SignalingEllipseItem
 
-
-class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
+class ImgTransferCurve(QtGui.QWidget, Ui_ImgTransferCurve):
     def __init__(self, parent):
         QtGui.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.connect(self.ColorSelector,  QtCore.SIGNAL('activated(int)'),  self.colorSelChanged)
         
         # Bezier Curves setup
-        self.VRGB_BezierParams=[[(0, 0),  (1, 1)], 
-                               [(0, 0),  (1, 1)], 
-                               [(0, 0),  (1, 1)], 
-                               [(0, 0),  (1, 1)]]
-                               
-        self.bezierCurves=[None]*4
-        self.img=None
- 
+        self.BezierParams=[]
+        for i in range(4):
+            self.BezierParams.append(([0, 1], [0, 1]))
+                                
         # PlotDisplay Setup
         self.gs=QtGui.QGraphicsScene()
         self.gs.setSceneRect(0, 0, 1, 1)
         self.gv.setScene(self.gs)
+        self.gv.scale(1, -1)
+        self.gv.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.gv.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.gv.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.SmoothPixmapTransform)
+        self.gv.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+        self.gv.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)        
         
         linePen=QtGui.QPen(QtCore.Qt.DashLine)
         linePen.setColor(QtCore.Qt.gray)
@@ -36,108 +38,104 @@ class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
 
         self.gv.fitInView(0, 0, 1, 1)
 
-        #self.CurveDisplay.enableAxis(Qwt5.QwtPlot.xBottom, False)
-#        self.CurveDisplay.enableAxis(Qwt5.QwtPlot.yLeft, False)
-#        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.xBottom,  0.0,  1.0,  0.25)
-#        self.CurveDisplay.setAxisScale(Qwt5.QwtPlot.yLeft    ,  0.0,  1.0,  0.25)
-        
-        # Plot Grid setup
-#        self.plotGrid=Qwt5.QwtPlotGrid()
-#        pen=QtGui.QPen()
-#        pen.setStyle(QtCore.Qt.DashLine)
-#        pen.setColor(QtCore.Qt.gray)
-#        self.plotGrid.setPen(pen)
-#        self.plotGrid.attach(self.CurveDisplay)
-        
-        # Curve for the Bezier Point handles
-#        self.handlesCurve=Qwt5.QwtPlotCurve()
-#        self.handlesCurve.setSymbol(Qwt5.QwtSymbol(Qwt5.QwtSymbol.Ellipse,  QtCore.Qt.black,  QtCore.Qt.black,  QtCore.QSize(5, 5)))
-#        self.handlesCurve.setStyle(Qwt5.QwtPlotCurve.NoCurve)
-        
-        # Curve for the Image Histogram
-#        self.histogramCurves=[Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve()]
-#        
-#        for c in self.histogramCurves+[self.handlesCurve]:
-#            c.attach(self.CurveDisplay)
-#
-#        self.splineCurves=[Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve(),  Qwt5.QwtPlotCurve(), Qwt5.QwtPlotCurve()]
-#        for col, curve in zip((QtCore.Qt.blue, QtCore.Qt.green, QtCore.Qt.red, QtCore.Qt.black),  self.splineCurves):
-#            curve.setPen(col)
-#            curve.attach(self.CurveDisplay)
-#        self.splineCurves.reverse()
-#        self.splineCurves=tuple(self.splineCurves)
-#        
-#        self.updateAllCurves()
- #       self.makeScales()
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Curve')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save Curve')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_horizontal)), 'Flip Horizontal')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_vertikal)), 'Flip Vertical')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_left)), 'Rotate Left')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_right)), 'Rotate Right')
 
-    def colorSelChanged(self,  i):
-        data=zip(*self.VRGB_BezierParams[self.ColorSelector.currentIndex()])
-        self.handlesCurve.setData(*data)
-        self.CurveDisplay.replot()
-        self.makeScales()
+        self.transferCurves=[]
+        
+        for i, c in enumerate([QtCore.Qt.black, QtCore.Qt.red, QtCore.Qt.green, QtCore.Qt.blue]):
+            tc=self.gs.addPath(QtGui.QPainterPath())
+            p=QtGui.QPen(c)
+            p.setCosmetic(True)
+            tc.setPen(p)
+            self.transferCurves.append(tc)
+            self.updateTransferCurve(i)
+            
+        self.transferCurveMarkers=[]
+        
+        self.renewTransferCurveMarkers()
+        QtCore.QTimer.singleShot(0, self.doResize)
+        
+    
+    def updateTransferCurve(self, idx):
+        X, Y=self.BezierParams[idx]
+        curve=BezierCurve(X, Y)
+        path=QtGui.QPainterPath(QtCore.QPointF(X[0], Y[0]))
+        for i in range(1, 51):
+          x=0.02*i
+          y=curve(x)
+          path.lineTo(x, y)
+        self.transferCurves[idx].setPath(path)
+        
+    def renewTransferCurveMarkers(self):
+        for m in self.transferCurveMarkers:
+            self.gs.removeItem(m)
+        self.transferCurveMarkers=[]
+        
+        idx=self.ColorSelector.currentIndex()
+        X, Y=self.BezierParams[idx]
+        N=len(X)
+        for n, x, y in zip(range(N), X, Y):
+            m=FixedSignalingEllipseItem()
+            m.setRect(-5, -5, 10, 10)
+            m.setPos(x, y)
+            if n in (0, N-1):
+                m.setBoundingBox(QtCore.QRectF(x, 0, 0, 1))
+                m.setCursor(QtGui.QCursor(QtCore.Qt.SizeVerCursor))            
+            else:
+                m.setBoundingBox(self.gs.sceneRect())
+                m.setCursor(QtGui.QCursor(QtCore.Qt.SizeAllCursor))            
+            m.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
+            m.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
+            
+            self.gs.addItem(m)
+            self.transferCurveMarkers.append(m)
+            self.connect(m, QtCore.SIGNAL('positionChanged()'), self.markerMoved)
+        
+    def markerMoved(self):
+        idx=self.ColorSelector.currentIndex()
+        self.transferCurveMarkers.sort(lambda x, y:cmp(x.pos().x(), y.pos().x()))
+        X=[]
+        Y=[]
+        for m in self.transferCurveMarkers:
+            X.append(m.pos().x())
+            Y.append(m.pos().y())
+        self.BezierParams[idx]=(X, Y)
+        self.updateTransferCurve(idx)
         
     def resizeEvent(self, e):
-        self.gv.fitInView(0, 0, 1, 1)
-
-        #self.makeScales()
+        self.doResize()
         
-    def updateCurves(self):
-        data=zip(*self.VRGB_BezierParams[self.ColorSelector.currentIndex()])
-        self.handlesCurve.setData(*data)
-        self.bezierCurves[self.ColorSelector.currentIndex()]=BezierCurve.BezierCurve(*data)
-        interpX=scipy.arange(0, 1.01,  0.01)
-        self.splineCurves[self.ColorSelector.currentIndex()].setData(interpX,  scipy.array(self.bezierCurves[self.ColorSelector.currentIndex()](interpX)).clip(0, 1))
-        #self.emit(QtCore.SIGNAL('curveUpdated'),  deepcopy(self.VRGB_BezierParams))
-        if self.img:
-            self.img.setTransferCurves(deepcopy(self.VRGB_BezierParams))
+    def doResize(self):
+        self.gv.fitInView(0, 0, 1, 1)
+        #self.makeScales()
 
-    def updateAllCurves(self):
-        for i in range(4):
-            data=zip(*self.VRGB_BezierParams[i])
-            if i==self.ColorSelector.currentIndex():
-                self.handlesCurve.setData(*data)
-            self.bezierCurves[i]=BezierCurve.BezierCurve(*data)
-            interpX=scipy.arange(0, 1.01,  0.01)
-            self.splineCurves[i].setData(interpX,  scipy.array(self.bezierCurves[i](interpX)).clip(0, 1))
 
     def mousePressEvent(self,  e):
-        if self.CurveDisplay.geometry().contains(e.pos()):
-            p=self.CurveDisplay.mapFrom(self,  e.pos())
-            idx,  dist=self.handlesCurve.closestPoint(p)
-            if dist>10:
-                x=self.CurveDisplay.invTransform(Qwt5.QwtPlot.xBottom,  p.x())
-                y=self.CurveDisplay.invTransform(Qwt5.QwtPlot.yLeft,  p.y())
-                self.lastInsertindex=bisect.bisect(zip(*self.VRGB_BezierParams[self.ColorSelector.currentIndex()])[0],  x)
-                self.VRGB_BezierParams[self.ColorSelector.currentIndex()].insert(self.lastInsertindex,  (x,  y))
-                self.updateCurves()
-                self.CurveDisplay.replot()
-                self.makeScales()
-            else:
-                self.lastInsertindex=idx
-        
-    def mouseMoveEvent(self,  e):
-        if self.CurveDisplay.geometry().contains(e.pos()) and self.lastInsertindex!=None:
-            p=self.CurveDisplay.mapFrom(self,  e.pos())
-                
-            x=self.CurveDisplay.invTransform(Qwt5.QwtPlot.xBottom,  p.x())
-            y=max(0, min(1,  self.CurveDisplay.invTransform(Qwt5.QwtPlot.yLeft,  p.y())))
-            if self.lastInsertindex==0 or self.lastInsertindex+1==len(self.VRGB_BezierParams[self.ColorSelector.currentIndex()]):
-                x=self.CurveDisplay.invTransform(Qwt5.QwtPlot.xBottom,  p.x())
-                self.VRGB_BezierParams[self.ColorSelector.currentIndex()][self.lastInsertindex]=(self.VRGB_BezierParams[self.ColorSelector.currentIndex()][self.lastInsertindex][0],  y)
-            elif self.VRGB_BezierParams[self.ColorSelector.currentIndex()][self.lastInsertindex-1][0]<x and self.VRGB_BezierParams[self.ColorSelector.currentIndex()][self.lastInsertindex+1][0]>x:
-                self.VRGB_BezierParams[self.ColorSelector.currentIndex()][self.lastInsertindex]=(x,  y)
-            else:
-                self.VRGB_BezierParams[self.ColorSelector.currentIndex()].pop(self.lastInsertindex)
-                self.lastInsertindex=None
-            self.updateCurves()
-            self.makeScales()
-            self.CurveDisplay.replot()
+        p=self.gv.mapFromParent(e.pos())
+        if self.rect().contains(p):
+            p=self.gv.mapToScene(p)
+            idx=self.ColorSelector.currentIndex()
+            X, Y=self.BezierParams[idx]
+            for i in range(len(X)-1):
+                if p.x()>X[i] and p.x()<X[i+1]:
+                    X.insert(i+1, p.x())
+                    Y.insert(i+1, p.y())
+                    break
+            self.BezierParams[idx]=(X, Y)
+            self.renewTransferCurveMarkers()
+            self.updateTransferCurve(idx)
+            
+    def colorSelChanged(self,  i):
+        self.renewTransferCurveMarkers()
 
-    def mouseReleaseEvent(self,  e):
-        pass
+
         
     def makeScales(self):
-        return
         pix=QtGui.QPixmap(self.verticalScale.size())
         p=QtGui.QPainter()
         p.begin(pix)
@@ -227,3 +225,31 @@ class ImgTransferCurve(QtGui.QWidget, Ui_TransferCurve):
             c2.setData([], [])
             c3.setData([], [])
         self.CurveDisplay.replot()
+        
+        
+        
+        
+        
+        
+        
+class FixedSignalingEllipseItem(SignalingEllipseItem):
+    def __init__(self):
+        SignalingEllipseItem.__init__(self)
+        self.bbox=None
+    def setBoundingBox(self, b):
+        self.bbox=b
+        
+    def itemChange(self, change, value):
+        if change==self.ItemPositionChange and self.bbox!=None:
+            p=value.toPointF()
+            if p.x()>self.bbox.right():
+                p.setX(self.bbox.right())
+            if p.x()<self.bbox.left():
+                p.setX(self.bbox.left())
+            if p.y()<self.bbox.top():
+                p.setY(self.bbox.top())
+            if p.y()>self.bbox.bottom():
+                p.setY(self.bbox.bottom())
+            pos=QtCore.QPointF(p.x(), p.y())
+            return QtCore.QVariant(pos)
+        return SignalingEllipseItem.itemChange(self, change, value)

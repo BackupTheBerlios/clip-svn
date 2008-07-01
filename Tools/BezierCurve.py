@@ -106,7 +106,7 @@ class BezierCurve:
         
     def __call__(self,  x):
         if type(x) in (int,  float):
-            return self.calcFromP(x)
+            return self.calcFromD(x)
         elif type(x)==numpy.ndarray:
             return scipy.array(map(self.calcFromD,  x))
         elif hasattr(x,  '__iter__'):

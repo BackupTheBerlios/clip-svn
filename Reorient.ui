@@ -5,26 +5,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>338</width>
-    <height>301</height>
+    <width>262</width>
+    <height>199</height>
    </rect>
   </property>
   <property name="sizePolicy" >
-   <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+   <sizepolicy vsizetype="Maximum" hsizetype="Maximum" >
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize" >
    <size>
-    <width>338</width>
-    <height>301</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize" >
    <size>
-    <width>338</width>
-    <height>301</height>
+    <width>16777215</width>
+    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle" >
@@ -33,6 +33,12 @@
   <layout class="QGridLayout" name="gridLayout_5" >
    <property name="sizeConstraint" >
     <enum>QLayout::SetMinAndMaxSize</enum>
+   </property>
+   <property name="margin" >
+    <number>3</number>
+   </property>
+   <property name="spacing" >
+    <number>3</number>
    </property>
    <item row="0" column="0" >
     <layout class="QHBoxLayout" name="horizontalLayout" >
@@ -52,7 +58,7 @@
      <item>
       <widget class="QLineEdit" name="fromEdit" >
        <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -70,6 +76,12 @@
      </item>
      <item>
       <widget class="QCheckBox" name="RezicheckBox" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text" >
         <string>Reciprocal</string>
        </property>
@@ -83,9 +95,12 @@
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>150</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -107,6 +122,12 @@
      </item>
      <item>
       <widget class="QComboBox" name="toCombo" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <item>
         <property name="text" >
          <string>Primary Beam (x)</string>
@@ -140,7 +161,7 @@
         <bool>false</bool>
        </property>
        <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -158,9 +179,12 @@
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
        </property>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>91</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -170,6 +194,12 @@
    </item>
    <item row="2" column="0" >
     <widget class="QLabel" name="label_3" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Maximum" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text" >
       <string>Via Rotations arround</string>
      </property>
@@ -179,12 +209,30 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
       <widget class="QGroupBox" name="groupBox" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title" >
         <string>First Rotation</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>3</number>
+        </property>
         <item row="0" column="0" >
          <widget class="QComboBox" name="axis1Combo" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="currentIndex" >
            <number>1</number>
           </property>
@@ -217,9 +265,12 @@
             <property name="orientation" >
              <enum>Qt::Horizontal</enum>
             </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
             <property name="sizeHint" stdset="0" >
              <size>
-              <width>90</width>
+              <width>25</width>
               <height>20</height>
              </size>
             </property>
@@ -229,6 +280,12 @@
            <widget class="QLineEdit" name="axis1Edit" >
             <property name="enabled" >
              <bool>false</bool>
+            </property>
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="minimumSize" >
              <size>
@@ -243,6 +300,12 @@
             <property name="enabled" >
              <bool>false</bool>
             </property>
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Maximum" hsizetype="Preferred" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="readOnly" >
              <bool>false</bool>
             </property>
@@ -255,10 +318,22 @@
      </item>
      <item>
       <widget class="QGroupBox" name="groupBox_2" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title" >
         <string>Second Rotation</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_4" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>3</number>
+        </property>
         <item row="1" column="0" >
          <layout class="QGridLayout" name="gridLayout_3" >
           <item rowspan="2" row="0" column="0" >
@@ -266,9 +341,12 @@
             <property name="orientation" >
              <enum>Qt::Horizontal</enum>
             </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Preferred</enum>
+            </property>
             <property name="sizeHint" stdset="0" >
              <size>
-              <width>90</width>
+              <width>25</width>
               <height>20</height>
              </size>
             </property>
@@ -279,12 +357,24 @@
             <property name="enabled" >
              <bool>false</bool>
             </property>
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
            </widget>
           </item>
           <item row="0" column="1" >
            <widget class="QLineEdit" name="axis2Edit" >
             <property name="enabled" >
              <bool>false</bool>
+            </property>
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="minimumSize" >
              <size>
@@ -298,6 +388,12 @@
         </item>
         <item row="0" column="0" >
          <widget class="QComboBox" name="axis2Combo" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="currentIndex" >
            <number>2</number>
           </property>
@@ -337,7 +433,7 @@
        </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>40</width>
+         <width>0</width>
          <height>20</height>
         </size>
        </property>
@@ -345,6 +441,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="doRatation" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text" >
         <string>Execute Rotation</string>
        </property>
@@ -371,11 +473,11 @@
    <slot>axis1Changed()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>80</x>
-     <y>162</y>
+     <x>95</x>
+     <y>115</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>335</x>
+     <x>285</x>
      <y>140</y>
     </hint>
    </hints>
@@ -387,11 +489,11 @@
    <slot>axis1EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>114</x>
-     <y>195</y>
+     <x>127</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>337</x>
+     <x>285</x>
      <y>189</y>
     </hint>
    </hints>
@@ -404,10 +506,10 @@
    <hints>
     <hint type="sourcelabel" >
      <x>270</x>
-     <y>155</y>
+     <y>115</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>337</x>
+     <x>285</x>
      <y>174</y>
     </hint>
    </hints>
@@ -419,12 +521,12 @@
    <slot>axis2EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>275</x>
-     <y>195</y>
+     <x>269</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>337</x>
-     <y>225</y>
+     <x>285</x>
+     <y>213</y>
     </hint>
    </hints>
   </connection>
@@ -435,12 +537,12 @@
    <slot>doRotationSlot()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>258</x>
-     <y>286</y>
+     <x>238</x>
+     <y>209</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>337</x>
-     <y>285</y>
+     <x>285</x>
+     <y>213</y>
     </hint>
    </hints>
   </connection>
@@ -451,11 +553,11 @@
    <slot>toChanged(int)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>130</x>
-     <y>72</y>
+     <x>163</x>
+     <y>48</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>337</x>
+     <x>285</x>
      <y>66</y>
     </hint>
    </hints>
@@ -471,7 +573,7 @@
      <y>21</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>338</x>
+     <x>285</x>
      <y>16</y>
     </hint>
    </hints>
