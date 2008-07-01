@@ -8,6 +8,7 @@ using namespace std;
 
 Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
+    scene.setIndexItemMethod(QGraphicsScene::NoIndex);
     setWavevectors(0.0, 2.0*M_1_PI);
     setMaxHklSqSum(0);
     setTextSize(4.0);
