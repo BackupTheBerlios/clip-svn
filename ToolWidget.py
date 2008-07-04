@@ -26,3 +26,14 @@ class ToolWidget(QtGui.QWidget):
                 return w.widget().projector.getCrystal()
         return None
     
+    def searchImage(self):
+        try:
+            mdi=self.parent().mdiArea()
+        except:
+            return
+        windows=mdi.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
+        windows.reverse()
+        for w in windows:
+            if isinstance(w.widget(), ProjectionObject) and w.widget().image:
+                return w.widget()
+        return

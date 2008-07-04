@@ -13,8 +13,9 @@ class ImageTransfer {
         ~ImageTransfer();
         
         void setData(unsigned int width, unsigned int height, unsigned int type, unsigned char *data /Array/, unsigned int len /ArraySize/);
-        void setTransferCurve(int type, QList<double> upper, QList<double> D);
-  
+        void setTransferCurves(QList<BezierCurve> bc);
+        QList<BezierCurve> getTransferCurves();
+
         QImage* qImg();
 };
 

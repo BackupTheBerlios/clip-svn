@@ -10,22 +10,6 @@
 #include <netinet/in.h>
 #endif
 
-ParamSet::ParamSet() : D() {
-    D.append(0.0);
-    D.append(0.0);
-    D.append(0.0);
-    D.append(0.0);
-    upper=0.0;
-}
-
-float ParamSet::calc(float x) {
-    float v=((D[3]*x+D[2])*x+D[1])*x+D[0];
-    if (v>1.0)
-        return 1.0;
-    if (v<0.0)
-        return 0.0;
-    return v;
-}
 
 class mySort {
     public:
@@ -40,10 +24,8 @@ class mySort {
 };
 
 ImageTransfer::ImageTransfer(): sortedIdx(),curves() {
-    curves.append(QList<ParamSet>());
-    curves.append(QList<ParamSet>());
-    curves.append(QList<ParamSet>());
-    curves.append(QList<ParamSet>());
+    for (unsigned int i=4; i--; )
+        curves.append(BezierCurve());
     rawData=NULL;
     rawLen=0;
     transferedData=NULL;
@@ -114,106 +96,56 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
 }
 
 
-void ImageTransfer::setTransferCurve(int channel, QList<double> upper, QList<double> D) {
-#ifdef __DEBUG__
-    cout << "setTransferCurve #" << channel << endl;
-#endif
-    curves[channel].clear();
-#ifdef __DEBUG__
-    cout << "No of Params:" << upper.size() << endl;
-#endif    
-    for (unsigned int i=0; i<upper.size(); i++) {
-        ParamSet p;
-        p.upper=upper[i];
-#ifdef __DEBUG__
-    cout << "upper limit" << upper[i] << endl;
-#endif
-        for (unsigned int j=0; j<4; j++) {
-#ifdef __DEBUG__
-    cout << "   Param #" << j << "=" << D[4*i+j] << endl;
-#endif            
-            p.D[j]=D[4*i+j];
-        }
-        curves[channel].push_back(p);
-    }
+void ImageTransfer::setTransferCurves(QList<BezierCurve> bc) {
+    curves=bc;
     schedTransfer=true;
 }
- 
-void ImageTransfer::doFloatTransfer() {
-#ifdef __DEBUG__
-    cout << "start FloatTransfer" << endl;
-#endif
 
+QList<BezierCurve> ImageTransfer::getTransferCurves() {
+    return curves;
+}
+
+
+void ImageTransfer::doFloatTransfer() {
     unsigned int N=rawLen/4;
     float* arr=(float*)rawData;
     
-    unsigned int n=0;
-    unsigned int cPos[3];
-    for (unsigned int i=3; i--; )
-        cPos[i]=0;
-    unsigned int rgbVal;
-    for (unsigned int i=0; i<curves[0].size(); i++) {
-        ParamSet p=curves[0][i];
-        while (n<N and arr[sortedIdx[n]]<p.upper) {
-            float val=arr[sortedIdx[n]];
-            float nval=p.calc(val);
-            rgbVal=0xFF;
-            for (unsigned int j=3; j--; ) {
-                unsigned int s=curves[j+1].size();
-                while (cPos[j]+1<s and nval>curves[j+1][cPos[j]].upper)
-                    cPos[j]++;
-                while (cPos[j]>0 and nval<curves[j+1][cPos[j]-1].upper)
-                    cPos[j]--;
-                rgbVal<<=8;
-                rgbVal|=(unsigned char)(255.0*curves[j+1][cPos[j]].calc(nval));
-                
-            }
-#ifdef __DEBUG__
-            //cout << "inVal " << val << " -> (" << (int)rgb[0] << "," << (int)rgb[1] << "," << (int)rgb[2] << ")" << endl;
-#endif
+    //cout << "Load init CP " << curves.size() << endl;
+    BezierCurve::CurveParams vP=curves[0].getCurveParam(0);
+    //cout << "Loaded init CP " << endl;
+    unsigned int hints[3];
+    hints[0]=0;
+    hints[1]=0;
+    hints[2]=0;
+    unsigned int n=N;
+    while (n) {
+        //cout << "Loop No " << n << endl;
 
-            while (n<N and val==arr[sortedIdx[n]]) {
-                ((unsigned int *)transferedData)[sortedIdx[n]]=rgbVal;
-                n++;
+        unsigned int idx;
+        double val;
+        while (n && (val=arr[sortedIdx[N-n]])<=vP.Xmax) {
+            //cout << "calc val " << val << endl;
+            double vval=vP.calc(val);
+            //cout << "get val " << vval << endl;
+                
+            unsigned int rgbVal=0xFF;
+            for (unsigned int i=3; i--; ) {
+                rgbVal<<=8;
+                rgbVal|=(unsigned int)(255.0*curves[i+1](vval,hints[i]));
             }
+            //cout << "calc rgb vals" << rgbVal << endl;
+            while (n && val==arr[idx=sortedIdx[N-n]]) {
+                ((unsigned int *)transferedData)[idx]=rgbVal;
+                n--;
+            }
+            //cout << "all vals written" << endl;
         }
+        vP=curves[0].getCurveParam(val);
     }
 }
 
 void ImageTransfer::doRGBTransfer() {
-    QVector< QVector<unsigned int> > Cmaps(3);
-    unsigned int vPos=0;
-    unsigned int cPos[3];
-
-    for (unsigned int i=3; i--; ) {
-        cPos[i]=0;    
-        Cmaps[i].resize(256);
-    }
-    
-    for (unsigned int i=256; i--; ) {
-        float val=(float)i/255.0;
-        while ((val>curves[0][vPos].upper) and (vPos+1<curves[0].size()))
-            vPos++;
-        
-        float nval=curves[0][vPos].calc(val);
-        
-        for (unsigned int j=3; j--; ) {
-            unsigned int s=curves[j+1].size();
-            while (cPos[j]+1<s and nval>curves[j+1][cPos[j]].upper)
-                cPos[j]++;
-            while (cPos[j]>0 and nval<curves[j+1][cPos[j]-1].upper)
-                cPos[j]--;
-            Cmaps[j][i]=(unsigned char)(255.0*curves[j+1][cPos[j]].calc(nval));
-        }
-    }
-        
-    unsigned int N=rawLen/3;
-    
-    for (unsigned int i=N; i--; ) {
-        for (unsigned int j=3; j--; ) {
-            transferedData[4*i+2-j]=Cmaps[j][rawData[3*i+j]];
-        }
-    }
+    //FIXME: Implement
 }
 
 void ImageTransfer::doTransfer() {

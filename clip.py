@@ -9,7 +9,7 @@ import math
 from PyQt4 import QtCore, QtGui
 from LaueImage import LaueImage
 import Crystal
-import ImgTransferCurve
+from ImgTransferCurve import ImgTransferCurve
 from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
@@ -45,9 +45,10 @@ class clip(QtGui.QMainWindow):
         self.statusBar().showMessage(self.appTitle+" ready", 2000)
         self.crystalStore=ObjectStore()
         
+        self.imageTransfer=ImgTransferCurve(self)
         self.rotateCrystal=RotateCrystal(self)
         self.reorientCrystal=Reorient(self)
-        for tools in (self.rotateCrystal, self.reorientCrystal):
+        for tools in (self.imageTransfer, self.rotateCrystal, self.reorientCrystal):
             w=self.MdiArea.addSubWindow(tools)
             w.hide()
             w.setAttribute(QtCore.Qt.WA_DeleteOnClose, False)
@@ -66,9 +67,10 @@ class clip(QtGui.QMainWindow):
         menudef = [
             ('&File',
              [('New Crystal',  self.slotNewCrystal), 
-              ('New Stereographic Projection',  self.slotNewStereoProjector)]),
+              ('New Stereographic Projection',  self.slotNewStereoProjector),
+              ('New Laue Projection',  self.slotNewLauePlaneProjector)]),
             ('&Tools', 
-             [('New TransferCurve', self.slotShowTransferCurve), 
+             [('TransferCurve', self.slotShowTransferCurve), 
               ('Rotate Crystal', self.slotShowRotate), 
               ('Reorientate Crystal', self.slotShowReorient)]), 
             ('&Windows',
@@ -207,17 +209,11 @@ class clip(QtGui.QMainWindow):
         return wid
         
     def slotShowTransferCurve(self):
-        wid = ImgTransferCurve.ImgTransferCurve(self)
-        wid.setWindowTitle('TransferCurve')
-        self.MdiArea.addSubWindow(wid)
-        wid.show()
-        l=self.MdiArea.subWindowList(self.MdiArea.StackingOrder)
-        l.reverse()
-        for subWin in l:
-            if isinstance(subWin.widget(), LaueImage):
-                wid.setLaueImg(subWin.widget())
-                break
-        self.connect(self.transferCurveMapper,  QtCore.SIGNAL('mapped(QWidget*)'),  wid.setLaueImg)
+        self.imageTransfer.show()
+        p=self.imageTransfer.parent()
+        p.raise_()
+        p.mdiArea().setActiveSubWindow(p)
+
         
     def slotShowRotate(self):
         self.rotateCrystal.show()

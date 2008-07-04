@@ -45,10 +45,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
 
         self.toolBar.addSeparator()
         
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Image')
-        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.slotLoadImage)
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileclose)), 'Close Image')
-        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.slotCloseImage)
+        self.imageAction=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Image', self.slotLoadCloseImage)
+        
 
 
         self.toolBar.addSeparator()
@@ -95,7 +93,6 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.updateZoom()
         
     def resizeView(self):
-        print "resizeView"
         toolBarGeometry=QtCore.QRect(0, 0, self.width(),  self.toolBar.sizeHint().height())
         self.toolBar.setGeometry(toolBarGeometry)
         spareSize=QtCore.QSizeF(self.width(),  self.height()-toolBarGeometry.height())
@@ -175,7 +172,6 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         
     def updateZoom(self):
         #self.gv.fitInView(self.zoomRect(), QtCore.Qt.KeepAspectRatio)
-        print "updateZoom"
         r=self.zoomRect()
         self.gv.fitInView(r, QtCore.Qt.KeepAspectRatio)
         r=self.gv.scene().sceneRect()
@@ -239,29 +235,35 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     self.emit(QtCore.SIGNAL('projectorAddedRotation(double)'), a)
 
                 
-    def slotLoadImage(self):
-      fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Laue pattern', '', 'Image Plate Files (*.img);;All Images (*.jpg *.jpeg *.bmp *.png *.tif *.tiff *.gif *.img);;All Files (*)'))
-      fInfo=QtCore.QFileInfo(fileName)
-      if fInfo.exists():
-        img=LaueImage.Image.open(fileName)
-        mode=None
-        if img.mode=='RGB':
-            mode=1
-        elif img.mode=='F':
-            mode=0
-        if mode!=None:
-            self.image=ImageTransfer()
-            for i in range(4):
-                self.image.setTransferCurve(i, [1.], [0., 1., 0., 0.])
-            self.image.setData(img.width, img.height, mode, img.tostring())
-            if hasattr(img, 'resx') and hasattr(img, 'resy'):
-                self.projector.setDetSize(self.projector.dist(), img.width/img.resx, img.height/img.resy)
-            self.gv.setBGImage(self.image)
+    def slotLoadCloseImage(self):
+        if self.image==None:
+          fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Load Laue pattern', '', 'Image Plate Files (*.img);;All Images (*.jpg *.jpeg *.bmp *.png *.tif *.tiff *.gif *.img);;All Files (*)'))
+          fInfo=QtCore.QFileInfo(fileName)
+          if fInfo.exists():
+            img=LaueImage.Image.open(fileName)
+            mode=None
+            if img.mode=='RGB':
+                mode=1
+            elif img.mode=='F':
+                mode=0
+            if mode!=None:
+                self.image=ImageTransfer()
+                self.image.setData(img.width, img.height, mode, img.tostring())
+                if hasattr(img, 'resx') and hasattr(img, 'resy'):
+                    self.projector.setDetSize(self.projector.dist(), img.width/img.resx, img.height/img.resy)
+                self.gv.setBGImage(self.image)
+                self.gv.resetCachedContent()
+                self.gv.viewport().update()
+                self.imageAction.setIcon(QtGui.QIcon(QtGui.QPixmap(Icons.fileclose)))
+                self.imageAction.setIconText('Close Image')
+        else:
+            self.gv.setBGImage(None)
+            self.image=None
+            self.imageAction.setIcon(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)))
+            self.imageAction.setIconText('Open Image')
             self.gv.resetCachedContent()
             self.gv.viewport().update()
-            
-    def slotCloseImage(self):
-        self.gv.setBGImage(None)
+
 
 class MyGraphicsView(QtGui.QGraphicsView):
     def __init__(self, parent=0):

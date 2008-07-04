@@ -5,7 +5,6 @@
 
 
 * Aus / An Decorations
-* Qwt5 ersetzen
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
 * Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)

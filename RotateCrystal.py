@@ -111,7 +111,7 @@ class RotateCrystal(ToolWidget, Ui_RotateCrystal):
                 
             
             
-        
+
 
         
 

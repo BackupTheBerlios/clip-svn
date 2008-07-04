@@ -4,17 +4,9 @@
 #include <string>
 
 #include <QtGui/QImage>
+#include <vec3D.h>
+#include <BezierCurve.h>
 
-#include "vec3D.h"
-
-
-class ParamSet {
-    public:
-        ParamSet();
-        float upper;
-        QList<float> D;
-        float calc(float x);
-};
 
 class ImageTransfer {
     public:
@@ -22,7 +14,8 @@ class ImageTransfer {
         ~ImageTransfer();
         
         void setData(unsigned int width, unsigned int height, unsigned int format, unsigned char *data, unsigned int len);
-        void setTransferCurve(int channel, QList<double> upper, QList<double> D);
+        QList<BezierCurve> getTransferCurves();
+        void setTransferCurves(QList<BezierCurve> bc);
   
 
         QImage* qImg();
@@ -40,7 +33,7 @@ class ImageTransfer {
         unsigned char* transferedData;
         unsigned int transferedLen;
         
-        QList< QList<ParamSet> > curves;
+        QList<BezierCurve> curves;
     
         QImage* qimg;
         bool schedTransfer;
