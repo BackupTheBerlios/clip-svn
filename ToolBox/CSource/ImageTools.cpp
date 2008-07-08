@@ -11,19 +11,8 @@
 #endif
 
 
-class mySort {
-    public:
-        mySort(float* _weight) {
-            weight=_weight;
-        }
-        bool operator()(unsigned int a, unsigned int b) {
-            return weight[a]<weight[b];
-        }
-    private:
-        float* weight;
-};
 
-ImageTransfer::ImageTransfer(): sortedIdx(),curves() {
+ImageTransfer::ImageTransfer(): values(), indexForValues() {
     for (unsigned int i=4; i--; )
         curves.append(BezierCurve());
     rawData=NULL;
@@ -32,9 +21,8 @@ ImageTransfer::ImageTransfer(): sortedIdx(),curves() {
     transferedLen=0;
     qimg=NULL;
     schedTransfer=false;
-#ifdef __DEBUG__
-    cout << "ImageTransfer constructor" << endl;
-#endif
+    CWRSteps=0;
+    flipImg=false;
 }
 
 ImageTransfer::~ImageTransfer() {
@@ -56,15 +44,14 @@ void ImageTransfer::deleteData() {
         delete qimg;
         qimg=NULL;
     }
-    sortedIdx.clear();
-    
 }
 
 void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned int format, unsigned char *inData, unsigned int len) {
+    cout << "Img Set data" << endl;
     deleteData();
-#ifdef __DEBUG__
-    cout << "get Data, len=" << len << " width=" << width << " height=" << height << endl;
-#endif
+    imageWidth=width;
+    imageHeight=height;
+
     rawData = new unsigned char[len];
     memcpy(rawData, inData, len);
     rawLen=len;
@@ -73,17 +60,26 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
     if (format==0) {
         // floating point
         unsigned int N=rawLen/4;
-#ifdef __DEBUG__
-    cout << "pixel" << N << endl;
-#endif
+        cout << "Imgsize" << N << " " << width*height << endl;
         float* arr=(float*)rawData;
-        sortedIdx.resize(N);
-        for (unsigned int i=N; i--; ) 
-            sortedIdx[i]=i;
-        sort(sortedIdx.begin(), sortedIdx.end(), mySort(arr));
-        float maxVal=arr[sortedIdx[N-1]];
-        for (unsigned int i=N; i--; )
-            arr[i]/=maxVal;
+        values.clear();
+        indexForValues.clear();
+        
+        for (unsigned int n=N; n--; ) {
+            float val=arr[n];
+            QList<float>::iterator iter=qLowerBound(values.begin(), values.end(), val);
+            int idx=iter-values.begin();
+            if (idx>=values.size() or values[idx]!=val) {
+                // Value is new
+                values.insert(idx, val);
+                indexForValues.insert(idx,QList<unsigned int>());
+            }
+            indexForValues[idx].append(n);
+        }    
+        float norm=1.0/values.last();
+        for (unsigned int n=values.size(); n--; ) {
+            values[n]*=norm;
+        }
         transferedLen=4*N;
     } else if (format==1) {
         // 24bit RGB
@@ -91,7 +87,7 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
     }
     
     transferedData = new unsigned char[transferedLen];
-    qimg = new QImage((unsigned char *)transferedData, width, height, QImage::Format_RGB32);
+    doImgRotation(0, false);
     schedTransfer=true;
 }
 
@@ -105,42 +101,62 @@ QList<BezierCurve> ImageTransfer::getTransferCurves() {
     return curves;
 }
 
+void ImageTransfer::doImgRotation(unsigned int _CWRSteps, bool flip) {
+    CWRSteps=(CWRSteps+_CWRSteps)%4;
+    flipImg=flipImg xor flip;
+    cout << "doImgRot" << CWRSteps << " " << flipImg << " " << imageWidth << " " << imageHeight << endl;
+
+    
+    unsigned int N=imageWidth*imageHeight;
+    unsigned int w=imageWidth;
+    unsigned int h=imageHeight;
+    for (unsigned int n=indexForValues.size(); n--; ) {
+        for (unsigned int m=indexForValues[n].size(); m--; ) {
+            unsigned int idx=indexForValues[n][m];
+            unsigned int w=imageWidth;
+            unsigned int h=imageHeight;
+            unsigned int x=idx%w;
+            unsigned int y=idx/w;
+            for (unsigned int r=_CWRSteps; r--; ) {
+                //y=h-1-y;
+                x=w-1-x;
+                qSwap(x,y);
+                qSwap(w,h);
+            }
+            if (flip) 
+                x=w-1-x;
+            indexForValues[n][m]=x+y*w;
+        }
+    }
+    if (qimg!=NULL) {
+        delete qimg;
+        qimg=NULL;
+    }
+    if (_CWRSteps%2==1)
+        qSwap(imageWidth, imageHeight);
+    qimg = new QImage((unsigned char *)transferedData, imageWidth, imageHeight, QImage::Format_RGB32);
+    schedTransfer=true;    
+}
+
 
 void ImageTransfer::doFloatTransfer() {
-    unsigned int N=rawLen/4;
-    float* arr=(float*)rawData;
-    
-    //cout << "Load init CP " << curves.size() << endl;
-    BezierCurve::CurveParams vP=curves[0].getCurveParam(0);
-    //cout << "Loaded init CP " << endl;
-    unsigned int hints[3];
-    hints[0]=0;
-    hints[1]=0;
-    hints[2]=0;
-    unsigned int n=N;
-    while (n) {
-        //cout << "Loop No " << n << endl;
+    cout << "float transfer" << endl;
+    unsigned int N=imageWidth*imageHeight;
 
-        unsigned int idx;
-        double val;
-        while (n && (val=arr[sortedIdx[N-n]])<=vP.Xmax) {
-            //cout << "calc val " << val << endl;
-            double vval=vP.calc(val);
-            //cout << "get val " << vval << endl;
-                
-            unsigned int rgbVal=0xFF;
-            for (unsigned int i=3; i--; ) {
-                rgbVal<<=8;
-                rgbVal|=(unsigned int)(255.0*curves[i+1](vval,hints[i]));
-            }
-            //cout << "calc rgb vals" << rgbVal << endl;
-            while (n && val==arr[idx=sortedIdx[N-n]]) {
-                ((unsigned int *)transferedData)[idx]=rgbVal;
-                n--;
-            }
-            //cout << "all vals written" << endl;
+    QList<float> vMap = curves[0].mapSorted(values);
+    unsigned int hints[4];
+    for (unsigned int i=4; i--; ) hints[i]=0;
+    for (unsigned int n=values.size(); n--; ) {
+        float vval=vMap[n];
+        unsigned int rgbVal=0xFF;
+        for (unsigned int i=3; i--; ) {
+            rgbVal<<=8;
+            rgbVal|=(unsigned int)(255.0*curves[i+1](vval,hints[i+1]));
         }
-        vP=curves[0].getCurveParam(val);
+        for (unsigned int m=indexForValues[n].size(); m--; ) {
+            unsigned int idx=indexForValues[n][m];
+            ((unsigned int *)transferedData)[idx]=rgbVal;
+        }
     }
 }
 

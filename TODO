@@ -1,15 +1,13 @@
-* Config für StereoProjector
 * UI für Reflexeinfo
-* fit
-* bild rotieren / spiegeln
-
+* Config für StereoProjector
+* Fit
+* load RGB Image 
 
 * Aus / An Decorations
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
 * Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
-* Drucken
 * Aktuelle Einstellungen speichern
 * Windows installation mit libqt ohne den Rest
 * Sys absents

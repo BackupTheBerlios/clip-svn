@@ -77,6 +77,33 @@ QString formatHklText(int h, int k, int l) {
     }
 }
 
+void Projector::addInfoItem(const QString& text, const QPointF& p) {
+    QGraphicsRectItem* bg=new QGraphicsRectItem();
+    bg->setPen(QPen(Qt::black));
+    bg->setBrush(QBrush(QColor(0xF0,0xF0,0xF0)));
+    bg->setPos(p);
+
+    QGraphicsTextItem*  t = new QGraphicsTextItem(bg);
+    t->setHtml(text);
+    QRectF r=t->boundingRect();
+    double sx=textSize*scene.width()/r.width();
+    double sy=textSize*scene.height()/r.height();
+    double s=sx<sy?sy:sx;
+    
+    bg->setRect(t->boundingRect());
+    bg->scale(s,s);
+    bg->setZValue(1);
+    scene.addItem(bg);
+    infoItems.append(bg);
+}
+
+void Projector::clearInfoItems() {
+    while (infoItems.size()>0) {
+        QGraphicsItem* item=infoItems.takeLast();
+        delete item;
+    }
+}
+
 void Projector::reflectionsUpdated() {
     if (crystal.isNull()) 
         return;
@@ -87,6 +114,8 @@ void Projector::reflectionsUpdated() {
         scene.removeItem(item);
         delete item;
     }
+
+    clearInfoItems();
     
     QList<Reflection> r = crystal->getReflectionList();
     int n=0;
@@ -288,7 +317,6 @@ QList<Vec3D> Projector::getMarkerNormals() {
 }
 
 void Projector::updateImgTransformations() {
-    cout << "updateImgTransform" << endl;
     const QRectF r=scene.sceneRect();
     det2img.reset();
     if (r.isEmpty()) {
@@ -306,3 +334,32 @@ void Projector::updateImgTransformations() {
     emit imgTransformUpdated();
 }
 
+// Rotates and flips the Decorations, which are bound to the Image
+void Projector::doImgRotation(unsigned int CWRSteps, bool flip) {
+    QTransform t;
+    for (unsigned int i=imgGroup.childItems().size(); i--; ) {
+        QGraphicsItem* e=imgGroup.childItems().at(i);
+        double x = e->pos().x();
+        double y = e->pos().y();
+        
+        if (flip) x=1.0-x;
+        double t;
+        switch(CWRSteps) {
+            case 1:
+                t=x;
+                x=y;
+                y=1.0-t;
+                break;
+            case 2:
+                x=1.0-x;
+                y=1.0-y;
+                break;
+            case 3:
+                t=x;
+                x=1.0-y;
+                y=t;
+                break;
+        }
+        e->setPos(x,y);
+    }
+}

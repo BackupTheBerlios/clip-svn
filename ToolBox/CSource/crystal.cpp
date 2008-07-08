@@ -198,7 +198,26 @@ Reflection Crystal::getReflection(unsigned int i) {
         return Reflection();
     }
 }
-  
+
+Reflection Crystal::getClosestReflection(const Vec3D& normal) {
+    QList<Reflection> r = getReflectionList();
+    int minIdx=-1;
+    double minDist=0;
+    for (unsigned int n=r.size(); n--; ) {
+        double dist=(r[n].normal-normal).norm_sq();
+        if (dist<minDist or minIdx<0) {
+            minDist=dist;
+            minIdx=n;
+        }
+    }
+    if (minIdx>=0) {
+        return r[minIdx];
+    } else {
+        return Reflection();
+    }
+}
+
+
 QList<Reflection> Crystal::getReflectionList() {
     if (reflections.empty()) 
         generateReflections();

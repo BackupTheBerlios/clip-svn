@@ -179,3 +179,11 @@ double LauePlaneProjector::chi() {
 double LauePlaneProjector::phi() {
     return detPhi;
 }
+
+void LauePlaneProjector::doImgRotation(unsigned int CWRSteps, bool flip) {
+    cout << "LauePlaneImageRotation " << CWRSteps << endl;
+    Projector::doImgRotation(CWRSteps, flip);
+    if (CWRSteps%2==1) {
+        setDetSize(dist(), height(), width());
+    }
+}

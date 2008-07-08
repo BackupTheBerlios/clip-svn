@@ -1,9 +1,10 @@
-from ToolBox import StereoProjector, LauePlaneProjector, Vec3D, Mat3D, ImageTransfer
+from ToolBox import StereoProjector, LauePlaneProjector, Vec3D, Mat3D, ImageTransfer, Crystal
 import LaueImage
 from PyQt4 import QtCore, QtGui
 import math
-
+from time import time
 from Tools import Icons
+
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
@@ -41,13 +42,14 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.connect(a[2], QtCore.SIGNAL('toggled(bool)'), self.rotateHandler)
         
         self.toolBar.addSeparator()
-        self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'Add Marker')))
+        a=self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'Add Marker')))
+        self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.infoHandler)
+        self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.markHandler)
 
         self.toolBar.addSeparator()
         
         self.imageAction=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Image', self.slotLoadCloseImage)
-        
-
+        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileprint)), 'Print', self.slotPrint)
 
         self.toolBar.addSeparator()
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'Configure')
@@ -56,6 +58,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
         
         self.mouseHandler=self.zoomHandler
+        self.mousePressHandler=self.infoHandler
         QtCore.QTimer.singleShot(0, self.startResize)
         
             
@@ -85,7 +88,6 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         return r
 
     def startResize(self):
-        #FIXME: View not fixed
         self.resize(self.width()+1, self.height())
         
     def resizeEvent(self, e):
@@ -141,8 +143,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     self.mouseDragRect=r
                     self.mouseHandler(e, self.releaseContext)
                 else:
-                    # Mouse just pressed, no drag...
-                    self.projector.addMarker(self.gv.mapToScene(self.mousePressStart))
+                    self.mousePressHandler()
+                            
             elif self.mouseButtons==QtCore.Qt.RightButton:
                 if len(self.zoomSteps):
                     self.zoomSteps.pop()
@@ -156,12 +158,17 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             menu=QtGui.QMenu(self)
             clearMarker=menu.addAction("Clear marker")
             setRotAxis=menu.addAction("Set rotation Axis")
+            clearInfo=menu.addAction("Clear Reflex Infos")
             r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos))
             if r==clearMarker:
                 self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
             elif r==setRotAxis:
-                pass
-                #FIXME: Implement
+                c=self.projector.getCrystal()
+                if c:
+                    r=c.getClosestReflection(self.projector.det2normal(self.gv.mapToScene(self.lastMousePos)))
+                    c.setRotationAxis(Vec3D(r.h, r.k, r.l), Crystal.ReziprocalSpace)
+            elif r==clearInfo:
+                self.projector.clearInfoItems()
             self.mousePressStart=None
 
     def zoomRect(self):
@@ -234,6 +241,32 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     self.projector.addRotation(ax, a)
                     self.emit(QtCore.SIGNAL('projectorAddedRotation(double)'), a)
 
+    def infoHandler(self, *args):
+        def f(i):
+            if i<0:
+                return '<span style="text-decoration:overline">%i</span>'%(-i)
+            else :
+                return '<span>%i</span>'%i
+                
+        if len(args)==1 and args[0]:
+            self.mousePressHandler=self.infoHandler
+        elif len(args)==0:
+            c=self.projector.getCrystal()
+            if c:
+                p=self.gv.mapToScene(self.mousePressStart)
+                r=c.getClosestReflection(self.projector.det2normal(p))
+                s=f(r.h)+f(r.k)+f(r.l)
+                if r.normal[0]>=0:
+                    TT=180.0-2.0*math.degrees(math.acos(r.normal[0]))
+                    s+='<br>2T=%.1f'%TT
+                self.projector.addInfoItem(s,  p)
+
+    def markHandler(self, *args):
+        if len(args)==1 and args[0]:
+            self.mousePressHandler=self.markHandler
+        elif len(args)==0:
+            self.projector.addMarker(self.gv.mapToScene(self.mousePressStart))
+
                 
     def slotLoadCloseImage(self):
         if self.image==None:
@@ -263,6 +296,36 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.imageAction.setIconText('Open Image')
             self.gv.resetCachedContent()
             self.gv.viewport().update()
+
+    def slotPrint(self):
+        pr=QtGui.QPrinter(QtGui.QPrinter.HighResolution)
+        pd=QtGui.QPrintDialog(pr,  self)
+        pd.setWindowTitle('Print Projection')
+        if pd.exec_()==QtGui.QDialog.Accepted:
+            p=QtGui.QPainter(pr)
+            p.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.TextAntialiasing|QtGui.QPainter.SmoothPixmapTransform)
+            self.gv.render(p)
+            p.end()
+            
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class MyGraphicsView(QtGui.QGraphicsView):
@@ -315,9 +378,14 @@ class MyGraphicsView(QtGui.QGraphicsView):
         else:
             p.save()
             #p.setClipRect(to)
+            t1=time()
             qi=self.BGImage.qImg()
+            t2=time()
             sr=self.sceneRect()
             source=QtCore.QRectF((to.x()-sr.x())*qi.width()/sr.width(), (to.y()-sr.y())*qi.height()/sr.height(), to.width()*qi.width()/sr.width(), to.height()*qi.height()/sr.height())
+            t3=time()
             
             p.drawImage(to, qi, source)
+            t4=time()
+            print 'Convert Times', t2-t1, t3-t2, t4-t3
             p.restore()

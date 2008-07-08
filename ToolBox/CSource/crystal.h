@@ -28,6 +28,7 @@ class Crystal: public QObject {
         void updateRotation();
         unsigned int reflectionCount();
         Reflection getReflection(unsigned int i);
+        Reflection getClosestReflection(const Vec3D& normal);
         QList<Reflection> getReflectionList();
 
         Vec3D uvw2Real(const Vec3D&);

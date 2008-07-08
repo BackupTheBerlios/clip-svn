@@ -22,10 +22,10 @@ bool BezierCurve::setPoints(QList<QPointF>& p) {
         CurveParams cp;
         cp.Xmin=-INFINITY;
         cp.Xmax=INFINITY;
-        double dx=p.at(1).x()-p.at(0).x();
+        float dx=p.at(1).x()-p.at(0).x();
         if (dx==0.0)
             return false;
-        double slope=(p.at(1).y()-p.at(0).y())/dx;
+        float slope=(p.at(1).y()-p.at(0).y())/dx;
         cp.D0=p.at(0).y()-slope*p.at(0).x();
         cp.D1=slope;
         cp.D2=0.0;
@@ -33,11 +33,11 @@ bool BezierCurve::setPoints(QList<QPointF>& p) {
         params.append(cp);
     } else {
         for (unsigned int i=p.size()-1; i--; ) {
-            double p0=p.at(i).y();
-            double p3=p.at(i+1).y();
-            double p1;
-            double p2;
-            double dx=p.at(i+1).x()-p.at(i).x();
+            float p0=p.at(i).y();
+            float p3=p.at(i+1).y();
+            float p1;
+            float p2;
+            float dx=p.at(i+1).x()-p.at(i).x();
             if (dx==0.0)
                 continue;
             
@@ -47,28 +47,28 @@ bool BezierCurve::setPoints(QList<QPointF>& p) {
                 //and the right neighbor. Then point the tangent at the left towards
                 //the control handle of the right tangent, to ensure that the curve
                 //does not have an inflection point.
-                double slope = (p.at(i+2).y() - p.at(i).y()) / (p.at(i+2).x() - p.at(i).x());
+                float slope = (p.at(i+2).y() - p.at(i).y()) / (p.at(i+2).x() - p.at(i).x());
                 p2 = p.at(i+1).y() - slope * dx / 3.0;
                 p1 = p.at(i).y() + (p2 - p.at(i).y()) / 2.0;
             } else if (i==p.size()-2) {
-                double slope = (p.at(i+1).y() - p.at(i-1).y()) / (p.at(i+1).x() - p.at(i-1).x());
+                float slope = (p.at(i+1).y() - p.at(i-1).y()) / (p.at(i+1).x() - p.at(i-1).x());
                 p1 = p.at(i).y() + slope * dx / 3.0;
                 p2 = p.at(i+1).y() + (p1 - p.at(i+1).y()) / 2.0;
             } else {
                 // Both neighbors are available. Make the tangents at the endpoints
                 // parallel to the line between the opposite endpoint and the adjacent
                 //neighbor.               
-                double slope = (p.at(i+1).y() - p.at(i-1).y()) / (p.at(i+1).x() - p.at(i-1).x());
+                float slope = (p.at(i+1).y() - p.at(i-1).y()) / (p.at(i+1).x() - p.at(i-1).x());
                 p1 = p.at(i).y() + slope * dx / 3.0;
                 slope = (p.at(i+2).y() - p.at(i).y()) / (p.at(i+2).x() - p.at(i).x());
                 p2 = p.at(i+1).y() - slope * dx / 3.0;
             }
-            double C0=p0;
-            double C1=(        3*p1-3*p0)/dx;
-            double C2=(   3*p2-6*p1+3*p0)/dx/dx;
-            double C3=(p3-3*p2+3*p1-  p0)/dx/dx/dx;
+            float C0=p0;
+            float C1=(        3*p1-3*p0)/dx;
+            float C2=(   3*p2-6*p1+3*p0)/dx/dx;
+            float C3=(p3-3*p2+3*p1-  p0)/dx/dx/dx;
             
-            double x=p.at(i).x();
+            float x=p.at(i).x();
             CurveParams cp;
             
             cp.D0 = ((-C3*x +C2)*x-C1)*x+C0;
@@ -92,11 +92,7 @@ QList<QPointF> BezierCurve::getPoints() {
     return points;
 }
 
-double BezierCurve::CurveParams::calc(double x) {
-    return qMax(0.0, qMin(1.0, ((D3*x+D2)*x+D1)*x+D0));
-}
-
-double BezierCurve::operator()(double x) {
+float BezierCurve::operator()(float x) {
     if (params.empty())
         return 0.0;
     
@@ -104,16 +100,16 @@ double BezierCurve::operator()(double x) {
     return params[p].calc(x);
 }
 
-double BezierCurve::operator()(double x, unsigned int& hint) {
+float BezierCurve::operator()(float x, unsigned int& hint) {
     while (params[hint].Xmax<x) hint++;
     while (params[hint].Xmin>x) hint--;
     return params[hint].calc(x);
 }
 
 
-QList<double> BezierCurve::range(double x0, double dx, unsigned int N) {
-    QList<double> r;
-    double x=x0;
+QList<float> BezierCurve::range(float x0, float dx, unsigned int N) {
+    QList<float> r;
+    float x=x0;
     unsigned int p=getCurveParamIdx(x);
     unsigned int n=N;
     while (n) {
@@ -128,9 +124,9 @@ QList<double> BezierCurve::range(double x0, double dx, unsigned int N) {
     return r;
 }
 
-QList<QPointF> BezierCurve::pointRange(double x0, double dx, unsigned int N) {
+QList<QPointF> BezierCurve::pointRange(float x0, float dx, unsigned int N) {
     QList<QPointF> r;
-    double x=x0;
+    float x=x0;
     unsigned int p=getCurveParamIdx(x);
     unsigned int n=N;
     while (n) {
@@ -146,25 +142,26 @@ QList<QPointF> BezierCurve::pointRange(double x0, double dx, unsigned int N) {
 }
 
 
-QList<double> BezierCurve::map(QList<double> X) {
-    QList<double> r;
+QList<float> BezierCurve::map(QList<float> X) {
+    QList<float> r;
     for (unsigned int n=X.size(); n--; ) {
-        double x=X[n];
+        float x=X[n];
         unsigned int p=getCurveParamIdx(x);
         r.prepend(params[p].calc(x));
     }
     return r;
 }
 
-QList<double> BezierCurve::mapSorted(QList<double> X) {
-    QList<double> r;
+QList<float> BezierCurve::mapSorted(QList<float> X) {
+    QList<float> r;
     unsigned int p=getCurveParamIdx(X[0]);
+    unsigned int N=X.size();
     unsigned int n=X.size();
     while (n) {
         CurveParams& cp=params[p];
-        double x;
-        while (n && ((x=X[n-1])<cp.Xmax)) {
-            r.prepend(cp.calc(x));
+        float x;
+        while (n && ((x=X[N-n])<cp.Xmax)) {
+            r.append(cp.calc(x));
             n--;
         }
         p++;
@@ -172,13 +169,13 @@ QList<double> BezierCurve::mapSorted(QList<double> X) {
     return r;
 }
 
-QList<double> BezierCurve::mapSorted(QList<double> X, QList<unsigned int> Idx) {
-    QList<double> r(X);
+QList<float> BezierCurve::mapSorted(QList<float> X, QList<unsigned int> Idx) {
+    QList<float> r(X);
     unsigned int p=getCurveParamIdx(X[Idx[0]]);
     unsigned int n=X.size();
     while (n) {
         CurveParams& cp=params[p];
-        double x;
+        float x;
         unsigned int idx=Idx[n-1];
         while (n && ((x=X[idx])<cp.Xmax)) {
             r[idx]=cp.calc(x);
@@ -190,7 +187,7 @@ QList<double> BezierCurve::mapSorted(QList<double> X, QList<unsigned int> Idx) {
     
 }
 
-unsigned int BezierCurve::getCurveParamIdx(double x) {
+unsigned int BezierCurve::getCurveParamIdx(float x) {
     CurveParams cp;
     cp.Xmax=x;
     QList<CurveParams>::const_iterator iter=qLowerBound(params.constBegin(), params.constEnd(), cp);
@@ -200,7 +197,7 @@ unsigned int BezierCurve::getCurveParamIdx(double x) {
     return qMax(0,iter-params.constBegin());    
 }
 
-BezierCurve::CurveParams BezierCurve::getCurveParam(double x) {
+BezierCurve::CurveParams BezierCurve::getCurveParam(float x) {
     //cout << "get Curve Param for " << x << endl;
     unsigned int p=getCurveParamIdx(x);
     //cout << "is Param " << p << "/" << params.size() << endl;

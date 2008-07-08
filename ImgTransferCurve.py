@@ -40,8 +40,8 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save Curve')
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_horizontal)), 'Flip Horizontal', self.flipH)
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_vertikal)), 'Flip Vertical', self.flipV)
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_left)), 'Rotate Left', self.rotL)
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_right)), 'Rotate Right', self.rotR)
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_right)), 'Rotate Clockwise', self.rotCW)
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_left)), 'Rotate Anti-Clockwise', self.rotCCW)
 
         self.transferCurves=[]
         self.transferCurveMarkers=[[], [], [], []]
@@ -175,16 +175,26 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
 
 
     def flipH(self):
-        print 'FlipH'
+        self.doRot(0,  True)
 
     def flipV(self):
-        print 'FlipV'
+        self.doRot(2, True)
 
-    def rotL(self):
-        print 'rotL'
+    def rotCW(self):        
+        self.doRot(1, False)
 
-    def rotR(self):
-        print 'rotR'
+    def rotCCW(self):
+        self.doRot(3, False)
+    
+    def doRot(self, steps, flip):
+        img=self.searchImage()
+        if img:
+            for w in (img.projector, img.image):
+                w.doImgRotation(steps,  flip)
+            img.gv.viewport().update()
+            img.gv.resetCachedContent()
+            
+            
         
     def makeScales(self):
         pix=QtGui.QPixmap(self.verticalScale.size())
@@ -248,24 +258,6 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
         
         
         
-    def setLaueImg(self,  img):
-        self.VRGB_BezierParams=deepcopy(img.VRGB_BezierParams)
-
-        #self.disconnect(self)
-        if self.img:
-            QtCore.QObject.disconnect(self, QtCore.SIGNAL('destroyed()'), self.img.setTransferCurves)
-        self.img=img
-        self.connect(self, QtCore.SIGNAL('curveUpdated'), img.setTransferCurves)
-        self.makeHistogram(img.fullImg)
-        self.updateAllCurves()
-        self.CurveDisplay.replot()
-        self.makeScales()
-        self.connect(img,  QtCore.SIGNAL('destroyed()'),  self.clearCurvedata)
-    
-    def clearCurvedata(self):
-        for c in self.histogramCurves:
-            c.setData([], [])
-        self.img=None
         
     def makeHistogram(self, img):
         X=scipy.arange(0.0,  1.0,  1.0/256)

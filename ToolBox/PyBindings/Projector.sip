@@ -30,7 +30,8 @@ class Projector: QObject {
         double getTextSize() const;
         double getSpotSize() const;
         bool spotsEnabled() const;
-        
+
+
         QList<Vec3D> getMarkerNormals();
     public slots:
         void connectToCrystal(Crystal *);
@@ -46,6 +47,11 @@ class Projector: QObject {
         void enableSpots(bool b=true);
         void addMarker(const QPointF &p);
         void delMarkerNear(const QPointF &p);
+
+        virtual void doImgRotation(unsigned int CWRSteps, bool flip);
+        void addInfoItem(const QString& text, const QPointF& p);
+        void clearInfoItems();
+        
     signals:  
         void projectedPointsUpdated();
         void wavevectorsUpdated();
@@ -111,6 +117,8 @@ class LauePlaneProjector: Projector {
         virtual void decorateScene();
         void resizePBMarker();
         void movedPBMarker();
+        virtual void doImgRotation(unsigned int CWRSteps, bool flip);
+
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();

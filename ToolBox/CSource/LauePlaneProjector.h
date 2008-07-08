@@ -19,6 +19,8 @@ class LauePlaneProjector: public Projector {
         double omega();
         double chi();
         double phi();
+        virtual void doImgRotation(unsigned int CWRSteps, bool flip);
+        
     public slots:
         void setDetSize(double dist, double width, double height);
         void setDetOrientation(double omega, double chi, double phi);

@@ -1,7 +1,6 @@
 #ifndef __PROJECTOR_H__
 #define __PROJECTOR_H__
 
-#include <vector>
 #include <reflection.h>
 #include <QtCore/QObject>
 #include <QtCore/QVector>
@@ -50,15 +49,18 @@ class Projector: public QObject {
         void addRotation(const Vec3D &axis, double angle);
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
-        
-        void addMarker(const QPointF& p);
-        void delMarkerNear(const QPointF& p);
-        
+
         virtual void decorateScene()=0;
         void setMaxHklSqSum(unsigned int m);
         void setTextSize(double d);
         void setSpotSize(double d);
         void enableSpots(bool b=true);
+        void addMarker(const QPointF& p);
+        void delMarkerNear(const QPointF& p);
+        
+        virtual void doImgRotation(unsigned int CWRSteps, bool flip);
+        void addInfoItem(const QString& text, const QPointF& p);
+        void clearInfoItems();
         
     signals:  
         void projectedPointsUpdated();
@@ -67,16 +69,21 @@ class Projector: public QObject {
         void projectionRectPosChanged();
         void projectionRectSizeChanged();
         void imgTransformUpdated();
-        
+
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;
     
-    
+        // These are the reflections
         QList<QGraphicsItem*> projectedItems;
+        // Stuff like Primary beam marker, Coordinate lines
         QList<QGraphicsItem*> decorationItems;
+        // written indexes in the scene
         QList<QGraphicsItem*> textMarkerItems;
+        // Markers for indexation and fit
         QList<QGraphicsEllipseItem*> markerItems;
+        // Info Items. These will be set on Mousepress from Python and be deleted on orientation change!
+        QList<QGraphicsItem*> infoItems;
     
         QPointer<Crystal> crystal;
 
