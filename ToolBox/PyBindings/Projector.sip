@@ -84,6 +84,7 @@ class StereoProjector: Projector {
         Vec3D det2normal(const QPointF&);
         virtual void decorateScene();
         virtual QString configName();
+        void setDetOrientation(const Mat3D& M);
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();

@@ -93,7 +93,16 @@ class Reorient(ToolWidget, Ui_Reorient):
                         c.addRotation(Mat3D(self.axisVectors[i], res[0][1-i]))
                     self.updateDisplay()
         
-
+    def doFirstRotationSlot(self):
+        c=self.searchCrystal()
+        if c and self.axisVectors[0] and self.axisVectors[1]:
+            fv=self.fromVect()
+            tv=self.toVect()
+            if fv and tv:
+                res=calcAngles(fv, tv, self.axisVectors[1], self.axisVectors[0])
+                if len(res)>0:
+                    c.addRotation(Mat3D(self.axisVectors[0], res[0][1]))
+                    self.updateDisplay()
         
     def updateDisplay(self):
         c=self.searchCrystal()
@@ -112,4 +121,6 @@ class Reorient(ToolWidget, Ui_Reorient):
             self.axis1Display.setText('-----')
             self.axis2Display.setText('-----')
 
-        
+    def axisFromReflexInfo(self, h, k, l):
+        self.fromEdit.setText('%i %i %i'%(h, k, l))
+        self.updateDisplay()

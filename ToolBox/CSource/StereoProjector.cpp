@@ -55,8 +55,8 @@ bool StereoProjector::project(const Reflection &r, QGraphicsItem* item) {
     }
     QGraphicsEllipseItem* e=dynamic_cast<QGraphicsEllipseItem*>(item);
     s=1.0/s;
-    double w=0.015;
-    e->setRect(QRectF(v.y()*s-0.5*w, v.z()*s-0.5*w,w,w));
+    e->setRect(QRectF(-0.5*spotSize, -0.5*spotSize,spotSize,spotSize));
+    e->setPos(v.y()*s, v.z()*s);
     return true;
 }
         
@@ -80,4 +80,9 @@ void StereoProjector::decorateScene() {
 
 QString StereoProjector::configName() {
     return QString("StereoCfg");
+}
+
+void StereoProjector::setDetOrientation(const Mat3D& M) {
+    localCoordinates=M;
+    emit projectionParamsChanged();
 }

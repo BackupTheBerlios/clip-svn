@@ -1,16 +1,16 @@
 <ui version="4.0" >
- <class>LauePlaneCfgUI</class>
- <widget class="QWidget" name="LauePlaneCfgUI" >
+ <class>LauePlaneCfg</class>
+ <widget class="QWidget" name="LauePlaneCfg" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>392</width>
+    <width>333</width>
     <height>444</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Config Laueplane</string>
+   <string>Configure Laueplane</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3" >
    <item row="0" column="0" >
@@ -344,7 +344,7 @@
 &lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
 p, li { white-space: pre-wrap; }
 &lt;/style>&lt;/head>&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;">
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">label Reflections to h&lt;span style=" vertical-align:super;">2&lt;/span>+k&lt;span style=" vertical-align:super;">2&lt;/span>+l&lt;span style=" vertical-align:super;">2&lt;/span>&lt;/p>&lt;/body>&lt;/html></string>
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;">label Reflections to h&lt;span style=" font-weight:600; vertical-align:super;">2&lt;/span>+k&lt;span style=" font-weight:600; vertical-align:super;">2&lt;/span>+l&lt;span style=" font-weight:600; vertical-align:super;">2&lt;/span>&lt;/p>&lt;/body>&lt;/html></string>
             </property>
             <property name="wordWrap" >
              <bool>true</bool>

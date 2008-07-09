@@ -125,6 +125,7 @@ void LauePlaneProjector::resizePBMarker() {
 void LauePlaneProjector::movedPBMarker() {
     QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
     QPointF p=center->scenePos();
+    //FIXME: This is only OK for 180DEG
     detDx=p.x();
     detDy=p.y();
     emit projectionParamsChanged();

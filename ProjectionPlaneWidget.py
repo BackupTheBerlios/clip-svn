@@ -21,7 +21,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.projector=StereoProjector(self)
         elif type==1:
             self.projector=LauePlaneProjector(self)
-        self.setMinimumSize(QtCore.QSize(140, 180))
+        self.setMinimumSize(QtCore.QSize(200, 240))
         self.setAcceptDrops(True)
 
         self.gv=MyGraphicsView(self)
@@ -60,8 +60,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.mouseHandler=self.zoomHandler
         self.mousePressHandler=self.infoHandler
         QtCore.QTimer.singleShot(0, self.startResize)
-        
-            
+        self.grip=QtGui.QSizeGrip(self)
+
         
     def startConfig(self):
         s=self.projector.configName()
@@ -106,7 +106,8 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         maxScene=fullScene.boundedTo(spareSize)
         maxSceneRect=QtCore.QRectF(QtCore.QPointF(0.5*(self.width()-maxScene.width()), 0.5*(self.height()-maxScene.height()+toolBarGeometry.height())), maxScene)
         self.gv.setGeometry(maxSceneRect.toRect())
-        
+        p=self.rect().bottomRight()
+        self.grip.move(p.x()-self.grip.width(), p.y()-self.grip.height())
 
          
     def dragEnterEvent(self, e):
@@ -156,10 +157,11 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     def showContextMenu(self):
         if self.mousePressStart!=None:
             menu=QtGui.QMenu(self)
-            clearMarker=menu.addAction("Clear marker")
-            setRotAxis=menu.addAction("Set rotation Axis")
+            setRotAxis=menu.addAction("Set Rotation Axis")
             clearInfo=menu.addAction("Clear Reflex Infos")
-            r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos))
+            clearMarker=menu.addAction("Clear Nearest Marker")
+            clearallMarker=menu.addAction("Clear All Marker")
+            r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos), setRotAxis)
             if r==clearMarker:
                 self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
             elif r==setRotAxis:
@@ -257,9 +259,10 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 r=c.getClosestReflection(self.projector.det2normal(p))
                 s=f(r.h)+f(r.k)+f(r.l)
                 if r.normal[0]>=0:
-                    TT=180.0-2.0*math.degrees(math.acos(r.normal[0]))
+                    TT=180.0-2.0*math.degrees(math.acos(max(-1, min(1, r.normal[0]))))
                     s+='<br>2T=%.1f'%TT
-                self.projector.addInfoItem(s,  p)
+                self.projector.addInfoItem(s, p)
+                self.emit(QtCore.SIGNAL('reflexInfo(int,int,int)'), r.h, r.k, r.l)
 
     def markHandler(self, *args):
         if len(args)==1 and args[0]:
@@ -378,9 +381,11 @@ class MyGraphicsView(QtGui.QGraphicsView):
         else:
             p.save()
             #p.setClipRect(to)
+
             t1=time()
             qi=self.BGImage.qImg()
             t2=time()
+
             sr=self.sceneRect()
             source=QtCore.QRectF((to.x()-sr.x())*qi.width()/sr.width(), (to.y()-sr.y())*qi.height()/sr.height(), to.width()*qi.width()/sr.width(), to.height()*qi.height()/sr.height())
             t3=time()

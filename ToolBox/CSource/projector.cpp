@@ -52,7 +52,7 @@ double Projector::Qmin() const {
 double Projector::Qmax() const {
     return QmaxVal;
 }
-
+ 
 
 void Projector::setWavevectors(double Qmin, double Qmax)  {
     if ((Qmin<Qmax) and ((Qmin!=QminVal) or (Qmax!=QmaxVal))) {
@@ -82,7 +82,9 @@ void Projector::addInfoItem(const QString& text, const QPointF& p) {
     bg->setPen(QPen(Qt::black));
     bg->setBrush(QBrush(QColor(0xF0,0xF0,0xF0)));
     bg->setPos(p);
-
+    bg->setFlag(QGraphicsItem::ItemIsMovable, true);
+    bg->setCursor(QCursor(Qt::SizeAllCursor));
+    bg->setZValue(1);
     QGraphicsTextItem*  t = new QGraphicsTextItem(bg);
     t->setHtml(text);
     QRectF r=t->boundingRect();
@@ -92,7 +94,6 @@ void Projector::addInfoItem(const QString& text, const QPointF& p) {
     
     bg->setRect(t->boundingRect());
     bg->scale(s,s);
-    bg->setZValue(1);
     scene.addItem(bg);
     infoItems.append(bg);
 }

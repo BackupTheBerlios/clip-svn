@@ -14,6 +14,9 @@ from ToolBox import ObjectStore
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
 from Reorient import Reorient
+from ReflexInfo import ReflexInfo
+
+
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -31,15 +34,7 @@ class clip(QtGui.QMainWindow):
 
         self.transferCurveMapper=QtCore.QSignalMapper()
         #self.connect(self.TransferCurveMapper,  QtCore.SIGNAL('mapped(QWidget*)'),  self.)
-        
-        
 
-
-        
-        self.initActions()
-        self.initMenu()
-        self.initToolbar()
-        
         self.lastOpenDir='.'
         
         self.statusBar().showMessage(self.appTitle+" ready", 2000)
@@ -48,13 +43,19 @@ class clip(QtGui.QMainWindow):
         self.imageTransfer=ImgTransferCurve(self)
         self.rotateCrystal=RotateCrystal(self)
         self.reorientCrystal=Reorient(self)
-        for tools in (self.imageTransfer, self.rotateCrystal, self.reorientCrystal):
-            w=self.MdiArea.addSubWindow(tools)
-            w.hide()
-            w.setAttribute(QtCore.Qt.WA_DeleteOnClose, False)
+        self.reflexInfo=ReflexInfo(self)
+        for tools in (self.imageTransfer, self.rotateCrystal, self.reorientCrystal, self.reflexInfo):
+            tools.setAttribute(QtCore.Qt.WA_DeleteOnClose, False)
             self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  tools.windowChanged)
             tools.hide()
         
+
+
+        self.initActions()
+        self.initMenu()
+        self.initToolbar()
+
+
         #FIXME: Remove Debug Code
         w=self.slotNewCrystal()
         w.crystal.setCell(5, 5, 5, 90, 90, 90)
@@ -71,8 +72,9 @@ class clip(QtGui.QMainWindow):
               ('New Laue Projection',  self.slotNewLauePlaneProjector)]),
             ('&Tools', 
              [('TransferCurve', self.slotShowTransferCurve), 
-              ('Rotate Crystal', self.slotShowRotate), 
-              ('Reorientate Crystal', self.slotShowReorient)]), 
+              ('Rotate Crystal', self.slotShowRotateCrystal), 
+              ('Reorientate Crystal', self.slotShowReorientCrystal), 
+              ('Reflex Info', self.slotShowReflexInfo)]), 
             ('&Windows',
              []),
             ('&Help',
@@ -182,6 +184,7 @@ class clip(QtGui.QMainWindow):
         self.crystalStore.addObject(wid.crystal)
         self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), self.rotateCrystal.rotAxisChanged)
         self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), self.reorientCrystal.updateDisplay)
+        self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), self.reflexInfo.updateDisplay)
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()
@@ -190,6 +193,8 @@ class clip(QtGui.QMainWindow):
     def slotNewStereoProjector(self):
         wid = ProjectionPlaneWidget(0, self)
         self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
+        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reorientCrystal.axisFromReflexInfo)
+        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reflexInfo.axisFromReflexInfo)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('Stereographic Projection')
@@ -200,7 +205,8 @@ class clip(QtGui.QMainWindow):
     def slotNewLauePlaneProjector(self):
         wid = ProjectionPlaneWidget(1, self)
         self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
-
+        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reorientCrystal.axisFromReflexInfo)
+        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reflexInfo.axisFromReflexInfo)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('LauePlane')
@@ -208,25 +214,23 @@ class clip(QtGui.QMainWindow):
         wid.show()
         return wid
         
-    def slotShowTransferCurve(self):
-        self.imageTransfer.show()
-        p=self.imageTransfer.parent()
-        p.raise_()
-        p.mdiArea().setActiveSubWindow(p)
+    def slotShowToolwindow(self, w):
+        mdi=self.MdiArea.addSubWindow(w)
+        mdi.show()
+        w.show()
 
-        
-    def slotShowRotate(self):
-        self.rotateCrystal.show()
-        p=self.rotateCrystal.parent()
-        p.raise_()
-        p.mdiArea().setActiveSubWindow(p)
-        
-    def slotShowReorient(self):
-        self.reorientCrystal.show()
-        p=self.reorientCrystal.parent()
-        p.raise_()
-        p.mdiArea().setActiveSubWindow(p)
-        
+    def slotShowTransferCurve(self):
+       self.slotShowToolwindow(self.imageTransfer) 
+
+    def slotShowRotateCrystal(self):
+       self.slotShowToolwindow(self.rotateCrystal) 
+
+    def slotShowReorientCrystal(self):
+       self.slotShowToolwindow(self.reorientCrystal) 
+
+    def slotShowReflexInfo(self):
+       self.slotShowToolwindow(self.reflexInfo) 
+
 def main(args):
     app=QtGui.QApplication(args)
     mainWindow = clip()

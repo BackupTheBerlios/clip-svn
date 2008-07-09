@@ -427,20 +427,7 @@
    <item row="4" column="0" >
     <layout class="QHBoxLayout" name="horizontalLayout_3" >
      <item>
-      <spacer name="horizontalSpacer_3" >
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0" >
-        <size>
-         <width>0</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="doRatation" >
+      <widget class="QPushButton" name="doFirstRatation" >
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
          <horstretch>0</horstretch>
@@ -448,7 +435,20 @@
         </sizepolicy>
        </property>
        <property name="text" >
-        <string>Execute Rotation</string>
+        <string>Do First Rotation</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="doRotation" >
+       <property name="sizePolicy" >
+        <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string>Do Both Rotation</string>
        </property>
       </widget>
      </item>
@@ -462,7 +462,7 @@
   <tabstop>toCombo</tabstop>
   <tabstop>toEdit</tabstop>
   <tabstop>axis1Edit</tabstop>
-  <tabstop>doRatation</tabstop>
+  <tabstop>doRotation</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -473,8 +473,8 @@
    <slot>axis1Changed()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>95</x>
-     <y>115</y>
+     <x>104</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -489,8 +489,8 @@
    <slot>axis1EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>127</x>
-     <y>142</y>
+     <x>121</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -505,8 +505,8 @@
    <slot>axis2Changed()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>270</x>
-     <y>115</y>
+     <x>252</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -521,8 +521,8 @@
    <slot>axis2EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>269</x>
-     <y>142</y>
+     <x>251</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -531,14 +531,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>doRatation</sender>
+   <sender>doRotation</sender>
    <signal>clicked()</signal>
    <receiver>Reorient</receiver>
    <slot>doRotationSlot()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>238</x>
-     <y>209</y>
+     <x>257</x>
+     <y>194</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -578,6 +578,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>doFirstRatation</sender>
+   <signal>clicked()</signal>
+   <receiver>Reorient</receiver>
+   <slot>doFirstRotationSlot()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>65</x>
+     <y>182</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>130</x>
+     <y>99</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>fromChanged()</slot>
@@ -589,5 +605,6 @@
   <slot>axis2EditChanged()</slot>
   <slot>doRotationSlot()</slot>
   <slot>updateDisplay()</slot>
+  <slot>doFirstRotationSlot()</slot>
  </slots>
 </ui>

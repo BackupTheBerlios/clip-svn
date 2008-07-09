@@ -8,8 +8,10 @@ class ToolWidget(QtGui.QWidget):
 
         
     def closeEvent(self, e):
-        #e.ignore()
-        #self.parent().hide()
+        e.ignore()
+        self.parent().deleteLater()
+        self.parent().mdiArea().removeSubWindow(self)
+        print "Tool close"
         pass
     
     def searchCrystal(self):
