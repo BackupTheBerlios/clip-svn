@@ -1,5 +1,6 @@
 * Fit
 * load RGB Image 
+* Pimary Beam Marker bei Winkel !=180
 
 * Aus / An Decorations
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
@@ -12,11 +13,9 @@
 * CIF-Import der Kristallstruktur
 
 * Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
-* image-size -> sceneRect
 * Kommentare
 * LaueCylinder Projector   
 * Bild des CoordinatenSystems
 * Icons
 * Aufräumen von clip.py
 * Upload to Berlios / CCP13
-* Hauptmenü verbessern
