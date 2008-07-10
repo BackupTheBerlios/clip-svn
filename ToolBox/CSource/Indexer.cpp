@@ -124,7 +124,7 @@ bool Indexer::SolSort::operator()(const Solution& s1,const Solution& s2) {
 
 
 double SolutionItem::angularDeviation() const {
-    return fabs(acos(rotatedMarker*latticeVector));
+    return 180.0*M_1_PI*fabs(acos(rotatedMarker*latticeVector));
 }
 
 double SolutionItem::spatialDeviation() const {

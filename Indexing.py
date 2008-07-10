@@ -4,6 +4,7 @@ from Ui_Indexing import Ui_Indexing
 from Queue import Empty
 from ToolBox import Indexer
 from Tools import SpaceGroup
+import math
 
 class Indexing(QtGui.QWidget, Ui_Indexing):
     def __init__(self, crystal, parent=None):
@@ -46,7 +47,7 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         sg.parseGroupSymbol(self.crystal.getSpacegroupSymbol())
         params.pointGroup=sg.getLaueGroup()
         
-        params.maxAngularDeviation=self.AngDev.value()
+        params.maxAngularDeviation=math.radians(self.AngDev.value())
         params.maxIntegerDeviation=self.IntDev.value()
         params.maxOrder=self.MaxIdx.value()
         params.orientationMatrix=self.crystal.getReziprocalOrientationMatrix()
