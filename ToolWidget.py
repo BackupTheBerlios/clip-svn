@@ -3,23 +3,23 @@ from Crystal import Crystal as CrystalObject
 from ProjectionPlaneWidget import ProjectionPlaneWidget as ProjectionObject
 
 class ToolWidget(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, menuName, parent=None):
         QtGui.QWidget.__init__(self,  parent)
-
+        self.menuName=menuName
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, False)
+        if parent:
+            self.connect(parent.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  self.windowChanged)
+            self.MdiArea=parent.MdiArea
+        self.hide()
         
     def closeEvent(self, e):
         e.ignore()
         self.parent().deleteLater()
-        self.parent().mdiArea().removeSubWindow(self)
+        self.MdiArea.removeSubWindow(self)
         print "Tool close"
-        pass
     
     def searchCrystal(self):
-        try:
-            mdi=self.parent().mdiArea()
-        except:
-            return
-        windows=mdi.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
+        windows=self.MdiArea.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
         windows.reverse()
         for w in windows:
             if isinstance(w.widget(), CrystalObject):
@@ -29,13 +29,37 @@ class ToolWidget(QtGui.QWidget):
         return None
     
     def searchImage(self):
-        try:
-            mdi=self.parent().mdiArea()
-        except:
-            return
-        windows=mdi.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
+        windows=self.MdiArea.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
         windows.reverse()
         for w in windows:
             if isinstance(w.widget(), ProjectionObject) and w.widget().image:
                 return w.widget()
         return
+
+    def searchProjector(self):
+        windows=self.MdiArea.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)
+        windows.reverse()
+        for w in windows:
+            if isinstance(w.widget(), ProjectionObject):
+                return w.widget()
+        return
+
+    def showWindow(self):
+        mdi=self.MdiArea.addSubWindow(self)
+        mdi.show()
+        self.show()
+        
+    def windowChanged(self):
+        pass
+        
+    def rotAxisChanged(self):
+        pass
+        
+    def orientationChanged(self):
+        pass
+        
+    def reflexInfo(self, h, k, l):
+        pass
+        
+    def addedRotation(self, d):
+        pass

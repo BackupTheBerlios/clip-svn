@@ -24,6 +24,9 @@ class Indexer: QAbstractTableModel {
     
         void startIndexing(IndexingParameter& p);
         Solution getSolution(unsigned int n);
+    public slots:
+        void addSolution(Solution s);
+        void threadFinished();        
 };
 
 

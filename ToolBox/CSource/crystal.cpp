@@ -161,6 +161,7 @@ void Crystal::updateRotation() {
         Reflection &r = reflections[i];
         r.normal=MRot*r.normalLocal;
         r.lowestDiffOrder=0;
+        r.highestDiffOrder=0;
 
         // sin(theta) = v*e_x = v.x
         // x direction points toward source, z points upwards
@@ -169,21 +170,21 @@ void Crystal::updateRotation() {
             r.Qscatter = r.Q/r.normal.x();
             // Loop over higher orders
     
-            for (unsigned int j=0; j<r.orders.size(); j++) {
-                unsigned int n=r.orders[j];
-                if  ((r.lowestDiffOrder==0) and (n*r.Qscatter>=Qmin) and (n*r.Qscatter<=Qmax)) {
-                    r.lowestDiffOrder=n;
-                    break;
-                }
+            unsigned int j=0;
+            while (j<r.orders.size() && r.orders[j]*r.Qscatter<Qmin) j++;
+            if (j<r.orders.size() && r.orders[j]*r.Qscatter>=Qmin) r.lowestDiffOrder=r.orders[j];
+            while (j<r.orders.size() && r.orders[j]*r.Qscatter<=Qmax) {
+                r.highestDiffOrder=r.orders[j];
+                j++;
             }
-        }
+        }    
         if (r.lowestDiffOrder!=0) 
             r.scatteredRay = Projector::normal2scattered(r.normal);
         else
             r.scatteredRay = Vec3D();
     }
-};
-                            
+}
+
 
 unsigned int Crystal::reflectionCount() {
     QList<Reflection> r = getReflectionList();

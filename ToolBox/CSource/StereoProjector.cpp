@@ -6,32 +6,52 @@
 using namespace std;
 
 StereoProjector::StereoProjector(QObject* parent): Projector(parent), localCoordinates() {
+    setWavevectors(0.0, 1.5*M_1_PI);
     scene.setSceneRect(QRectF(-1.0, -1.0, 2.0, 2.0));
 };
 
 
-QPointF StereoProjector::scattered2det(const Vec3D &v) {
+QPointF StereoProjector::scattered2det(const Vec3D &v, bool* b) {
+    if (b) {
+        Vec3D v(scattered2normal(v,b));
+        if (*b) {
+            return normal2det(v,b);
+        } else {
+            return QPointF();
+        }
+    }
     return normal2det(scattered2normal(v));
 }
 
-Vec3D StereoProjector::det2scattered(const QPointF& p) {
+Vec3D StereoProjector::det2scattered(const QPointF& p, bool* b) {
+    if (b) {
+        Vec3D v(det2normal(p,b));
+        if (*b) {
+            return normal2scattered(v,b);
+        } else {
+            return Vec3D();
+        }
+    }
     return normal2scattered(det2normal(p));
 }
 
-QPointF StereoProjector::normal2det(const Vec3D& n) {
+QPointF StereoProjector::normal2det(const Vec3D& n, bool* b) {
     Vec3D v=localCoordinates*n;
     double s=1.0+v.x();
-    if (s<1e-5)
+    if (s<1e-5) {
+        if (b) *b=false;
         return QPointF();
+    }
+    if (b) *b=true;
     return QPointF(v.y()/s, v.z()/s);
 }
 
 
-Vec3D StereoProjector::det2normal(const QPointF& p) {
+Vec3D StereoProjector::det2normal(const QPointF& p, bool* b) {
     double x=p.x();
     double y=p.y();
     double n=1.0/(x*x+y*y+1.0);
-    
+    if (b) *b=true;
     return localCoordinates.transposed()*Vec3D(n*(1.0-x*x-y*y), 2*x*n, 2*y*n);    
 }
 

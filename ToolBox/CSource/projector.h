@@ -18,16 +18,18 @@ class Projector: public QObject {
         Projector(QObject* parent=0);
         Projector(const Projector&);
 
-        static Vec3D normal2scattered(const Vec3D&);
-        static Vec3D scattered2normal(const Vec3D&);
+        // Functions for transformations in the different Coordinate systems
+    
+        static Vec3D normal2scattered(const Vec3D&, bool* b=NULL);
+        static Vec3D scattered2normal(const Vec3D&, bool* b=NULL);
         
         QTransform det2img;
         QTransform img2det;
     
-        virtual QPointF scattered2det(const Vec3D&)=0;
-        virtual Vec3D det2scattered(const QPointF&)=0;
-        virtual QPointF normal2det(const Vec3D&)=0;
-        virtual Vec3D det2normal(const QPointF&)=0;
+        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL)=0;
+        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL)=0;
+        virtual QPointF normal2det(const Vec3D&, bool* b=NULL)=0;
+        virtual Vec3D det2normal(const QPointF&, bool* b=NULL)=0;
         
         QGraphicsScene* getScene();
         Crystal* getCrystal();
@@ -40,12 +42,23 @@ class Projector: public QObject {
         double getSpotSize() const;
         bool spotsEnabled() const;
         
+        unsigned int markerNumber();
+        QPointF getMarkerDetPos(unsigned int n);
         QList<Vec3D> getMarkerNormals();
+        
+        // Functions for fitting parameters
+        virtual unsigned int fitParameterNumber();
+        virtual QString fitParameterName(unsigned int n);
+        virtual double fitParameterValue(unsigned int n);
+        virtual void fitParameterSetValue(unsigned int n, double val);
+        virtual QPair<double, double> fitParameterBounds(unsigned int n);
+        virtual double fitParameterChangeHint(unsigned int n);
         
     public slots:
         void connectToCrystal(Crystal *);
         void setWavevectors(double Qmin, double Qmax);
         void reflectionsUpdated();
+
         void addRotation(const Vec3D &axis, double angle);
         void addRotation(const Mat3D& M);
         void setRotation(const Mat3D& M);
@@ -55,10 +68,12 @@ class Projector: public QObject {
         void setTextSize(double d);
         void setSpotSize(double d);
         void enableSpots(bool b=true);
+
         void addMarker(const QPointF& p);
         void delMarkerNear(const QPointF& p);
         
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
+
         void addInfoItem(const QString& text, const QPointF& p);
         void clearInfoItems();
         
@@ -82,9 +97,10 @@ class Projector: public QObject {
         QList<QGraphicsItem*> textMarkerItems;
         // Markers for indexation and fit
         QList<QGraphicsEllipseItem*> markerItems;
-        // Info Items. These will be set on Mousepress from Python and be deleted on orientation change!
+        // Info Items. These will be set on Mousepress from Python and be deleted on orientation change or slot!
         QList<QGraphicsItem*> infoItems;
     
+        // Pointer to the connectred crystal
         QPointer<Crystal> crystal;
 
         double QminVal;

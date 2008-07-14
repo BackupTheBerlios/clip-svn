@@ -19,6 +19,9 @@ class  Reflection {
         // lowest order (if ==0, this reflection is not in scattering position)
         int lowestDiffOrder;
 
+        // highest order (if ==0, this reflection is not in scattering position)
+        int highestDiffOrder;
+    
         // direct space d-Value
         double d;
             

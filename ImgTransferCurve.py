@@ -11,7 +11,7 @@ from ToolWidget import ToolWidget
 
 class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        ToolWidget.__init__(self, 'Image Transver Curve', parent)
         self.setupUi(self)
         self.connect(self.ColorSelector,  QtCore.SIGNAL('activated(int)'),  self.colorSelChanged)
         self.toDelete=[]

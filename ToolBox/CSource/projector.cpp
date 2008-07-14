@@ -9,7 +9,7 @@ using namespace std;
 Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
-    setWavevectors(0.0, 2.0*M_1_PI);
+    setWavevectors(0.0, 1.0*M_1_PI);
     setMaxHklSqSum(0);
     setTextSize(4.0);
     setSpotSize(4.0);
@@ -23,6 +23,7 @@ Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), 
 };
 
 Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems(), markerItems()  {
+    cout << "Projector Copy Constructor" << endl;
     enableSpots(p.spotsEnabled());
     setWavevectors(p.Qmin(), p.Qmax());
     setMaxHklSqSum(p.getMaxHklSqSum());
@@ -189,23 +190,29 @@ void Projector::reflectionsUpdated() {
 }
 
 
-Vec3D Projector::normal2scattered(const Vec3D &v) {
+Vec3D Projector::normal2scattered(const Vec3D &v, bool* b) {
     double x=v.x();
-    if (x<=0.0) 
+    if (x<=0.0) {
+        if (b) *b=false;
         return Vec3D();
+    }
     double y=v.y();
     double z=v.z();
+    if (b) *b=true;
     return Vec3D(2*x*x-1.0, 2.0*x*y, 2.0*x*z);
 }
 
-Vec3D Projector::scattered2normal(const Vec3D& v) {
+Vec3D Projector::scattered2normal(const Vec3D& v, bool* b) {
     double x=v.x();
     double y=v.y();
     double z=v.z();
 
     x=sqrt(0.5*(x+1.0));
-    if (x==0.0) 
+    if (x==0.0) {
+        if (b) *b=false;
         return Vec3D();
+    }
+    if (b) *b=true;
     return Vec3D(x, 0.5*y/x, 0.5*z/x);
 }
 
@@ -310,6 +317,14 @@ void Projector::delMarkerNear(const QPointF& p) {
     delete m;
 };
 
+unsigned int Projector::markerNumber() {
+    return markerItems.size();
+}
+
+QPointF Projector::getMarkerDetPos(unsigned int n) {
+    return img2det.map(markerItems.at(n)->pos());
+}
+
 QList<Vec3D> Projector::getMarkerNormals() {
     QList<Vec3D> r;
     for (unsigned int i=0; i<markerItems.size(); i++) 
@@ -363,4 +378,27 @@ void Projector::doImgRotation(unsigned int CWRSteps, bool flip) {
         }
         e->setPos(x,y);
     }
+}
+
+
+unsigned int Projector::fitParameterNumber() {
+    return 0;
+}
+
+QString Projector::fitParameterName(unsigned int n) {
+    return "";
+}
+
+double Projector::fitParameterValue(unsigned int n) {
+    return 0.0;
+}
+
+void Projector::fitParameterSetValue(unsigned int n, double val) {}
+
+QPair<double, double> Projector::fitParameterBounds(unsigned int n) {
+    return qMakePair((double)-INFINITY, (double)INFINITY);
+}
+
+double Projector::fitParameterChangeHint(unsigned int n) {
+    return 1.0;
 }

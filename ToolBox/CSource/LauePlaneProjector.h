@@ -7,10 +7,10 @@ class LauePlaneProjector: public Projector {
     Q_OBJECT
     public:
         LauePlaneProjector(QObject* parent=0);
-        virtual QPointF scattered2det(const Vec3D&);
-        virtual Vec3D det2scattered(const QPointF&);
-        virtual QPointF normal2det(const Vec3D&);
-        virtual Vec3D det2normal(const QPointF&);
+        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL);
+        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL);
+        virtual QPointF normal2det(const Vec3D&, bool* b=NULL);
+        virtual Vec3D det2normal(const QPointF&, bool* b=NULL);
     
         virtual QString configName();
         double dist();
@@ -19,11 +19,22 @@ class LauePlaneProjector: public Projector {
         double omega();
         double chi();
         double phi();
+        double xOffset();
+        double yOffset();
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
         
+        // Functions for fitting parameters
+        virtual unsigned int fitParameterNumber();
+        virtual QString fitParameterName(unsigned int n);
+        virtual double fitParameterValue(unsigned int n);
+        virtual void fitParameterSetValue(unsigned int n, double val);
+        virtual QPair<double, double> fitParameterBounds(unsigned int n);
+        virtual double fitParameterChangeHint(unsigned int n);        
+            
     public slots:
         void setDetSize(double dist, double width, double height);
         void setDetOrientation(double omega, double chi, double phi);
+        void setDetOffset(double dx, double dy);
         virtual void decorateScene();
         void resizePBMarker();
         void movedPBMarker();

@@ -1,7 +1,6 @@
 from Tools import SolutionFinder
 from PyQt4 import QtCore,  QtGui
 from Ui_Indexing import Ui_Indexing
-from Queue import Empty
 from ToolBox import Indexer
 from Tools import SpaceGroup
 import math
@@ -18,8 +17,10 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         self.SolutionSelector.setModel(self.solutions)
         self.solDisp=SolutionDisplayModel()
         self.SolutionDisplay.setModel(self.solDisp)
-        self.connect(self.SolutionSelector.selectionModel (), QtCore.SIGNAL('currentRowChanged ( const QModelIndex&, const QModelIndex&)'), self.updateSolutionDisplay)
-
+        self.connect(self.SolutionSelector.selectionModel(), QtCore.SIGNAL('currentRowChanged ( const QModelIndex&, const QModelIndex&)'), self.updateSolutionDisplay)
+        self.connect(self.solutions, QtCore.SIGNAL('runningStateChanged(bool)'), self.updateRunLabel)
+        self.connect(self.stopButton, QtCore.SIGNAL('pressed()'), self.solutions,  QtCore.SIGNAL('stopWorker()'))
+        
         for tv in (self.SolutionDisplay, self.SolutionSelector):
             height = tv.fontMetrics().height()
             tv.verticalHeader().setDefaultSectionSize(height); 
@@ -28,6 +29,16 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         for n in (6, 7, 8):
             self.SolutionDisplay.horizontalHeader().setResizeMode(n, QtGui.QHeaderView.Stretch)
 
+    def updateRunLabel(self, b):
+        if b:
+            self.runLabel.setText('Running')
+            p=self.runLabel.palette()
+            p.setColor(self.runLabel.backgroundRole(), QtGui.QColor(0x80, 0xFF, 0x80))
+            self.runLabel.setPalette(p)
+        else:
+            self.runLabel.setText('Idle')
+            self.runLabel.setPalette(QtGui.QPalette())
+        
 
     def startIndexing(self):
         params=self.solutions.IndexingParameter() 
@@ -61,7 +72,9 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             s=self.solutions.getSolution(n)
             self.solDisp.setSolution(s)
             self.crystal.setRotation(s.bestRotation.transposed())
-        
+            for i in s.items:
+                print i.h,  i.k,  i.l,  s.bestRotation.transposed()*i.latticeVector, s.bestRotation.transposed()*i.rotatedMarker
+                
         
 class SolutionDisplayModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None):

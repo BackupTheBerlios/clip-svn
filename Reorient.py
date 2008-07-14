@@ -9,7 +9,7 @@ import math
 
 class Reorient(ToolWidget, Ui_Reorient):
     def __init__(self, parent=None):
-        ToolWidget.__init__(self, parent)
+        ToolWidget.__init__(self, 'Reorient', parent)
         self.axis1Changed=lambda idx: self.axisChanged(idx, 0)
         self.axis2Changed=lambda idx: self.axisChanged(idx, 1)
 
@@ -23,6 +23,9 @@ class Reorient(ToolWidget, Ui_Reorient):
             self.axisChanged(self.axisCombos[i].currentIndex(), i)
         
     def windowChanged(self):
+        self.updateDisplay()
+        
+    def orientationChanged(self):
         self.updateDisplay()
         
     def parseAxis(self,  s,  rezi):
@@ -121,6 +124,6 @@ class Reorient(ToolWidget, Ui_Reorient):
             self.axis1Display.setText('-----')
             self.axis2Display.setText('-----')
 
-    def axisFromReflexInfo(self, h, k, l):
+    def reflexInfo(self, h, k, l):
         self.fromEdit.setText('%i %i %i'%(h, k, l))
         self.updateDisplay()

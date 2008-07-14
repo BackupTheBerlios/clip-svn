@@ -160,17 +160,21 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             setRotAxis=menu.addAction("Set Rotation Axis")
             clearInfo=menu.addAction("Clear Reflex Infos")
             clearMarker=menu.addAction("Clear Nearest Marker")
-            clearallMarker=menu.addAction("Clear All Marker")
+            clearAllMarker=menu.addAction("Clear All Marker")
             r=menu.exec_(self.gv.mapToGlobal(self.lastMousePos), setRotAxis)
             if r==clearMarker:
                 self.projector.delMarkerNear(self.gv.mapToScene(self.lastMousePos))
             elif r==setRotAxis:
                 c=self.projector.getCrystal()
                 if c:
-                    r=c.getClosestReflection(self.projector.det2normal(self.gv.mapToScene(self.lastMousePos)))
+                    r=c.getClosestReflection(self.projector.det2normal(self.gv.mapToScene(self.lastMousePos))[0])
                     c.setRotationAxis(Vec3D(r.h, r.k, r.l), Crystal.ReziprocalSpace)
             elif r==clearInfo:
                 self.projector.clearInfoItems()
+            elif r==clearAllMarker:
+                while self.projector.markerNumber()>0:
+                    self.projector.delMarkerNear(self.projector.getMarkerDetPos(0))
+        
             self.mousePressStart=None
 
     def zoomRect(self):
@@ -213,12 +217,13 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             if context==self.moveContext:
                 p1=self.gv.mapToScene(self.lastMousePos)
                 p2=self.gv.mapToScene(self.gv.mapFromParent(e.pos()))
-                v1=self.projector.det2normal(p1)
-                v2=self.projector.det2normal(p2)
-                r=v1%v2
-                r.normalize()
-                a=math.acos(v1*v2)
-                self.projector.addRotation(r, a)
+                v1, b1=self.projector.det2normal(p1)
+                v2, b2=self.projector.det2normal(p2)
+                if b1 and b2:
+                    r=v1%v2
+                    r.normalize()
+                    a=math.acos(v1*v2)
+                    self.projector.addRotation(r, a)
 
     def rotateHandler(self, *args):
         if len(args)==1 and args[0]:
@@ -228,10 +233,10 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             if context==self.moveContext:
                 p1=self.gv.mapToScene(self.lastMousePos)
                 p2=self.gv.mapToScene(self.gv.mapFromParent(e.pos()))
-                v1=self.projector.det2normal(p1)
-                v2=self.projector.det2normal(p2)
+                v1, b1=self.projector.det2normal(p1)
+                v2, b2=self.projector.det2normal(p2)
                 c=self.projector.getCrystal()
-                if c:
+                if c and b1 and b2:
                     ax=c.getLabSystamRotationAxis()
                     v1=v1-ax*(v1*ax)
                     v2=v2-ax*(v2*ax)
@@ -256,7 +261,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             c=self.projector.getCrystal()
             if c:
                 p=self.gv.mapToScene(self.mousePressStart)
-                r=c.getClosestReflection(self.projector.det2normal(p))
+                r=c.getClosestReflection(self.projector.det2normal(p)[0])
                 s=f(r.h)+f(r.k)+f(r.l)
                 if r.normal[0]>=0:
                     TT=180.0-2.0*math.degrees(math.acos(max(-1, min(1, r.normal[0]))))

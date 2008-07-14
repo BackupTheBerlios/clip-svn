@@ -76,6 +76,7 @@ void Indexer::startIndexing(Indexer::IndexingParameter& _p) {
     connect(this, SIGNAL(stopWorker()), worker, SLOT(stop()));
     connect(this, SIGNAL(destroyed()), worker, SLOT(stop()));
     QThreadPool::globalInstance()->start(worker);
+    emit runningStateChanged(true);
 }
     
 void Indexer::addSolution(Solution s) {
@@ -91,7 +92,7 @@ Solution Indexer::getSolution(unsigned int n) {
 }
 
 void Indexer::threadFinished() {
-    cout << "Thread finished and destroyed" << endl;
+    emit runningStateChanged(false);
 }
 
 

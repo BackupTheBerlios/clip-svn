@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>333</width>
-    <height>444</height>
+    <width>365</width>
+    <height>460</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -199,61 +199,43 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_3" >
-       <property name="title" >
-        <string>Element Size</string>
-       </property>
-       <property name="flat" >
-        <bool>true</bool>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2" >
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_11" >
-          <property name="text" >
-           <string>Text Size</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" >
-         <widget class="QDoubleSpinBox" name="detTextSize" >
-          <property name="suffix" >
-           <string> %</string>
-          </property>
-          <property name="decimals" >
-           <number>1</number>
+        <item row="8" column="1" >
+         <widget class="QDoubleSpinBox" name="detDx" >
+          <property name="minimum" >
+           <double>-360.000000000000000</double>
           </property>
           <property name="maximum" >
-           <double>100.000000000000000</double>
-          </property>
-          <property name="singleStep" >
-           <double>0.100000000000000</double>
+           <double>360.000000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" >
-         <widget class="QLabel" name="label_12" >
-          <property name="text" >
-           <string>Spot Size</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1" >
-         <widget class="QDoubleSpinBox" name="detSpotSize" >
-          <property name="suffix" >
-           <string> %</string>
-          </property>
-          <property name="decimals" >
-           <number>1</number>
+        <item row="9" column="1" >
+         <widget class="QDoubleSpinBox" name="detDy" >
+          <property name="minimum" >
+           <double>-360.000000000000000</double>
           </property>
           <property name="maximum" >
-           <double>100.000000000000000</double>
+           <double>360.000000000000000</double>
           </property>
-          <property name="singleStep" >
-           <double>0.100000000000000</double>
+         </widget>
+        </item>
+        <item row="8" column="0" >
+         <widget class="QLabel" name="label_13" >
+          <property name="text" >
+           <string>Dx</string>
+          </property>
+          <property name="buddy" >
+           <cstring>detPhi</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0" >
+         <widget class="QLabel" name="label_14" >
+          <property name="text" >
+           <string>Dy</string>
+          </property>
+          <property name="buddy" >
+           <cstring>detPhi</cstring>
           </property>
          </widget>
         </item>
@@ -358,6 +340,64 @@ p, li { white-space: pre-wrap; }
            <widget class="QSpinBox" name="maxRefLabel" />
           </item>
          </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3" >
+       <property name="title" >
+        <string>Element Size</string>
+       </property>
+       <property name="flat" >
+        <bool>true</bool>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2" >
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_11" >
+          <property name="text" >
+           <string>Text Size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QDoubleSpinBox" name="detTextSize" >
+          <property name="suffix" >
+           <string> %</string>
+          </property>
+          <property name="decimals" >
+           <number>1</number>
+          </property>
+          <property name="maximum" >
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep" >
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_12" >
+          <property name="text" >
+           <string>Spot Size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" >
+         <widget class="QDoubleSpinBox" name="detSpotSize" >
+          <property name="suffix" >
+           <string> %</string>
+          </property>
+          <property name="decimals" >
+           <number>1</number>
+          </property>
+          <property name="maximum" >
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep" >
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

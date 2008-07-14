@@ -8,7 +8,7 @@ from ToolWidget import ToolWidget
 
 class RotateCrystal(ToolWidget, Ui_RotateCrystal):
     def __init__(self,  parent=None):
-        ToolWidget.__init__(self, parent)
+        ToolWidget.__init__(self, 'Rotate', parent)
         self.setupUi(self)
         self.connect(self.axisChooser,  QtCore.SIGNAL('activated(int)'),  self.indexChanged)
         self.connect(self.axisEdit,  QtCore.SIGNAL('editingFinished()'),  self.indexChanged)
@@ -37,7 +37,7 @@ class RotateCrystal(ToolWidget, Ui_RotateCrystal):
         self.resetSum()
         self.loadAxisFromCrystal()
         
-    def projectorAddedRotation(self, a):
+    def addedRotation(self, a):
         self.angSum+=math.degrees(a)
         self.angSumDisplay.setText('%.2f'%self.angSum)
         

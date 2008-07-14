@@ -79,7 +79,7 @@ class Indexer: public QAbstractTableModel {
     
     signals:
         void stopWorker();
-    
+        void runningStateChanged(bool);
     private:
         class SolSort {
             public:

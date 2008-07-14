@@ -21,6 +21,9 @@ class LauePlaneCfg(QtGui.QWidget, Ui_LauePlaneCfg):
         for a in (self.detOmega, self.detChi, self.detPhi):
             self.connect(a, QtCore.SIGNAL('valueChanged(double)'), self.updateDetOrientation, QtCore.Qt.QueuedConnection)
         
+        for a in (self.detDx, self.detChi, self.detDy):
+            self.connect(a, QtCore.SIGNAL('valueChanged(double)'), self.updateDetOffset, QtCore.Qt.QueuedConnection)
+
         self.connect(self.detMaxQ,  QtCore.SIGNAL('valueChanged(double)'), self.updateQDisplay)
         self.connect(self.detMinQ,  QtCore.SIGNAL('valueChanged(double)'), self.updateQs, QtCore.Qt.QueuedConnection)
         self.connect(self.detMaxQ,  QtCore.SIGNAL('valueChanged(double)'), self.updateQs, QtCore.Qt.QueuedConnection)
@@ -38,7 +41,7 @@ class LauePlaneCfg(QtGui.QWidget, Ui_LauePlaneCfg):
         
 
     def loadParameters(self):
-        for a, b in ((self.detDist,  self.projector.dist),  (self.detWidth,  self.projector.width), (self.detHeight, self.projector.height), (self.detOmega,  self.projector.omega),  (self.detChi,  self.projector.chi), (self.detPhi, self.projector.phi), (self.maxRefLabel, self.projector.getMaxHklSqSum), (self.detTextSize, self.projector.getTextSize), (self.detSpotSize, self.projector.getSpotSize)):
+        for a, b in ((self.detDist,  self.projector.dist),  (self.detWidth,  self.projector.width), (self.detHeight, self.projector.height), (self.detOmega,  self.projector.omega),  (self.detChi,  self.projector.chi), (self.detPhi, self.projector.phi), (self.detDx, self.projector.xOffset), (self.detDy, self.projector.yOffset), (self.maxRefLabel, self.projector.getMaxHklSqSum), (self.detTextSize, self.projector.getTextSize), (self.detSpotSize, self.projector.getSpotSize)):
             a.setValue(b())
             
         self.detSpotsEnabled.setChecked(self.projector.spotsEnabled())
@@ -68,6 +71,9 @@ class LauePlaneCfg(QtGui.QWidget, Ui_LauePlaneCfg):
         
     def updateDetOrientation(self):
         self.projector.setDetOrientation(*[w.value() for w in (self.detOmega,  self.detChi, self.detPhi)])        
+
+    def updateDetOffset(self):
+        self.projector.setDetOffset(*[w.value() for w in (self.detDx,  self.detDy)])        
         
     def updateMaxRefLabel(self,  i):
         self.projector.setMaxHklSqSum(i);

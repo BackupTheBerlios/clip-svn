@@ -13,7 +13,7 @@ class  Reflection {
         int hklSqSum;
         // lowest order
         int lowestDiffOrder;
-        
+        int highestDiffOrder;        
         // direct space d-Value
         double d;
         // Reziplocl length

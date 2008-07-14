@@ -15,7 +15,7 @@ from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
 from Reorient import Reorient
 from ReflexInfo import ReflexInfo
-
+from Fit import Fit
 
 
 class clip(QtGui.QMainWindow):
@@ -40,16 +40,7 @@ class clip(QtGui.QMainWindow):
         self.statusBar().showMessage(self.appTitle+" ready", 2000)
         self.crystalStore=ObjectStore()
         
-        self.imageTransfer=ImgTransferCurve(self)
-        self.rotateCrystal=RotateCrystal(self)
-        self.reorientCrystal=Reorient(self)
-        self.reflexInfo=ReflexInfo(self)
-        for tools in (self.imageTransfer, self.rotateCrystal, self.reorientCrystal, self.reflexInfo):
-            tools.setAttribute(QtCore.Qt.WA_DeleteOnClose, False)
-            self.connect(self.MdiArea, QtCore.SIGNAL('subWindowActivated(QMdiSubWindow*)'),  tools.windowChanged)
-            tools.hide()
-        
-
+        self.tools=[ImgTransferCurve(self), RotateCrystal(self),  Reorient(self), ReflexInfo(self),  Fit(self)]
 
         self.initActions()
         self.initMenu()
@@ -71,10 +62,7 @@ class clip(QtGui.QMainWindow):
               ('New Stereographic Projection',  self.slotNewStereoProjector),
               ('New Laue Projection',  self.slotNewLauePlaneProjector)]),
             ('&Tools', 
-             [('TransferCurve', self.slotShowTransferCurve), 
-              ('Rotate Crystal', self.slotShowRotateCrystal), 
-              ('Reorientate Crystal', self.slotShowReorientCrystal), 
-              ('Reflex Info', self.slotShowReflexInfo)]), 
+              []), 
             ('&Windows',
              []),
             ('&Help',
@@ -97,6 +85,10 @@ class clip(QtGui.QMainWindow):
                     act.setChecked(menuOption[2])
                     self.connect(act, QtCore.SIGNAL('toggled(bool)'), menuOption[1])
             menus.append(menu)
+
+        toolMenu=menus[1]
+        for t in self.tools:
+            toolMenu.addAction(t.menuName, t.showWindow)
 
         self.windowMenu=menus[2]
         self.slotUpdateWindowMenu()
@@ -147,7 +139,6 @@ class clip(QtGui.QMainWindow):
         self.windowMenu.addAction(self.nextAct)
         self.windowMenu.addAction(self.previousAct)
 
-
         windows = self.MdiArea.subWindowList();
 
         if len(windows)>0:
@@ -182,9 +173,10 @@ class clip(QtGui.QMainWindow):
     def slotNewCrystal(self):
         wid = Crystal.Crystal(self)
         self.crystalStore.addObject(wid.crystal)
-        self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), self.rotateCrystal.rotAxisChanged)
-        self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), self.reorientCrystal.updateDisplay)
-        self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), self.reflexInfo.updateDisplay)
+
+        for t in self.tools:
+            self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), t.rotAxisChanged)
+            self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), t.orientationChanged)
         wid.setWindowTitle('Crystal')
         self.MdiArea.addSubWindow(wid)
         wid.show()
@@ -192,9 +184,9 @@ class clip(QtGui.QMainWindow):
 
     def slotNewStereoProjector(self):
         wid = ProjectionPlaneWidget(0, self)
-        self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
-        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reorientCrystal.axisFromReflexInfo)
-        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reflexInfo.axisFromReflexInfo)
+        for t in self.tools:
+            self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), t.reflexInfo)
+            self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), t.addedRotation)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('Stereographic Projection')
@@ -204,32 +196,23 @@ class clip(QtGui.QMainWindow):
         
     def slotNewLauePlaneProjector(self):
         wid = ProjectionPlaneWidget(1, self)
-        self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), self.rotateCrystal.projectorAddedRotation)
-        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reorientCrystal.axisFromReflexInfo)
-        self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), self.reflexInfo.axisFromReflexInfo)
+        for t in self.tools:
+            self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), t.reflexInfo)
+            self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), t.addedRotation)
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('LauePlane')
         self.MdiArea.addSubWindow(wid)
         wid.show()
         return wid
-        
+
+
     def slotShowToolwindow(self, w):
+        print "showing", w.menuName
         mdi=self.MdiArea.addSubWindow(w)
         mdi.show()
         w.show()
 
-    def slotShowTransferCurve(self):
-       self.slotShowToolwindow(self.imageTransfer) 
-
-    def slotShowRotateCrystal(self):
-       self.slotShowToolwindow(self.rotateCrystal) 
-
-    def slotShowReorientCrystal(self):
-       self.slotShowToolwindow(self.reorientCrystal) 
-
-    def slotShowReflexInfo(self):
-       self.slotShowToolwindow(self.reflexInfo) 
 
 def main(args):
     app=QtGui.QApplication(args)

@@ -7,10 +7,10 @@ class StereoProjector: public Projector {
     Q_OBJECT
     public:
         StereoProjector(QObject* parent=0);
-        virtual QPointF scattered2det(const Vec3D&);
-        virtual Vec3D det2scattered(const QPointF&);
-        virtual QPointF normal2det(const Vec3D&);
-        virtual Vec3D det2normal(const QPointF&);
+        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL);
+        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL);
+        virtual QPointF normal2det(const Vec3D&, bool* b=NULL);
+        virtual Vec3D det2normal(const QPointF&, bool* b=NULL);
         
         virtual QString configName();
     public slots:
