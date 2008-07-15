@@ -7,7 +7,7 @@ class Projector: QObject {
 #include <projector.h>
 %End
     public:
-        Projector(QObject* parent=0);
+        Projector(unsigned int numParams, QObject* parent=0);
         Projector(const Projector&);
         
         static Vec3D normal2scattered(const Vec3D&, bool* b /out/);
@@ -41,6 +41,8 @@ class Projector: QObject {
         virtual void fitParameterSetValue(unsigned int n, double val);
         virtual QPair<double, double> fitParameterBounds(unsigned int n);
         virtual double fitParameterChangeHint(unsigned int n);
+        virtual bool fitParameterEnabled(unsigned int n);
+        virtual void fitParameterSetEnabled(unsigned int n, bool enable);
         
     public slots:
         void connectToCrystal(Crystal *);

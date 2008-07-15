@@ -5,7 +5,7 @@
 
 using namespace std;
 
-StereoProjector::StereoProjector(QObject* parent): Projector(parent), localCoordinates() {
+StereoProjector::StereoProjector(QObject* parent): Projector(fitParameterNumber(), parent), localCoordinates() {
     setWavevectors(0.0, 1.5*M_1_PI);
     scene.setSceneRect(QRectF(-1.0, -1.0, 2.0, 2.0));
 };

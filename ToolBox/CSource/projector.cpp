@@ -6,7 +6,7 @@
 
 using namespace std;
 
-Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
+Projector::Projector(unsigned int numParams, QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
     setWavevectors(0.0, 1.0*M_1_PI);
@@ -20,6 +20,8 @@ Projector::Projector(QObject *parent): QObject(parent), crystal(), scene(this), 
     imgGroup.setHandlesChildEvents(false);
     //imgGroup.setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     updateImgTransformations();
+    for (; numParams--; ) fitParameterEnabledState.append(true);
+    
 };
 
 Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems(), markerItems()  {
@@ -31,6 +33,7 @@ Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projec
     setSpotSize(p.getSpotSize());
     connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
     updateImgTransformations();
+    for (unsigned int i=fitParameterNumber(); i--; ) fitParameterEnabledState.append(true);
 }; 
 
 
@@ -401,4 +404,12 @@ QPair<double, double> Projector::fitParameterBounds(unsigned int n) {
 
 double Projector::fitParameterChangeHint(unsigned int n) {
     return 1.0;
+}
+
+bool Projector::fitParameterEnabled(unsigned int n) {
+    return fitParameterEnabledState[n];
+}
+
+void Projector::fitParameterSetEnabled(unsigned int n, bool enable) {
+    fitParameterEnabledState[n]=enable;
 }

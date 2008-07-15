@@ -7,7 +7,7 @@
 
 using namespace std;
 
-LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(parent), localCoordinates() {
+LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(fitParameterNumber(), parent), localCoordinates() {
     setWavevectors(0.0, 4.0*M_1_PI);
     setDetSize(30.0, 110.0, 140.0);
     setDetOrientation(180.0, 0, 0);

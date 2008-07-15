@@ -15,7 +15,7 @@
 class Projector: public QObject {
     Q_OBJECT
     public:
-        Projector(QObject* parent=0);
+        Projector(unsigned int numParams, QObject* parent=0);
         Projector(const Projector&);
 
         // Functions for transformations in the different Coordinate systems
@@ -53,6 +53,8 @@ class Projector: public QObject {
         virtual void fitParameterSetValue(unsigned int n, double val);
         virtual QPair<double, double> fitParameterBounds(unsigned int n);
         virtual double fitParameterChangeHint(unsigned int n);
+        virtual bool fitParameterEnabled(unsigned int n);
+        virtual void fitParameterSetEnabled(unsigned int n, bool enable);
         
     public slots:
         void connectToCrystal(Crystal *);
@@ -102,6 +104,8 @@ class Projector: public QObject {
     
         // Pointer to the connectred crystal
         QPointer<Crystal> crystal;
+    
+        QList<bool> fitParameterEnabledState;
 
         double QminVal;
         double QmaxVal;
