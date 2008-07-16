@@ -12,3 +12,4 @@
 %Include Indexer.sip
 %Include SignalingEllipse.sip
 %Include BezierCurve.sip
+%Include FitObject.sip

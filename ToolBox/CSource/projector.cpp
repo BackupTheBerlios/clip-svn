@@ -1,12 +1,13 @@
 #include <projector.h>
-#import <cmath>
-#import <iostream>
-#import <QtCore/QTimer>
-#import <QtGui/QCursor>
+#include <cmath>
+#include <iostream>
+#include <QtCore/QTimer>
+#include <QtGui/QCursor>
+
 
 using namespace std;
 
-Projector::Projector(unsigned int numParams, QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
+Projector::Projector(QObject *parent): QObject(parent), FitObject(), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
     enableProjection();
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -21,10 +22,9 @@ Projector::Projector(unsigned int numParams, QObject *parent): QObject(parent), 
     imgGroup.setHandlesChildEvents(false);
     //imgGroup.setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     updateImgTransformations();
-    for (; numParams--; ) fitParameterEnabledState.append(false);
 };
 
-Projector::Projector(const Projector &p): det2img(p.det2img), img2det(p.img2det), crystal(), scene(this), projectedItems(), decorationItems(), markerItems(), textMarkerItems(), infoItems(), fitParameterEnabledState(p.fitParameterEnabledState)  {
+Projector::Projector(const Projector &p): QObject(),FitObject(),det2img(p.det2img), img2det(p.img2det), crystal(), scene(this), projectedItems(), decorationItems(), markerItems(), textMarkerItems(), infoItems()  {
     cout << "Projector Copy Constructor" << endl;
     enableSpots(p.spotsEnabled());
     enableProjection(p.projectionEnabled);
@@ -119,7 +119,9 @@ void Projector::clearInfoItems() {
 void Projector::reflectionsUpdated() {
     if (crystal.isNull() or not projectionEnabled) 
         return;
+    #ifdef __DEBUG__
     cout << "Project..." << endl;
+    #endif
     //FIXME: Do Better
     while (textMarkerItems.size()>0) {
         QGraphicsItem* item=textMarkerItems.takeLast();
@@ -388,37 +390,6 @@ void Projector::doImgRotation(unsigned int CWRSteps, bool flip) {
         }
         e->setPos(x,y);
     }
-}
-
-
-unsigned int Projector::fitParameterNumber() {
-    return 0;
-}
-
-QString Projector::fitParameterName(unsigned int n) {
-    return "";
-}
-
-double Projector::fitParameterValue(unsigned int n) {
-    return 0.0;
-}
-
-void Projector::fitParameterSetValue(unsigned int n, double val) {}
-
-QPair<double, double> Projector::fitParameterBounds(unsigned int n) {
-    return qMakePair((double)-INFINITY, (double)INFINITY);
-}
-
-double Projector::fitParameterChangeHint(unsigned int n) {
-    return 1.0;
-}
-
-bool Projector::fitParameterEnabled(unsigned int n) {
-    return fitParameterEnabledState[n];
-}
-
-void Projector::fitParameterSetEnabled(unsigned int n, bool enable) {
-    fitParameterEnabledState[n]=enable;
 }
 
 void Projector::enableProjection(bool b) {

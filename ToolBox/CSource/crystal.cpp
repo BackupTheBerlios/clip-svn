@@ -14,7 +14,7 @@ int ggt(int a, int b) {
     return abs(a);
 }
 
-Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this), rotationAxis(1,0,0) {
+Crystal::Crystal(): QObject(), FitObject(), reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this), rotationAxis(1,0,0) {
     setCell(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     Qmin=0.0;
     Qmax=1.0;
@@ -22,6 +22,10 @@ Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProj
     connect(&connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavevectorsFromProjectors()));
     axisType=LabSystem;
     enableUpdate();
+    QList<int> constrains;
+    constrains << 0 << 0 << 0 << 0 << 0 << 0;
+    setSpacegroupConstrains(constrains);
+    setSpacegroupSymbol("P1");
 }
 
 Crystal::Crystal(const Crystal& c) {
@@ -87,6 +91,9 @@ void Crystal::addRotation(const Vec3D& axis, double angle) {
 }
 
 void Crystal::addRotation(const Mat3D& M) {
+    #ifdef __DEBUG__
+    cout << "AddRotation" << endl;
+    #endif
     MRot = M * MRot;
     MRot.orthogonalize();
     updateRotation();
@@ -95,6 +102,9 @@ void Crystal::addRotation(const Mat3D& M) {
 }
 
 void Crystal::setRotation(const Mat3D& M) {
+    #ifdef __DEBUG__
+    cout << "setRotation" << endl;
+    #endif
     MRot = M;
     updateRotation();
     emit orientationChanged();
@@ -111,7 +121,11 @@ void Crystal::setWavevectors(double _Qmin, double _Qmax) {
 }
 
 void Crystal::generateReflections() {
+    if (not updateEnabled)
+        return;
+    #ifdef __DEBUG__
     cout << "Generate Reflextions" << endl;
+    #endif
     reflections.clear();
     // Q=0.5/d/sin(theta)
     // n*lambda=2*d*sin(theta) => n=2*d/lambda = 2*Q*d
@@ -173,7 +187,9 @@ void Crystal::generateReflections() {
 void Crystal::updateRotation() {
     if (not updateEnabled)
         return;
+    #ifdef __DEBUG__
     cout << "Update Reflextions" << endl;
+    #endif
     for (unsigned int i=reflections.size(); i--; ) {
         Reflection &r = reflections[i];
         r.normal=MRot*r.normalLocal;
@@ -344,4 +360,20 @@ QList<double> Crystal::getCell() {
 
 void Crystal::enableUpdate(bool b) {
     updateEnabled=b;
+}
+
+void Crystal::setSpacegroupConstrains(QList<int> constrains) {
+    spacegroupConstrains=constrains;
+    QList<QString> fitParameterTempNames;
+    fitParameterTempNames << "b" << "c" << "alpha" << "beta" << "gamma";
+    QList<QString> fitParameterNames;
+    for (unsigned int n=1; n<constrains.size(); n++) {
+        if (constrains[n]==0)
+            fitParameterNames << fitParameterTempNames[n-1];
+    }    
+    setFitParameterNames(fitParameterNames);
+}
+
+QList<int> Crystal::getSpacegroupConstrains() const {
+    return spacegroupConstrains;
 }

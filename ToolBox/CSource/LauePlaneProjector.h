@@ -25,12 +25,8 @@ class LauePlaneProjector: public Projector {
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
         
         // Functions for fitting parameters
-        virtual unsigned int fitParameterNumber();
-        virtual QString fitParameterName(unsigned int n);
         virtual double fitParameterValue(unsigned int n);
         virtual void fitParameterSetValue(unsigned int n, double val);
-        virtual QPair<double, double> fitParameterBounds(unsigned int n);
-        virtual double fitParameterChangeHint(unsigned int n);        
             
     public slots:
         void setDetSize(double dist, double width, double height);

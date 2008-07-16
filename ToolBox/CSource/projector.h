@@ -10,12 +10,12 @@
 #include <QtGui/QGraphicsItem>
 #include <QtCore/QString>
 #include <crystal.h>
+#include <FitObject.h>
 
-
-class Projector: public QObject {
+class Projector: public QObject, public FitObject {
     Q_OBJECT
     public:
-        Projector(unsigned int numParams, QObject* parent=0);
+        Projector(QObject* parent=0);
         Projector(const Projector&);
     
         // Functions for transformations in the different Coordinate systems
@@ -45,16 +45,6 @@ class Projector: public QObject {
         unsigned int markerNumber() const;
         QPointF getMarkerDetPos(unsigned int n) const;
         QList<Vec3D> getMarkerNormals() const;
-        
-        // Functions for fitting parameters
-        virtual unsigned int fitParameterNumber();
-        virtual QString fitParameterName(unsigned int n);
-        virtual double fitParameterValue(unsigned int n);
-        virtual void fitParameterSetValue(unsigned int n, double val);
-        virtual QPair<double, double> fitParameterBounds(unsigned int n);
-        virtual double fitParameterChangeHint(unsigned int n);
-        virtual bool fitParameterEnabled(unsigned int n);
-        virtual void fitParameterSetEnabled(unsigned int n, bool enable);
         
     public slots:
         void connectToCrystal(Crystal *);
@@ -108,8 +98,6 @@ class Projector: public QObject {
         // Pointer to the connectred crystal
         QPointer<Crystal> crystal;
     
-        QList<bool> fitParameterEnabledState;
-
         double QminVal;
         double QmaxVal;
         unsigned int maxHklSqSum;

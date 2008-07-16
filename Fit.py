@@ -80,17 +80,43 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
             B=reduce(lambda x,y:x+y, [x^x for x in K] )
             C=A*B.inverse()            
             O2=C.transposed()*C
-            
-            a=1.0/math.sqrt(O2[0,0])
-            b=1.0/math.sqrt(O2[1,1])
-            c=1.0/math.sqrt(O2[2,2])
+            O2=O2.inverse()
+
+            a=math.sqrt(O2[0,0])
+            b=math.sqrt(O2[1,1])
+            c=math.sqrt(O2[2,2])
+            newCell=[a, b, c]
         
-            alpha=180-math.degrees(math.acos(O2[1,2]*b*c))
-            beta= 180-math.degrees(math.acos(O2[0,2]*a*c))
-            gamma=180-math.degrees(math.acos(O2[0,1]*a*b))
+            newCell.append(math.degrees(math.acos(O2[1,2]/b/c)))
+            newCell.append(math.degrees(math.acos(O2[0,2]/a/c)))
+            newCell.append(math.degrees(math.acos(O2[0,1]/a/b)))
           
-        
-            #self.cr.setCell(a*s,b*s,c*s,alpha,beta,gamma)
+            origCell=crystal.getCell()
+            constrain=crystal.getSpacegroupConstrains()
+            paramNr=0
+            for i in range(3):
+                newCell[i]*=origCell[0]/newCell[0]
+                
+            Avg=[[], [], [], [], [], []]
+            for i, c in enumerate(constrain):
+                if c==0:
+                    Avg[i].append(newCell[i])
+                elif c<0:
+                    Avg[-c-1].append(newCell[i])
+                else:
+                    Avg[i].append(c)
+                    
+            for i in range(1, 6):
+                if constrain[i]==0:
+                    if crystal.fitParameterEnabled(paramNr):
+                        origCell[i]=sum(Avg[i])/len(Avg[i])
+                    paramNr+=1
+                elif constrain[i]>0:
+                    origCell[i]=constrain[i]
+                else:
+                    origCell[i]=origCell[-constrain[i]-1]
+            
+            crystal.setCell(*origCell)
 
             O=crystal.getReziprocalOrientationMatrix()
             
@@ -142,14 +168,18 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
                         fitItems.append((p,  n))
                         initialValues.append(p.fitParameterValue(n))
         if len(fitItems)>0:
-            res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True, epsilon=0.001)
+            res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True)
             print res
+        else:
+            self.refineCell(crystal, projectors)
                 
         crystal.enableUpdate(True)
         crystal.updateRotation()
         for p in crystal.getConnectedProjectors():
             p.enableProjection(True)
             p.reflectionsUpdated()
+            
+        self.paramModel.reset()
 
     def windowChanged(self):
         self.paramModel.loadModel()
@@ -178,56 +208,14 @@ class FitModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def headerData(self, section, orientation, role):
-        return QtCore.QVariant()
-
-
-class CrystalFitParams:
-    def __init__(self, crystal):
-        self.crystal=crystal
-        self.sg=SpaceGroup.SpaceGroup()
-        self.loadData()
-        self.enabled=[True]*5
-        
-    def loadData(self):
-        self.parsedSG=self.sg.parseGroupSymbol(self.crystal.getSpacegroupSymbol())
-        
-        
-    def mayRun(self):
-        constrain=self.sg.getCellConstrain()
-        return [c==0 for c in constrain[1:]]
-        
-    
-    def fitParameterNumber(self):
-        constrain=self.sg.getCellConstrain()
-        return sum(self.mayRun())
-        
-    def fitParameterName(self, i):
-        names=[n for n, b in zip(('b', 'c', 'alpha', 'beta', 'gamma'), self.mayRun()) if b]
-        return names[i]
-        
-    def fitParameterValue(self, i):
-        return 6
-        
-    def fitParameterEnabled(self, i):
-        number=[n for n, b in zip(range(5), self.mayRun()) if b]
-        return self.enabled[number[i]]
-        
-    def fitParameterSetEnabled(self, i, b):
-        number=[n for n, b in zip(range(5), self.mayRun()) if b]
-        self.enabled[number[i]]=b
-
-    def fitParameterSetValue(self, i, v):
-        pass
-        
-    def configName(self):
-        return 'Cell'
-        
+        return QtCore.QVariant()        
 
 class ParamModel(QtCore.QAbstractItemModel):
     def __init__(self, parent):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.fit=parent
         self.rootItems=[]
+        self.names=[]
         self.lastCrystal=None
         
     def loadModel(self):
@@ -236,23 +224,22 @@ class ParamModel(QtCore.QAbstractItemModel):
             return
     
         rootItems=[]
-        if c==self.lastCrystal and len(self.rootItems)>0 and self.rootItems[0].configName()=='Cell':
-            cfp=self.rootItems[0]
-            cfp.loadData()
-        else:
-            cfp=CrystalFitParams(c)
-            
-        if cfp.fitParameterNumber()>0:
-            rootItems.append(cfp)
+        names=[]
+        if c.fitParameterNumber()>0:
+            rootItems.append(c)
+            names.append('Cell')
 
         for p in c.getConnectedProjectors():
             if p.fitParameterNumber()>0 and p.markerNumber()>0:
                 rootItems.append(p)
+                names.append(p.configName())
                 
         if rootItems!=self.rootItems:
             self.rootItems=rootItems
+            self.names=names
             self.lastCrystal=c
             self.reset()
+
         
         
     def rowCount(self, parent):
@@ -283,7 +270,7 @@ class ParamModel(QtCore.QAbstractItemModel):
     def data(self, index, role):
         if role==QtCore.Qt.DisplayRole:
             if index.internalId()<0 and index.column()==0:
-                return QtCore.QVariant(self.rootItems[index.row()].configName())
+                return QtCore.QVariant(self.names[index.row()])
             elif index.internalId()>=0:
                 if index.column()==0:
                     return QtCore.QVariant(self.rootItems[index.internalId()].fitParameterName(index.row()))
@@ -299,7 +286,7 @@ class ParamModel(QtCore.QAbstractItemModel):
 
 
     def flags(self, index):
-        if index.internalId()>=0 and index.column()==2:
+        if index.internalId()>=0 and index.column()==0:
             return QtCore.Qt.ItemIsEnabled|QtCore.Qt.ItemIsUserCheckable
         else:
             return QtCore.Qt.ItemIsEnabled

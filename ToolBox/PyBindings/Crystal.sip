@@ -1,4 +1,4 @@
-class Crystal: QObject {
+class Crystal: QObject,FitObject {
 
 %TypeHeaderCode
 #include <crystal.h>
@@ -37,6 +37,7 @@ class Crystal: QObject {
         Mat3D getRotationMatrix() const;
         QList<Projector*> getConnectedProjectors();
         QString getSpacegroupSymbol() const;
+        QList<int> getSpacegroupConstrains() const;
         
         Vec3D getRotationAxis() const;
         Vec3D getLabSystamRotationAxis() const;
@@ -54,6 +55,7 @@ class Crystal: QObject {
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
         void setSpacegroupSymbol(const QString& s);
+        void setSpacegroupConstrains(QList<int> constrains);        
         void setRotationAxis(const Vec3D& axis, RotationAxisType type=LabSystem);
 
     signals:

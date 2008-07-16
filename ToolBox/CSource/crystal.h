@@ -6,12 +6,12 @@
 #include <mat3D.h>
 #include <ObjectStore.h>
 #include <reflection.h>
-
+#include <FitObject.h>
 
 
 class Projector;
 
-class Crystal: public QObject {
+class Crystal: public QObject, public FitObject {
     Q_OBJECT 
     public:
         enum RotationAxisType {
@@ -40,6 +40,7 @@ class Crystal: public QObject {
         Mat3D getReziprocalOrientationMatrix() const;
         Mat3D getRotationMatrix() const;
         QString getSpacegroupSymbol() const;
+        QList<int> getSpacegroupConstrains() const;
         
         Vec3D getRotationAxis() const;
         Vec3D getLabSystamRotationAxis() const;
@@ -58,6 +59,7 @@ class Crystal: public QObject {
         void addProjector(Projector*);
         void updateWavevectorsFromProjectors();
         void setSpacegroupSymbol(const QString& s);
+        void setSpacegroupConstrains(QList<int> constrains);
         void setRotationAxis(const Vec3D& axis, RotationAxisType type=LabSystem);
         
     signals:
@@ -84,6 +86,7 @@ class Crystal: public QObject {
         double Qmax;
         ObjectStore connectedProjectors;
         QString spacegroupSymbol;
+        QList<int> spacegroupConstrains;
         
         Vec3D rotationAxis;
         RotationAxisType axisType;

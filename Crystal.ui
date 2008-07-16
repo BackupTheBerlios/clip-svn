@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>253</height>
+    <height>359</height>
    </rect>
   </property>
   <property name="sizePolicy" >
@@ -108,7 +108,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeA" />
+        <widget class="QDoubleSpinBox" name="latticeA" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>45.000000000000000</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>5.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_6" >
@@ -130,7 +149,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeAlpha" />
+        <widget class="QDoubleSpinBox" name="latticeAlpha" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>179.900000000000006</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>90.000000000000000</double>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -156,7 +194,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeB" />
+        <widget class="QDoubleSpinBox" name="latticeB" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>45.000000000000000</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>5.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_4" >
@@ -178,7 +235,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeBeta" />
+        <widget class="QDoubleSpinBox" name="latticeBeta" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>179.900000000000006</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>90.000000000000000</double>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -204,7 +280,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeC" />
+        <widget class="QDoubleSpinBox" name="latticeC" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>45.000000000000000</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>5.000000000000000</double>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_5" >
@@ -226,7 +321,26 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="latticeGamma" />
+        <widget class="QDoubleSpinBox" name="latticeGamma" >
+         <property name="buttonSymbols" >
+          <enum>QAbstractSpinBox::NoButtons</enum>
+         </property>
+         <property name="decimals" >
+          <number>5</number>
+         </property>
+         <property name="minimum" >
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum" >
+          <double>179.900000000000006</double>
+         </property>
+         <property name="singleStep" >
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value" >
+          <double>90.000000000000000</double>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -302,7 +416,26 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="rotationOmega" />
+      <widget class="QDoubleSpinBox" name="rotationOmega" >
+       <property name="buttonSymbols" >
+        <enum>QAbstractSpinBox::NoButtons</enum>
+       </property>
+       <property name="decimals" >
+        <number>3</number>
+       </property>
+       <property name="minimum" >
+        <double>-360.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>360.000000000000000</double>
+       </property>
+       <property name="singleStep" >
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value" >
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -328,7 +461,26 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="rotationChi" />
+      <widget class="QDoubleSpinBox" name="rotationChi" >
+       <property name="buttonSymbols" >
+        <enum>QAbstractSpinBox::NoButtons</enum>
+       </property>
+       <property name="decimals" >
+        <number>3</number>
+       </property>
+       <property name="minimum" >
+        <double>-360.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>360.000000000000000</double>
+       </property>
+       <property name="singleStep" >
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value" >
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -354,7 +506,26 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="rotationPhi" />
+      <widget class="QDoubleSpinBox" name="rotationPhi" >
+       <property name="buttonSymbols" >
+        <enum>QAbstractSpinBox::NoButtons</enum>
+       </property>
+       <property name="decimals" >
+        <number>3</number>
+       </property>
+       <property name="minimum" >
+        <double>-360.000000000000000</double>
+       </property>
+       <property name="maximum" >
+        <double>360.000000000000000</double>
+       </property>
+       <property name="singleStep" >
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value" >
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -383,10 +554,10 @@
   <tabstop>latticeAlpha</tabstop>
   <tabstop>latticeBeta</tabstop>
   <tabstop>latticeGamma</tabstop>
+  <tabstop>orientationMatrix</tabstop>
   <tabstop>rotationOmega</tabstop>
   <tabstop>rotationChi</tabstop>
   <tabstop>rotationPhi</tabstop>
-  <tabstop>orientationMatrix</tabstop>
  </tabstops>
  <resources/>
  <connections/>

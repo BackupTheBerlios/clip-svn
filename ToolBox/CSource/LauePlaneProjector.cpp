@@ -7,13 +7,17 @@
 
 using namespace std;
 
-LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(fitParameterNumber(), parent), localCoordinates() {
+LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(parent), localCoordinates() {
     cout << "Normal LauePlaneConstructor" << endl;
     setWavevectors(0.0, 4.0*M_1_PI);
     setDetSize(30.0, 110.0, 140.0);
     setDetOrientation(180.0, 0, 0);
     detDx=0.0;
     detDy=0.0;
+    
+    QList<QString> fitParameterNames;
+    fitParameterNames << "Distance" << "X-Offset" << "Y-Offset" << "Omega" << "Chi";
+    setFitParameterNames(fitParameterNames);
 };
 
 LauePlaneProjector::LauePlaneProjector(const LauePlaneProjector& p): Projector(p) {
@@ -273,29 +277,7 @@ void LauePlaneProjector::doImgRotation(unsigned int CWRSteps, bool flip) {
 
 
 
-// Fit Params: Dist, Dx, Dy, Omega, Phi, Chi
 
-unsigned int LauePlaneProjector::fitParameterNumber() {
-    return 6;
-}
-
-QString LauePlaneProjector::fitParameterName(unsigned int n) {
-    switch (n)  {
-        case 0:
-            return "Distance";
-        case 1:
-            return "X-Offset";
-        case 2:
-            return "Y-Offset";
-        case 3:
-            return "Omega";
-        case 4:
-            return "Chi";
-        case 5:
-            return "Phi";
-    }
-    return "";
-}
 
 double LauePlaneProjector::fitParameterValue(unsigned int n) {
     switch (n)  {
@@ -309,8 +291,6 @@ double LauePlaneProjector::fitParameterValue(unsigned int n) {
             return omega();
         case 4:
             return chi();
-        case 5:
-            return phi();
     }
     return 0.0;
 }
@@ -327,43 +307,7 @@ void LauePlaneProjector::fitParameterSetValue(unsigned int n, double val) {
             return setDetOrientation(val, chi(), phi());
         case 4:
             return setDetOrientation(omega(), val, phi());
-        case 5:
-            return setDetOrientation(omega(), chi(), val);
     }
 }
 
-QPair<double, double> LauePlaneProjector::fitParameterBounds(unsigned int n) {
-    switch (n)  {
-        case 0:
-            return qMakePair(0.0, (double)INFINITY);
-        case 1:
-            return qMakePair(-(double)INFINITY, (double)INFINITY);
-        case 2:
-            return qMakePair(-(double)INFINITY, (double)INFINITY);
-        case 3:
-            return qMakePair(-360.0, 360.0);
-        case 4:
-            return qMakePair(-360.0, 360.0);
-        case 5:
-            return qMakePair(-360.0, 360.0);
-    };
-    return qMakePair(-(double)INFINITY, (double)INFINITY);
-}
 
-double LauePlaneProjector::fitParameterChangeHint(unsigned int n) {
-    switch (n)  {
-        case 0:
-            return 0.01;
-        case 1:
-            return 0.01;
-        case 2:
-            return 0.01;
-        case 3:
-            return 0.01;
-        case 4:
-            return 0.01;
-        case 5:
-            return 0.01;
-    };
-    return 1.0;
-}
