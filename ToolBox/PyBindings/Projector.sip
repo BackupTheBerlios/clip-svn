@@ -16,10 +16,10 @@ class Projector: QObject {
         QTransform det2img;
         QTransform img2det;
         
-        virtual QPointF scattered2det(const Vec3D&, bool* b /out/)=0;
-        virtual Vec3D det2scattered(const QPointF&, bool* b /out/)=0;
-        virtual QPointF normal2det(const Vec3D&, bool* b /out/)=0;
-        virtual Vec3D det2normal(const QPointF&, bool* b /out/)=0;
+        virtual QPointF scattered2det(const Vec3D&, bool* b /out/) const=0;
+        virtual Vec3D det2scattered(const QPointF&, bool* b /out/) const=0;
+        virtual QPointF normal2det(const Vec3D&, bool* b /out/) const=0;
+        virtual Vec3D det2normal(const QPointF&, bool* b /out/) const=0;
         
         QGraphicsScene* getScene();
         Crystal* getCrystal();
@@ -31,9 +31,9 @@ class Projector: QObject {
         double getSpotSize() const;
         bool spotsEnabled() const;
 
-        QList<Vec3D> getMarkerNormals();
-        unsigned int markerNumber();
-        QPointF getMarkerDetPos(unsigned int n);
+        QList<Vec3D> getMarkerNormals() const;
+        unsigned int markerNumber() const;
+        QPointF getMarkerDetPos(unsigned int n) const;
 
         virtual unsigned int fitParameterNumber();
         virtual QString fitParameterName(unsigned int n);
@@ -56,6 +56,8 @@ class Projector: QObject {
         void setSpotSize(double d);
         void setMaxHklSqSum(unsigned int m);
         void enableSpots(bool b=true);
+        void enableProjection(bool b=true);
+        
         void addMarker(const QPointF &p);
         void delMarkerNear(const QPointF &p);
 
@@ -88,11 +90,15 @@ class StereoProjector: Projector {
 %End
     public:
         StereoProjector(QObject* parent=0);
+        StereoProjector* copy() /Factory/;
+%MethodCode        
+        sipRes = new StereoProjector(*sipCpp);
+%End
         
-        QPointF scattered2det(const Vec3D&, bool* b /out/);
-        Vec3D det2scattered(const QPointF&, bool* b /out/);
-        QPointF normal2det(const Vec3D&, bool* b /out/);
-        Vec3D det2normal(const QPointF&, bool* b /out/);
+        QPointF scattered2det(const Vec3D&, bool* b /out/) const;
+        Vec3D det2scattered(const QPointF&, bool* b /out/) const;
+        QPointF normal2det(const Vec3D&, bool* b /out/) const;
+        Vec3D det2normal(const QPointF&, bool* b /out/) const;
         virtual void decorateScene();
         virtual QString configName();
         void setDetOrientation(const Mat3D& M);
@@ -111,11 +117,15 @@ class LauePlaneProjector: Projector {
 %End
     public:
         LauePlaneProjector(QObject* parent=0);
-        
-        QPointF scattered2det(const Vec3D&, bool* b /out/);
-        Vec3D det2scattered(const QPointF&, bool* b /out/);
-        QPointF normal2det(const Vec3D&, bool* b /out/);
-        Vec3D det2normal(const QPointF&, bool* b /out/);
+
+        LauePlaneProjector* copy() /Factory/;
+%MethodCode        
+        sipRes = new LauePlaneProjector(*sipCpp);
+%End
+        QPointF scattered2det(const Vec3D&, bool* b /out/) const;
+        Vec3D det2scattered(const QPointF&, bool* b /out/) const;
+        QPointF normal2det(const Vec3D&, bool* b /out/) const;
+        Vec3D det2normal(const QPointF&, bool* b /out/) const;
         double dist();
         double width();
         double height();

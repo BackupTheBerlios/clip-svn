@@ -8,6 +8,7 @@
 using namespace std;
 
 LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(fitParameterNumber(), parent), localCoordinates() {
+    cout << "Normal LauePlaneConstructor" << endl;
     setWavevectors(0.0, 4.0*M_1_PI);
     setDetSize(30.0, 110.0, 140.0);
     setDetOrientation(180.0, 0, 0);
@@ -15,8 +16,15 @@ LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(fitParameterN
     detDy=0.0;
 };
 
+LauePlaneProjector::LauePlaneProjector(const LauePlaneProjector& p): Projector(p) {
+    cout << "Laueplaneprojector Copy Constructor" << endl;
+    setDetSize(p.dist(), p.width(), p.height());
+    setDetOrientation(p.omega(), p.chi(), p.phi());
+    detDx=p.detDx;
+    detDy=p.detDy;    
+};
 
-QPointF LauePlaneProjector::scattered2det(const Vec3D &v, bool* b) {
+QPointF LauePlaneProjector::scattered2det(const Vec3D &v, bool* b) const{
     Vec3D w=localCoordinates*v;
     if (w.x()<=0.0) {
         if (b) *b=false;
@@ -26,14 +34,14 @@ QPointF LauePlaneProjector::scattered2det(const Vec3D &v, bool* b) {
     return QPointF(w.y()/w.x()+detDx, w.z()/w.x()+detDy);
 }
 
-Vec3D LauePlaneProjector::det2scattered(const QPointF& p, bool* b) {
+Vec3D LauePlaneProjector::det2scattered(const QPointF& p, bool* b) const{
     Vec3D v(1.0 , p.x()-detDx, p.y()-detDy);
     v.normalize();
     if (b) *b=true;
     return localCoordinates.transposed()*v;
 }
 
-QPointF LauePlaneProjector::normal2det(const Vec3D& n, bool* b) {
+QPointF LauePlaneProjector::normal2det(const Vec3D& n, bool* b) const{
     if (b) {
         Vec3D v(normal2scattered(n, b));
         if (*b) {
@@ -46,7 +54,7 @@ QPointF LauePlaneProjector::normal2det(const Vec3D& n, bool* b) {
 }
 
 
-Vec3D LauePlaneProjector::det2normal(const QPointF& p, bool* b) {
+Vec3D LauePlaneProjector::det2normal(const QPointF& p, bool* b)  const {
     if (b) {
         Vec3D v(det2scattered(p, b));
         if (*b) {
@@ -225,34 +233,34 @@ void LauePlaneProjector::setDetOffset(double dx, double dy) {
     }
 }
     
-double LauePlaneProjector::dist() {
+double LauePlaneProjector::dist() const {
     return detDist;
 }
 
-double LauePlaneProjector::width() {
+double LauePlaneProjector::width() const {
     return detWidth;
 }
 
-double LauePlaneProjector::height() {
+double LauePlaneProjector::height() const {
     return detHeight;
 }
-double LauePlaneProjector::omega() {
+double LauePlaneProjector::omega() const {
     return detOmega;
 }
 
-double LauePlaneProjector::chi() {
+double LauePlaneProjector::chi() const {
     return detChi;
 }
 
-double LauePlaneProjector::phi() {
+double LauePlaneProjector::phi() const {
     return detPhi;
 }
 
-double LauePlaneProjector::xOffset() {
+double LauePlaneProjector::xOffset() const {
     return detDx*dist();
 }
 
-double LauePlaneProjector::yOffset() {
+double LauePlaneProjector::yOffset() const {
     return detDy*dist();
 }
 

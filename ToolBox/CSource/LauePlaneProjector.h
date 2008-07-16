@@ -7,20 +7,21 @@ class LauePlaneProjector: public Projector {
     Q_OBJECT
     public:
         LauePlaneProjector(QObject* parent=0);
-        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL);
-        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL);
-        virtual QPointF normal2det(const Vec3D&, bool* b=NULL);
-        virtual Vec3D det2normal(const QPointF&, bool* b=NULL);
+        LauePlaneProjector(const LauePlaneProjector&);
+        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL) const;
+        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL) const;
+        virtual QPointF normal2det(const Vec3D&, bool* b=NULL) const;
+        virtual Vec3D det2normal(const QPointF&, bool* b=NULL) const;
     
         virtual QString configName();
-        double dist();
-        double width();
-        double height();
-        double omega();
-        double chi();
-        double phi();
-        double xOffset();
-        double yOffset();
+        double dist() const;
+        double width() const;
+        double height() const;
+        double omega() const;
+        double chi() const;
+        double phi() const;
+        double xOffset() const;
+        double yOffset() const;
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
         
         // Functions for fitting parameters

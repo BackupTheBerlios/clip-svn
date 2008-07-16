@@ -21,9 +21,22 @@ Crystal::Crystal(): reflections(), MReal(), MReziprocal(), MRot(), connectedProj
     connect(&connectedProjectors, SIGNAL(objectAdded()), this, SLOT(updateWavevectorsFromProjectors()));
     connect(&connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavevectorsFromProjectors()));
     axisType=LabSystem;
+    enableUpdate();
 }
 
-Crystal::Crystal(const Crystal& c) {};
+Crystal::Crystal(const Crystal& c) {
+    cout << "Crystal Copy Constructor" << endl;
+    setCell(c.a,c.b,c.c,c.alpha,c.beta,c.gamma);
+    Qmin=c.Qmin;
+    Qmax=c.Qmax;
+    connect(&connectedProjectors, SIGNAL(objectAdded()), this, SLOT(updateWavevectorsFromProjectors()));
+    connect(&connectedProjectors, SIGNAL(objectRemoved()), this, SLOT(updateWavevectorsFromProjectors()));
+    
+    setRotation(c.getRotationMatrix());
+    setSpacegroupSymbol(c.getSpacegroupSymbol());
+    setRotationAxis(c.getRotationAxis(), c.getRotationAxisType());
+    enableUpdate(c.updateEnabled);
+};
 
 Crystal::~Crystal() {};
  
@@ -98,6 +111,7 @@ void Crystal::setWavevectors(double _Qmin, double _Qmax) {
 }
 
 void Crystal::generateReflections() {
+    cout << "Generate Reflextions" << endl;
     reflections.clear();
     // Q=0.5/d/sin(theta)
     // n*lambda=2*d*sin(theta) => n=2*d/lambda = 2*Q*d
@@ -157,6 +171,9 @@ void Crystal::generateReflections() {
 }
   
 void Crystal::updateRotation() {
+    if (not updateEnabled)
+        return;
+    cout << "Update Reflextions" << endl;
     for (unsigned int i=reflections.size(); i--; ) {
         Reflection &r = reflections[i];
         r.normal=MRot*r.normalLocal;
@@ -244,15 +261,15 @@ Vec3D Crystal::hkl2Reziprocal(const int h, const int k, const int l) {
 }
 
 
-Mat3D Crystal::getRealOrientationMatrix() {
+Mat3D Crystal::getRealOrientationMatrix() const {
     return MReal;
 }
 
-Mat3D Crystal::getReziprocalOrientationMatrix() {
+Mat3D Crystal::getReziprocalOrientationMatrix() const {
     return MReziprocal;
 }
 
-Mat3D Crystal::getRotationMatrix() {
+Mat3D Crystal::getRotationMatrix() const {
     return MRot;
 }
 
@@ -282,7 +299,7 @@ QList<Projector*> Crystal::getConnectedProjectors() {
     return r;
 }
 
-QString Crystal::getSpacegroupSymbol() {
+QString Crystal::getSpacegroupSymbol() const {
     return spacegroupSymbol;
 }
 
@@ -298,11 +315,11 @@ void Crystal::setRotationAxis(const Vec3D& axis, RotationAxisType type) {
     }
 }
 
-Vec3D Crystal::getRotationAxis() {
+Vec3D Crystal::getRotationAxis() const {
     return rotationAxis;
 }
 
-Vec3D Crystal::getLabSystamRotationAxis() {
+Vec3D Crystal::getLabSystamRotationAxis() const {
     if (axisType==ReziprocalSpace) {
         Vec3D v(MRot*MReziprocal*rotationAxis);
         v.normalize();
@@ -315,7 +332,16 @@ Vec3D Crystal::getLabSystamRotationAxis() {
     return rotationAxis.normalized();
 }
 
-Crystal::RotationAxisType Crystal::getRotationAxisType() {
+Crystal::RotationAxisType Crystal::getRotationAxisType() const {
     return axisType;
 }
 
+QList<double> Crystal::getCell() {
+    QList<double> cell;
+    cell << a << b << c << alpha << beta << gamma;
+    return cell;
+}
+
+void Crystal::enableUpdate(bool b) {
+    updateEnabled=b;
+}

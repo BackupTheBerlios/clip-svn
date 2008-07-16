@@ -11,7 +11,7 @@ StereoProjector::StereoProjector(QObject* parent): Projector(fitParameterNumber(
 };
 
 
-QPointF StereoProjector::scattered2det(const Vec3D &v, bool* b) {
+QPointF StereoProjector::scattered2det(const Vec3D &v, bool* b) const {
     if (b) {
         Vec3D v(scattered2normal(v,b));
         if (*b) {
@@ -23,7 +23,7 @@ QPointF StereoProjector::scattered2det(const Vec3D &v, bool* b) {
     return normal2det(scattered2normal(v));
 }
 
-Vec3D StereoProjector::det2scattered(const QPointF& p, bool* b) {
+Vec3D StereoProjector::det2scattered(const QPointF& p, bool* b) const {
     if (b) {
         Vec3D v(det2normal(p,b));
         if (*b) {
@@ -35,7 +35,7 @@ Vec3D StereoProjector::det2scattered(const QPointF& p, bool* b) {
     return normal2scattered(det2normal(p));
 }
 
-QPointF StereoProjector::normal2det(const Vec3D& n, bool* b) {
+QPointF StereoProjector::normal2det(const Vec3D& n, bool* b) const {
     Vec3D v=localCoordinates*n;
     double s=1.0+v.x();
     if (s<1e-5) {
@@ -47,7 +47,7 @@ QPointF StereoProjector::normal2det(const Vec3D& n, bool* b) {
 }
 
 
-Vec3D StereoProjector::det2normal(const QPointF& p, bool* b) {
+Vec3D StereoProjector::det2normal(const QPointF& p, bool* b) const {
     double x=p.x();
     double y=p.y();
     double n=1.0/(x*x+y*y+1.0);

@@ -17,7 +17,7 @@ class Projector: public QObject {
     public:
         Projector(unsigned int numParams, QObject* parent=0);
         Projector(const Projector&);
-
+    
         // Functions for transformations in the different Coordinate systems
     
         static Vec3D normal2scattered(const Vec3D&, bool* b=NULL);
@@ -26,10 +26,10 @@ class Projector: public QObject {
         QTransform det2img;
         QTransform img2det;
     
-        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL)=0;
-        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL)=0;
-        virtual QPointF normal2det(const Vec3D&, bool* b=NULL)=0;
-        virtual Vec3D det2normal(const QPointF&, bool* b=NULL)=0;
+        virtual QPointF scattered2det(const Vec3D&, bool* b=NULL) const =0;
+        virtual Vec3D det2scattered(const QPointF&, bool* b=NULL) const =0;
+        virtual QPointF normal2det(const Vec3D&, bool* b=NULL) const =0;
+        virtual Vec3D det2normal(const QPointF&, bool* b=NULL) const =0;
         
         QGraphicsScene* getScene();
         Crystal* getCrystal();
@@ -42,9 +42,9 @@ class Projector: public QObject {
         double getSpotSize() const;
         bool spotsEnabled() const;
         
-        unsigned int markerNumber();
-        QPointF getMarkerDetPos(unsigned int n);
-        QList<Vec3D> getMarkerNormals();
+        unsigned int markerNumber() const;
+        QPointF getMarkerDetPos(unsigned int n) const;
+        QList<Vec3D> getMarkerNormals() const;
         
         // Functions for fitting parameters
         virtual unsigned int fitParameterNumber();
@@ -70,6 +70,9 @@ class Projector: public QObject {
         void setTextSize(double d);
         void setSpotSize(double d);
         void enableSpots(bool b=true);
+        // For speedup of fitting...
+        void enableProjection(bool b=true);
+        
 
         void addMarker(const QPointF& p);
         void delMarkerNear(const QPointF& p);
@@ -113,11 +116,9 @@ class Projector: public QObject {
         double textSize;
         double spotSize;
         bool showSpots;
+        bool projectionEnabled;
         
         QGraphicsScene scene;
-        
-        QTransform img2detTransform;
-        QTransform det2imgTransform;
         
         QGraphicsItemGroup imgGroup;
     protected slots:

@@ -36,16 +36,19 @@ class Crystal: public QObject {
         Vec3D hkl2Reziprocal(const Vec3D&);
         Vec3D hkl2Reziprocal(int h, int k, int l);
 
-        Mat3D getRealOrientationMatrix();
-        Mat3D getReziprocalOrientationMatrix();
-        Mat3D getRotationMatrix();
-        QString getSpacegroupSymbol();
+        Mat3D getRealOrientationMatrix() const;
+        Mat3D getReziprocalOrientationMatrix() const;
+        Mat3D getRotationMatrix() const;
+        QString getSpacegroupSymbol() const;
         
-        Vec3D getRotationAxis();
-        Vec3D getLabSystamRotationAxis();
-        RotationAxisType getRotationAxisType();
+        Vec3D getRotationAxis() const;
+        Vec3D getLabSystamRotationAxis() const;
+        RotationAxisType getRotationAxisType() const;
 
         QList<Projector*> getConnectedProjectors();
+        
+        QList<double> getCell();
+        void enableUpdate(bool b=true);
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -85,7 +88,7 @@ class Crystal: public QObject {
         Vec3D rotationAxis;
         RotationAxisType axisType;
         
-        
+        bool updateEnabled;
 };
 
 

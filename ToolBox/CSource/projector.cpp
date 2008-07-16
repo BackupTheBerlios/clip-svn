@@ -8,6 +8,7 @@ using namespace std;
 
 Projector::Projector(unsigned int numParams, QObject *parent): QObject(parent), crystal(), scene(this), projectedItems(), decorationItems(), textMarkerItems(), markerItems(), imgGroup() {
     enableSpots();
+    enableProjection();
     scene.setItemIndexMethod(QGraphicsScene::NoIndex);
     setWavevectors(0.0, 1.0*M_1_PI);
     setMaxHklSqSum(0);
@@ -20,21 +21,27 @@ Projector::Projector(unsigned int numParams, QObject *parent): QObject(parent), 
     imgGroup.setHandlesChildEvents(false);
     //imgGroup.setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     updateImgTransformations();
-    for (; numParams--; ) fitParameterEnabledState.append(true);
-    
+    for (; numParams--; ) fitParameterEnabledState.append(false);
 };
 
-Projector::Projector(const Projector &p): crystal(p.crystal), scene(this),projectedItems(), decorationItems(), markerItems()  {
+Projector::Projector(const Projector &p): det2img(p.det2img), img2det(p.img2det), crystal(), scene(this), projectedItems(), decorationItems(), markerItems(), textMarkerItems(), infoItems(), fitParameterEnabledState(p.fitParameterEnabledState)  {
     cout << "Projector Copy Constructor" << endl;
     enableSpots(p.spotsEnabled());
+    enableProjection(p.projectionEnabled);
     setWavevectors(p.Qmin(), p.Qmax());
     setMaxHklSqSum(p.getMaxHklSqSum());
     setTextSize(p.getTextSize());
     setSpotSize(p.getSpotSize());
+    
+    for (unsigned int n=p.markerNumber(); n--; )
+        addMarker(p.getMarkerDetPos(n));
+    
     connect(this, SIGNAL(projectionParamsChanged()), this, SLOT(reflectionsUpdated()));
+    connect(&scene, SIGNAL(sceneRectChanged(const QRectF&)), this, SLOT(updateImgTransformations()));
+    
     updateImgTransformations();
-    for (unsigned int i=fitParameterNumber(); i--; ) fitParameterEnabledState.append(true);
-}; 
+} 
+
 
 
 void Projector::connectToCrystal(Crystal *c) {
@@ -110,9 +117,9 @@ void Projector::clearInfoItems() {
 }
 
 void Projector::reflectionsUpdated() {
-    if (crystal.isNull()) 
+    if (crystal.isNull() or not projectionEnabled) 
         return;
-    
+    cout << "Project..." << endl;
     //FIXME: Do Better
     while (textMarkerItems.size()>0) {
         QGraphicsItem* item=textMarkerItems.takeLast();
@@ -320,15 +327,15 @@ void Projector::delMarkerNear(const QPointF& p) {
     delete m;
 };
 
-unsigned int Projector::markerNumber() {
+unsigned int Projector::markerNumber() const {
     return markerItems.size();
 }
 
-QPointF Projector::getMarkerDetPos(unsigned int n) {
+QPointF Projector::getMarkerDetPos(unsigned int n) const {
     return img2det.map(markerItems.at(n)->pos());
 }
 
-QList<Vec3D> Projector::getMarkerNormals() {
+QList<Vec3D> Projector::getMarkerNormals() const {
     QList<Vec3D> r;
     for (unsigned int i=0; i<markerItems.size(); i++) 
         r << det2normal(img2det.map(markerItems.at(i)->pos()));
@@ -412,4 +419,8 @@ bool Projector::fitParameterEnabled(unsigned int n) {
 
 void Projector::fitParameterSetEnabled(unsigned int n, bool enable) {
     fitParameterEnabledState[n]=enable;
+}
+
+void Projector::enableProjection(bool b) {
+    projectionEnabled=b;
 }

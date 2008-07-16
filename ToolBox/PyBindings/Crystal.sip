@@ -11,10 +11,15 @@ class Crystal: QObject {
         };
         
         Crystal();
-        Crystal(const Crystal &);
         ~Crystal();
+        
+        Crystal* copy() /Factory/;
+%MethodCode        
+        sipRes = new Crystal(*sipCpp);
+%End        
 
         void generateReflections();
+        void updateRotation();
 
 
         unsigned int reflectionCount();
@@ -27,15 +32,18 @@ class Crystal: QObject {
         Vec3D hkl2Reziprocal(const Vec3D&);
         Vec3D hkl2Reziprocal(int h, int k, int l);
 
-        Mat3D getRealOrientationMatrix();
-        Mat3D getReziprocalOrientationMatrix();
-        Mat3D getRotationMatrix();
+        Mat3D getRealOrientationMatrix() const;
+        Mat3D getReziprocalOrientationMatrix() const;
+        Mat3D getRotationMatrix() const;
         QList<Projector*> getConnectedProjectors();
-        QString getSpacegroupSymbol();
+        QString getSpacegroupSymbol() const;
         
-        Vec3D getRotationAxis();
-        Vec3D getLabSystamRotationAxis();
-        RotationAxisType getRotationAxisType();
+        Vec3D getRotationAxis() const;
+        Vec3D getLabSystamRotationAxis() const;
+        RotationAxisType getRotationAxisType() const;
+        
+        QList<double> getCell();
+        void enableUpdate(bool b=true);
         
     public slots:
         void addRotation(const Vec3D& axis, double angle);
