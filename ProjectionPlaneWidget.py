@@ -35,14 +35,14 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     #self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateZoom)
         self.toolBar=QtGui.QToolBar(self)
         
-        a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.rotate, 'Pan'), (Icons.rotate, 'Rotate')))
+        a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.move, 'Pan'), (Icons.rotate_left, 'Rotate')))
         
         self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.zoomHandler)
         self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.panHandler)
         self.connect(a[2], QtCore.SIGNAL('toggled(bool)'), self.rotateHandler)
         
         self.toolBar.addSeparator()
-        a=self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.messagebox_info, 'Add Marker')))
+        a=self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.flag, 'Add Marker')))
         self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.infoHandler)
         self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.markHandler)
 

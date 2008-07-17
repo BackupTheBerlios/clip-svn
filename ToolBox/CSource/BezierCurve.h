@@ -3,6 +3,9 @@
 
 #include <QtCore/QPointF>
 #include <QtCore/QList>
+#include <iostream>
+
+using namespace std;
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
 #define MAX(x,y) (((x)>(y))?(x):(y))
@@ -22,17 +25,28 @@ class BezierCurve {
         QList<float> mapSorted(QList<float> X);
         QList<float> mapSorted(QList<float> X, QList<unsigned int> sortIdx);
     private:
-        struct CurveParams{
-            float Xmin;
-            float Xmax;
-            float D0;
-            float D1;
-            float D2;
-            float D3;
-            bool operator<(const CurveParams& c) const {return Xmax<c.Xmax; };
-            float calc(float x)   {
-                return MAX(0.0, MIN(1.0, ((D3*x+D2)*x+D1)*x+D0));
-            }
+        class CurveParams{
+            public:
+                CurveParams(float D0, float D1, float D2, float D3, float _Xmin, float _Xmax): Xmin(_Xmin), Xmax(_Xmax) {
+                    D[0]=D0;
+                    D[1]=D1;
+                    D[2]=D2;
+                    D[3]=D3;
+                }
+                    
+                bool operator<(const CurveParams& c) const {return Xmax<c.Xmax; };
+                float calc(float x)   {
+                    float t = D[3];
+                    for (unsigned int n=3; n--; ) {
+                        t*=x;
+                        t+=D[n];
+                    }
+                    return MAX(0.0, MIN(1.0, t));
+                }
+                float Xmin;
+                float Xmax;
+            private:
+                float D[4];
         };
         CurveParams getCurveParam(float x);
 

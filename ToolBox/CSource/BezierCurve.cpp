@@ -19,18 +19,11 @@ bool BezierCurve::setPoints(QList<QPointF>& p) {
     if (p.size()<2) {
         return false;
     } else if (p.size()==2) {
-        CurveParams cp;
-        cp.Xmin=-INFINITY;
-        cp.Xmax=INFINITY;
         float dx=p.at(1).x()-p.at(0).x();
         if (dx==0.0)
             return false;
         float slope=(p.at(1).y()-p.at(0).y())/dx;
-        cp.D0=p.at(0).y()-slope*p.at(0).x();
-        cp.D1=slope;
-        cp.D2=0.0;
-        cp.D3=0.0;
-        params.append(cp);
+        params.append(CurveParams(p.at(0).y()-slope*p.at(0).x(), slope, 0.0, 0.0, -INFINITY, INFINITY));
     } else {
         for (unsigned int i=p.size()-1; i--; ) {
             float p0=p.at(i).y();
@@ -69,17 +62,13 @@ bool BezierCurve::setPoints(QList<QPointF>& p) {
             float C3=(p3-3*p2+3*p1-  p0)/dx/dx/dx;
             
             float x=p.at(i).x();
-            CurveParams cp;
             
-            cp.D0 = ((-C3*x +C2)*x-C1)*x+C0;
-            cp.D1 = (3.0*C3*x -2.0*C2)*x+C1;
-            cp.D2=C2 - 3.0*C3*x;
-            cp.D3=C3;
-            cp.Xmin=p.at(i).x();
-            cp.Xmax=p.at(i+1).x();
+            float D0 = ((-C3*x +C2)*x-C1)*x+C0;
+            float D1 = (3.0*C3*x -2.0*C2)*x+C1;
+            float D2=C2 - 3.0*C3*x;
+            float D3=C3;
             
-            
-            params.prepend(cp);
+            params.prepend(CurveParams(D0,D1,D2,D3,p.at(i).x(),p.at(i+1).x()));
         }
         params.first().Xmin=-INFINITY;
         params.last().Xmax=INFINITY;
@@ -188,8 +177,7 @@ QList<float> BezierCurve::mapSorted(QList<float> X, QList<unsigned int> Idx) {
 }
 
 unsigned int BezierCurve::getCurveParamIdx(float x) {
-    CurveParams cp;
-    cp.Xmax=x;
+    CurveParams cp(0,0,0,0,0,x);
     QList<CurveParams>::const_iterator iter=qLowerBound(params.constBegin(), params.constEnd(), cp);
     if (iter==params.constEnd())
         iter--;
