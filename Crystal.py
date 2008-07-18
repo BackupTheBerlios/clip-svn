@@ -1,6 +1,6 @@
 from Ui_Crystal import Ui_Crystal
 from PyQt4 import QtCore, QtGui
-from Tools import SpaceGroup
+from Tools import SpaceGroup,  Icons
 import ToolBox
 from ToolBox import Vec3D,  Mat3D
 import math
@@ -34,10 +34,9 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.connect(self.crystal,  QtCore.SIGNAL('cellChanged()'),  self.updateOM)
         self.connect(self.crystal,  QtCore.SIGNAL('cellChanged()'),  self.loadCellFromCrystal)
         
-        ac1=self.toolBar.addAction('Load')
-        ac1=self.toolBar.addAction('Save')
-        ac1=self.toolBar.addAction('Index')
-        self.connect(ac1,  QtCore.SIGNAL('triggered()'),  self.startIndexing)
+        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Open', self.slotOpenCrystalData)
+        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save', self.slotSaveCrystalData)
+        self.toolBar.addAction('Index', self.slotStartIndexing)
         
         self.loadCellFromCrystal()
 
@@ -73,7 +72,7 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.crystal.setCell(*cell)
         
 
-    def updateOM(self):
+    def calcOrientation(self):
         OM=self.crystal.getReziprocalOrientationMatrix()
         R=self.crystal.getRotationMatrix()
         OM=R*OM
@@ -89,9 +88,13 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         Rphi=Rchi*Rom*R
         v=Rphi*Vec3D(1, 0, 0)
         phi=math.atan2(v.y(),  v.x())
+        return math.degrees(omega), math.degrees(chi), math.degrees(phi)
+
+    def updateOM(self):
+        omega, chi, phi=self.calcOrientation()
         self.inhibitRotationUpdate=True
         for w, p in zip(self.rotInputs,  (omega,  chi,  phi)):
-            w.setValue(math.degrees(p))
+            w.setValue(p)
         self.inhibitRotationUpdate=False
         
     def changeRotation(self):
@@ -115,9 +118,76 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
             drag.setMimeData(mimeData)
             res=drag.exec_(QtCore.Qt.LinkAction) 
         
-    def startIndexing(self):
+    def slotStartIndexing(self):
         w=Indexing(self.crystal)
         mdi=self.parent().mdiArea()
         mdi.addSubWindow(w)
         w.show()
-        
+
+    def slotSaveCrystalData(self):
+        import xml.dom.minidom
+        doc=xml.dom.minidom.Document()
+        crystal=doc.appendChild(doc.createElement('Crystal'))
+
+        sg=crystal.appendChild(doc.createElement('Spacegroup'))
+        sg.setAttribute('symbol', str(self.crystal.getSpacegroupSymbol()))
+
+        cell=crystal.appendChild(doc.createElement('Cell'))
+        for val, name in zip(self.crystal.getCell(), ('a', 'b', 'c', 'alpha', 'beta', 'gamma')):
+            cell.setAttribute(name, str(val))
+
+        orient=crystal.appendChild(doc.createElement('Orientation'))
+        for val, name in zip(self.calcOrientation(), ('omega', 'chi','phi')):
+            orient.setAttribute(name, str(val))
+
+        fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Cell files (*.cell);;All Files (*)')
+        if fileName!="":
+            doc.writexml(open(fileName, 'w'), addindent='  ',newl='\n')
+            
+    def getAttibutes(self, doc, elementName, attibuteNames):
+        element=doc.getElementsByTagName(elementName)
+        if len(element)!=1:
+            return
+        element=element[0]
+        r=[]
+        for an in attibuteNames:
+            s=element.getAttribute(an)
+            if s=='':
+                return
+            r.append(s)
+        return r
+
+    def slotOpenCrystalData(self):
+        fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Choose Cell to load from File', '', 'Clip Cell files (*.cell);;All Files (*)'))
+        try:
+            import xml.dom.minidom
+            doc=xml.dom.minidom.parse(fileName)
+            
+            sgName=self.getAttibutes(doc, 'Spacegroup', ('symbol', ))
+            if sgName==None:
+                return
+            sgName=sgName[0]
+            
+            cellData=self.getAttibutes(doc, 'Cell', ('a', 'b', 'c', 'alpha', 'beta', 'gamma'))
+            if cellData==None:
+                return
+            cellData=[float(v) for v in cellData]
+
+            orient=self.getAttibutes(doc, 'Orientation', ('omega', 'chi','phi'))
+            if orient==None:
+                return
+            orient=[float(v) for v in orient]
+
+        except:
+            return
+        else:
+            self.crystal.setSpacegroupSymbol(sgName)
+            self.crystal.setCell(*cellData)
+            R=Mat3D()
+            for a, n in zip(orient, (2, 0, 2)):
+                v=Vec3D(0, 0, 0)
+                v[n]=1
+                R*=Mat3D(v, math.radians(a))
+            self.crystal.setRotation(R)
+
+            

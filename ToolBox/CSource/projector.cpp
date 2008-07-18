@@ -295,7 +295,7 @@ void Projector::addMarker(const QPointF& p) {
     marker->setFlag(QGraphicsItem::ItemIsMovable, true);
     //marker->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     marker->setCursor(QCursor(Qt::SizeAllCursor));
-    marker->setPen(QPen(Qt::black));
+    marker->setPen(QPen(QColor(0xFF,0xAA,0x33)));
     marker->setRect(r);
     marker->setPos(det2img.map(p));
     QTransform t;

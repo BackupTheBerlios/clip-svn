@@ -1,20 +1,17 @@
-* Fit
 * load RGB Image 
+* Load / Save of Crystal
+* Load / Save of Transfer Curves
 
 * Aus / An Decorations
 * UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
 * UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
 * Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
 * Simulation mit verschiednenen Punktgrößen ~ Min abstand
-* Aktuelle Einstellungen speichern
 * Windows installation mit libqt ohne den Rest
 * Sys absents
 * CIF-Import der Kristallstruktur
 
-* Beim Fitten nur vorgegebene Reflexe berechnen (Nicht alle Reflexe neu erzeugen, wenn die Zelle geäer wird)
 * Kommentare
 * LaueCylinder Projector   
 * Bild des CoordinatenSystems
-* Icons
 * Aufräumen von clip.py
-* Upload to Berlios / CCP13
