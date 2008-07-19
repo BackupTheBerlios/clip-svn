@@ -36,8 +36,8 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
 
         self.gv.fitInView(0, 0, 1, 1)
 
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Curve')
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save Curve')
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Curve',  self.loadCurves)
+        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save Curve', self.saveCurves)
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_horizontal)), 'Flip Horizontal', self.flipH)
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.flip_vertikal)), 'Flip Vertical', self.flipV)
         a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.rotate_right)), 'Rotate Clockwise', self.rotCW)
@@ -99,7 +99,9 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
             for idx in range(4):
                 self.transferCurveMarkers[idx]=[self.newMarker(p.x(), p.y()) for p in c[idx].getPoints()]
                 self.updateTransferCurve(idx)
-                
+            self.renewTransferCurveMarkers()
+            self.makeScales()
+
     def newMarker(self, x, y):
             m=FixedSignalingEllipseItem()
             m.setRect(-5, -5, 10, 10)
@@ -203,8 +205,6 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
         w=self.verticalScale.width()
         h=self.verticalScale.height()
         
-        
-        
         V=self.bezierCurves[0].range(0.0,  1.0/(h-1), h)
         
         R=self.bezierCurves[1].map(V)
@@ -241,7 +241,53 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
         p.end()
         self.horizontalScale.setPixmap(pix)
         
+    def loadCurves(self):
+        fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Choose Curve to load from File', '', 'Clip Curve files (*.curve);;All Files (*)'))
+        try:
+            import xml.dom.minidom
+            doc=xml.dom.minidom.parse(fileName)
+            curves=[]
+            for i, name in enumerate(('Value', 'Red',  'Green', 'Blue')):
+                elem=doc.getElementsByTagName(name)[0]
+                points=[]
+                for p in elem.getElementsByTagName('Point'):
+                    x=float(p.getAttribute('x'))
+                    y=float(p.getAttribute('y'))
+                    points.append((x, y))
+                curves.append(points)
+                    
+        except:
+            pass
+        else:
+            for n in range(4):
+                M=self.transferCurveMarkers[n]
+                for m in M:
+                    self.gs.removeItem(m)
+                self.transferCurveMarkers[n]=[]
+                for x, y in curves[n]:
+                    self.transferCurveMarkers[n].append(self.newMarker(x, y))
+                    
+                self.updateTransferCurve(n)
+            self.renewTransferCurveMarkers()
+            self.makeScales()
+            self.publishCurves()
         
+    def saveCurves(self):
+        import xml.dom.minidom
+        doc=xml.dom.minidom.Document()
+        base=doc.appendChild(doc.createElement('Transfercurves'))
+        for i, name in enumerate(('Value', 'Red',  'Green', 'Blue')):
+            curve=base.appendChild(doc.createElement(name))
+            for p in self.transferCurveMarkers[i]:
+                point=curve.appendChild(doc.createElement('Point'))
+                point.setAttribute('x', str(p.pos().x()))
+                point.setAttribute('y', str(p.pos().y()))
+                
+        fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Curves', '', 'Clip Curve files (*.curve);;All Files (*)')
+        if fileName!="":
+            doc.writexml(open(fileName, 'w'), addindent='  ',newl='\n')
+        
+                
         
         
         
@@ -290,6 +336,8 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
             c2.setData([], [])
             c3.setData([], [])
         self.CurveDisplay.replot()
+        
+
         
         
         
