@@ -1,0 +1,17 @@
+* load RGB Image 
+* Load / Save of Crystal
+* Load / Save of Transfer Curves
+
+* Aus / An Decorations
+* UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
+* UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
+* Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
+* Simulation mit verschiednenen Punktgrößen ~ Min abstand
+* Windows installation mit libqt ohne den Rest
+* Sys absents
+* CIF-Import der Kristallstruktur
+
+* Kommentare
+* LaueCylinder Projector   
+* Bild des CoordinatenSystems
+* Aufräumen von clip.py
