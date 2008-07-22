@@ -24,6 +24,10 @@
   <property name="windowTitle" >
    <string>Form</string>
   </property>
+  <property name="windowIcon" >
+   <iconset resource="icons/icons.qrc" >
+    <normaloff>:/Crystal.png</normaloff>:/Crystal.png</iconset>
+  </property>
   <layout class="QGridLayout" >
    <property name="margin" >
     <number>0</number>
@@ -559,6 +563,8 @@
   <tabstop>rotationChi</tabstop>
   <tabstop>rotationPhi</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="icons/icons.qrc" />
+ </resources>
  <connections/>
 </ui>

@@ -28,14 +28,15 @@ class ImageTransfer {
         unsigned imageWidth;
         unsigned imageHeight;
 
-        QVector<unsigned char> rawData;
+
         unsigned int rawType;
 
         QVector<quint32> transferedData;
     
         // Needed for FloatTransfer
         QList<float> values;
-        QVector<unsigned int> imgIndices;
+
+        QVector<unsigned int> imgData;
     
         QList<BezierCurve> curves;
         

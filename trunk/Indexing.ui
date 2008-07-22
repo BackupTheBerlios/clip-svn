@@ -12,6 +12,10 @@
   <property name="windowTitle" >
    <string>Indexing</string>
   </property>
+  <property name="windowIcon" >
+   <iconset resource="icons/icons.qrc" >
+    <normaloff>:/Index.png</normaloff>:/Index.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout_3" >
    <property name="margin" >
     <number>3</number>
@@ -24,7 +28,7 @@
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QGridLayout" name="gridLayout_2" >
        <item rowspan="4" row="0" column="0" >
         <widget class="QTableView" name="SolutionSelector" >
@@ -200,6 +204,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons/icons.qrc" />
+ </resources>
  <connections/>
 </ui>

@@ -34,9 +34,11 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.connect(self.crystal,  QtCore.SIGNAL('cellChanged()'),  self.updateOM)
         self.connect(self.crystal,  QtCore.SIGNAL('cellChanged()'),  self.loadCellFromCrystal)
         
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Open', self.slotOpenCrystalData)
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.filesave)), 'Save', self.slotSaveCrystalData)
-        self.toolBar.addAction('Index', self.slotStartIndexing)
+        self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Open', self.slotOpenCrystalData)
+        self.toolBar.addAction(QtGui.QIcon(':/filesave.png'), 'Save', self.slotSaveCrystalData)
+        self.toolBar.addAction(QtGui.QIcon(':/Index.png'),'Index', self.slotStartIndexing)
+        
+        self.dragStart.setPixmap(QtGui.QPixmap(':/Crystal.png'))
         
         self.loadCellFromCrystal()
 

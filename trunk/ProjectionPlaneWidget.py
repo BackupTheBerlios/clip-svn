@@ -3,8 +3,7 @@ import LaueImage
 from PyQt4 import QtCore, QtGui
 import math
 from time import time
-from Tools import Icons
-
+import icons_rc
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
@@ -35,24 +34,24 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     #self.connect(self.projector, QtCore.SIGNAL('projectionRectPosChanged()'),  self.updateZoom)
         self.toolBar=QtGui.QToolBar(self)
         
-        a=self.mkActionGroup(0, ((Icons.viewmag, 'Zoom'), (Icons.move, 'Pan'), (Icons.rotate_left, 'Rotate')))
+        a=self.mkActionGroup(0, ((':/zoom.png', 'Zoom'), (':/pan.png', 'Pan'), (':/rotate_left.png', 'Rotate')))
         
         self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.zoomHandler)
         self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.panHandler)
         self.connect(a[2], QtCore.SIGNAL('toggled(bool)'), self.rotateHandler)
         
         self.toolBar.addSeparator()
-        a=self.mkActionGroup(0, ((Icons.messagebox_info, 'Info'), (Icons.flag, 'Add Marker')))
+        a=self.mkActionGroup(0, ((':/info.png', 'Info'), (':/flag.png', 'Add Marker')))
         self.connect(a[0], QtCore.SIGNAL('toggled(bool)'), self.infoHandler)
         self.connect(a[1], QtCore.SIGNAL('toggled(bool)'), self.markHandler)
 
         self.toolBar.addSeparator()
         
-        self.imageAction=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)), 'Load Image', self.slotLoadCloseImage)
-        self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.fileprint)), 'Print', self.slotPrint)
+        self.imageAction=self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Load Image', self.slotLoadCloseImage)
+        self.toolBar.addAction(QtGui.QIcon(':/fileprint.png'), 'Print', self.slotPrint)
 
         self.toolBar.addSeparator()
-        a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(Icons.configure)), 'Configure')
+        a=self.toolBar.addAction(QtGui.QIcon(':/configure.png'), 'Configure')
         self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.startConfig)
     
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
@@ -61,7 +60,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.mousePressHandler=self.infoHandler
         QtCore.QTimer.singleShot(0, self.startResize)
         self.grip=QtGui.QSizeGrip(self)
-
+        self.setWindowIcon(QtGui.QIcon(':/Projector.png'))
         
     def startConfig(self):
         s=self.projector.configName()
@@ -80,7 +79,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         group=QtGui.QActionGroup(self)
         r=[]
         for icon, text in args:
-            a=self.toolBar.addAction(QtGui.QIcon(QtGui.QPixmap(icon)), text)
+            a=self.toolBar.addAction(QtGui.QIcon(icon), text)
             a.setCheckable(True)
             group.addAction(a)
             r.append(a)
@@ -289,7 +288,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 mode=0
             if mode!=None:
                 self.image=ImageTransfer()
-                self.image.setData(img.width, img.height, mode, img.tostring())
+                self.image.setData(img.size[0], img.size[1], mode, img.tostring())
                 if hasattr(img, 'resx') and hasattr(img, 'resy'):
                     self.projector.setDetSize(self.projector.dist(), img.width/img.resx, img.height/img.resy)
                 self.gv.setBGImage(self.image)

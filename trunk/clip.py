@@ -16,7 +16,7 @@ from RotateCrystal import RotateCrystal
 from Reorient import Reorient
 from ReflexInfo import ReflexInfo
 from Fit import Fit
-
+import icons_rc
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -29,7 +29,7 @@ class clip(QtGui.QMainWindow):
         self.MdiArea=QtGui.QMdiArea(self)
         self.setCentralWidget(self.MdiArea)
         self.windowMapper = QtCore.QSignalMapper()
-      
+        self.setWindowIcon(QtGui.QIcon(':/Clip.png'))
         self.connect(self.windowMapper, QtCore.SIGNAL('mapped(QWidget *)'), self.MdiArea.setActiveSubWindow)
 
         self.transferCurveMapper=QtCore.QSignalMapper()
@@ -178,7 +178,8 @@ class clip(QtGui.QMainWindow):
             self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), t.rotAxisChanged)
             self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), t.orientationChanged)
         wid.setWindowTitle('Crystal')
-        self.MdiArea.addSubWindow(wid)
+        mdi=self.MdiArea.addSubWindow(wid)
+        mdi.setWindowIcon(wid.windowIcon())        
         wid.show()
         return wid
 
@@ -190,7 +191,8 @@ class clip(QtGui.QMainWindow):
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('Stereographic Projection')
-        self.MdiArea.addSubWindow(wid)
+        mdi=self.MdiArea.addSubWindow(wid)
+        mdi.setWindowIcon(wid.windowIcon())
         wid.show()
         return wid
         
@@ -202,7 +204,8 @@ class clip(QtGui.QMainWindow):
         if self.crystalStore.size()>0:
             wid.projector.connectToCrystal(self.crystalStore.at(0))
         wid.setWindowTitle('LauePlane')
-        self.MdiArea.addSubWindow(wid)
+        mdi=self.MdiArea.addSubWindow(wid)
+        mdi.setWindowIcon(wid.windowIcon())
         wid.show()
         return wid
 
@@ -210,6 +213,7 @@ class clip(QtGui.QMainWindow):
     def slotShowToolwindow(self, w):
         print "showing", w.menuName
         mdi=self.MdiArea.addSubWindow(w)
+        mdi.setWindowIcon(w.windowIcon())
         mdi.show()
         w.show()
 

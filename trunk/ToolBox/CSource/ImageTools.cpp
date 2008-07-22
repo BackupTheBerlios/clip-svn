@@ -12,7 +12,7 @@
 
 
 
-ImageTransfer::ImageTransfer(): values(), imgIndices(),rawData(),transferedData() {
+ImageTransfer::ImageTransfer(): values(), imgData(),transferedData() {
     for (unsigned int i=4; i--; )
         curves.append(BezierCurve());
     qimg=NULL;
@@ -22,7 +22,7 @@ ImageTransfer::ImageTransfer(): values(), imgIndices(),rawData(),transferedData(
 }
 
 ImageTransfer::~ImageTransfer() {
-    // TODO: Delete data
+    deleteData();
 }
 
 void ImageTransfer::deleteData() {
@@ -38,11 +38,6 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
     imageWidth=width;
     imageHeight=height;
     rawType=format;
-
-    /*
-        rawData.resize(len);
-        memcpy(rawData.data(), inData, len);
-    */
     
     
     if (format==0) {
@@ -75,21 +70,24 @@ void ImageTransfer::setData(unsigned int width, unsigned int height, unsigned in
             values[n]*=norm;
         }
         
-        imgIndices.resize(N);
+        imgData.resize(N);
         for (unsigned int i=indexForValues.size(); i--; ) {
             for (unsigned int j=indexForValues[i].size(); j--; ) {
-                imgIndices[indexForValues[i][j]]=i;
+                imgData[indexForValues[i][j]]=i;
             }
         }
         
         #ifdef __DEBUG__
-        cout << "ImgIndices Set: " << endl;
+        cout << "imgData Set: " << endl;
         #endif
         
             
         transferedData.resize(N);
     } else if (format==1) {
         // 24bit RGB
+        imgData.resize(len/3);
+        for (unsigned int n=imgData.size(); n--; )
+            imgData[n]=(inData[3*n+2]<<16) | (inData[3*n+1]<<8) | (inData[3*n]);
         transferedData.resize(len/3);
     }
     
@@ -111,10 +109,10 @@ void ImageTransfer::doImgRotation(unsigned int _CWRSteps, bool flip) {
     CWRSteps=(CWRSteps+_CWRSteps)%4;
     flipImg=flipImg xor flip;
     #ifdef __DEBUG__
-    cout << "doImgRot " << _CWRSteps << " " << flip << " " << imageWidth << " " << imageHeight << " " << imgIndices.size() << endl;
+    cout << "doImgRot " << _CWRSteps << " " << flip << " " << imageWidth << " " << imageHeight << " " << imgData.size() << endl;
     #endif
     
-    QVector<unsigned int> tmp(imgIndices);
+    QVector<unsigned int> tmp(imgData);
     
     unsigned int w=imageWidth;
     unsigned int h=imageHeight;
@@ -122,27 +120,27 @@ void ImageTransfer::doImgRotation(unsigned int _CWRSteps, bool flip) {
     if (flip) {
         if (_CWRSteps==0) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[w-1-n%w+w*(n/w)]=tmp[n];
+                imgData[w-1-n%w+w*(n/w)]=tmp[n];
         } else if (_CWRSteps==1) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[n/w+h*(n%w)]=tmp[n];
+                imgData[n/w+h*(n%w)]=tmp[n];
         } else if (_CWRSteps==2) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[n%w+w*(h-1-n/w)]=tmp[n];
+                imgData[n%w+w*(h-1-n/w)]=tmp[n];
         } else if (_CWRSteps==3) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[h-1-n/w+h*(w-1-n%w)]=tmp[n];
+                imgData[h-1-n/w+h*(w-1-n%w)]=tmp[n];
         }
     } else {
         if (_CWRSteps==1) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[n/w+h*(w-1-n%w)]=tmp[n];
+                imgData[n/w+h*(w-1-n%w)]=tmp[n];
         } else if (_CWRSteps==2) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[w-1-n%w+w*(h-1-n/w)]=tmp[n];
+                imgData[w-1-n%w+w*(h-1-n/w)]=tmp[n];
         } else if (_CWRSteps==3) {
             for (unsigned int n=tmp.size(); n--; ) 
-                imgIndices[h-1-n/w+h*(n%w)]=tmp[n];
+                imgData[h-1-n/w+h*(n%w)]=tmp[n];
         }
     }        
     if (_CWRSteps%2==1)
@@ -174,7 +172,7 @@ void ImageTransfer::doFloatTransfer() {
     for (unsigned int n=vMap.size(); n--; ) {
         float vval=vMap[n];
         unsigned int rgbVal=0xFF;
-        for (unsigned int i=3; i--; ) {
+        for (unsigned int i=0; i<3; i++) {
             rgbVal<<=8;
             rgbVal|=(unsigned int)(255.0*curves[i+1](vval,hints[i+1]));
         }
@@ -184,12 +182,33 @@ void ImageTransfer::doFloatTransfer() {
     cout << "float transfer: Transfer Image" << endl;
     #endif
     for (unsigned int n=transferedData.size(); n--; ) {
-        transferedData[n]=colors[imgIndices[n]];
+        transferedData[n]=colors[imgData[n]];
     }
 }
 
 void ImageTransfer::doRGBTransfer() {
-    //FIXME: Implement
+    cout << "Do RGB Transfer" << endl;
+    QList<float> valCurve=curves[0].range(0, 1.0/255, 256);
+    QVector<unsigned int> rgbCurve[3];
+    for (unsigned int i=3; i--; ) {
+        QList<float> tmp=curves[i+1].mapSorted(valCurve);
+        rgbCurve[i].resize(256);
+        unsigned int shift=16-8*i;
+        for (unsigned n=256; n-- ; ) {
+            unsigned int val=((unsigned int)(n*tmp[n]))<<shift;
+            rgbCurve[i][n]=val;
+        }
+    }
+    union rgbTuple {
+        unsigned int val;
+        unsigned char argb[4];
+    };
+    for (unsigned int n=transferedData.size(); n--; ) {
+        rgbTuple t;
+        t.val=imgData[n];
+        unsigned int rgbVal=0xFF000000 | rgbCurve[0][t.argb[0]] | rgbCurve[1][t.argb[1]] | rgbCurve[2][t.argb[2]];
+        transferedData[n]=rgbVal;
+    }
 }
 
 void ImageTransfer::doTransfer() {

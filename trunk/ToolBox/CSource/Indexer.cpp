@@ -225,6 +225,8 @@ Mat3D bestRotation(Mat3D M) {
     }
 };
 
+#define MAX(x,y) (((x)>(y))?(x):(y))
+
 void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const AngleInfo &a) {
     // Prepare Best Rotation Matrix from c1,c2 -> a(1) a(2)
     Mat3D R=c1.normalLocal^p.markerNormals[a.index1];
@@ -253,13 +255,13 @@ void IndexWorker::checkGuess(const Reflection &c1, const Reflection &c2,  const 
             si.k=c2.k;
             si.l=c2.l;
         } else {
-            Vec3D hklUnitVect(OMatInv*R*p.markerNormals.at(n));
-            hklUnitVect.normalize();
+            Vec3D hklVect(OMatInv*R*p.markerNormals.at(n));
+            double max=MAX(MAX(fabs(hklVect[0]),fabs(hklVect[1])),fabs(hklVect[2]));
+            hklVect*=1.0/max;
             si.initialIndexed=false;
+    
             for (unsigned int order=1; order<=p.maxOrder; order++) {
-                // TODO: Not all ints are possible!!!
-                double scale=sqrt(order);
-                Vec3D t(hklUnitVect*scale);
+                Vec3D t(hklVect*order);
                 #ifdef __DEBUG__
                 si.rationalHkl=t;
                 #endif
