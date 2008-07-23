@@ -1,22 +1,20 @@
 #!/usr/bin/python
 
-
 import sys
-import os.path
 import math
 
-
 from PyQt4 import QtCore, QtGui
-from LaueImage import LaueImage
-import Crystal
-from ImgTransferCurve import ImgTransferCurve
 from ToolBox import ObjectStore
+import icons_rc
+
+from Crystal import Crystal
+from LaueImage import LaueImage
+from ImgTransferCurve import ImgTransferCurve
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
 from Reorient import Reorient
 from ReflexInfo import ReflexInfo
 from Fit import Fit
-import icons_rc
 
 class clip(QtGui.QMainWindow):
     """An application called clip."""
@@ -171,13 +169,12 @@ class clip(QtGui.QMainWindow):
 
     
     def slotNewCrystal(self):
-        wid = Crystal.Crystal(self)
+        wid = Crystal(self)
         self.crystalStore.addObject(wid.crystal)
 
         for t in self.tools:
             self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), t.rotAxisChanged)
             self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), t.orientationChanged)
-        wid.setWindowTitle('Crystal')
         mdi=self.MdiArea.addSubWindow(wid)
         mdi.setWindowIcon(wid.windowIcon())        
         wid.show()

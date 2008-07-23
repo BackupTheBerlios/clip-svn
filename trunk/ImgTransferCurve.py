@@ -1,11 +1,6 @@
 from Ui_ImgTransferCurve import Ui_ImgTransferCurve
 from PyQt4 import QtCore, QtGui
-import bisect
-import sys
-from copy import deepcopy
-from Tools import Icons
 from ToolBox import SignalingEllipseItem, BezierCurve
-from time import time
 from ToolWidget import ToolWidget
 
 

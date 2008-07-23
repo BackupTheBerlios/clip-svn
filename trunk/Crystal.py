@@ -1,6 +1,6 @@
 from Ui_Crystal import Ui_Crystal
 from PyQt4 import QtCore, QtGui
-from Tools import SpaceGroup,  Icons
+from Tools import SpaceGroup
 import ToolBox
 from ToolBox import Vec3D,  Mat3D
 import math
@@ -37,8 +37,6 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Open', self.slotOpenCrystalData)
         self.toolBar.addAction(QtGui.QIcon(':/filesave.png'), 'Save', self.slotSaveCrystalData)
         self.toolBar.addAction(QtGui.QIcon(':/Index.png'),'Index', self.slotStartIndexing)
-        
-        self.dragStart.setPixmap(QtGui.QPixmap(':/Crystal.png'))
         
         self.loadCellFromCrystal()
 

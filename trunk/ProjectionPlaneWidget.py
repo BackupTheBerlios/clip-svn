@@ -3,7 +3,6 @@ import LaueImage
 from PyQt4 import QtCore, QtGui
 import math
 from time import time
-import icons_rc
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
@@ -294,12 +293,12 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                 self.gv.setBGImage(self.image)
                 self.gv.resetCachedContent()
                 self.gv.viewport().update()
-                self.imageAction.setIcon(QtGui.QIcon(QtGui.QPixmap(Icons.fileclose)))
+                self.imageAction.setIcon(QtGui.QIcon(':/fileclose.png'))
                 self.imageAction.setIconText('Close Image')
         else:
             self.gv.setBGImage(None)
             self.image=None
-            self.imageAction.setIcon(QtGui.QIcon(QtGui.QPixmap(Icons.fileopen)))
+            self.imageAction.setIcon(QtGui.QIcon(':/fileopen.png'))
             self.imageAction.setIconText('Open Image')
             self.gv.resetCachedContent()
             self.gv.viewport().update()
