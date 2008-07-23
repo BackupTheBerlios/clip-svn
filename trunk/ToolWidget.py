@@ -45,6 +45,10 @@ class ToolWidget(QtGui.QWidget):
         return
 
     def showWindow(self):
+        for mdi in self.MdiArea.subWindowList():
+            if mdi.widget()==self:
+                self.MdiArea.setActiveSubWindow(mdi)
+                return
         mdi=self.MdiArea.addSubWindow(self)
         mdi.show()
         self.show()

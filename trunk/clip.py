@@ -8,7 +8,6 @@ from ToolBox import ObjectStore
 import icons_rc
 
 from Crystal import Crystal
-from LaueImage import LaueImage
 from ImgTransferCurve import ImgTransferCurve
 from ProjectionPlaneWidget import ProjectionPlaneWidget
 from RotateCrystal import RotateCrystal
@@ -205,15 +204,6 @@ class clip(QtGui.QMainWindow):
         mdi.setWindowIcon(wid.windowIcon())
         wid.show()
         return wid
-
-
-    def slotShowToolwindow(self, w):
-        print "showing", w.menuName
-        mdi=self.MdiArea.addSubWindow(w)
-        mdi.setWindowIcon(w.windowIcon())
-        mdi.show()
-        w.show()
-
 
 def main(args):
     app=QtGui.QApplication(args)

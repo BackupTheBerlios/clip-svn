@@ -5,14 +5,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>299</width>
-    <height>233</height>
+    <width>284</width>
+    <height>215</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>ReflexInfo</string>
   </property>
+  <property name="windowIcon" >
+   <iconset resource="icons/icons.qrc" >
+    <normaloff>:/info.png</normaloff>:/info.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout_3" >
+   <property name="margin" >
+    <number>3</number>
+   </property>
+   <property name="spacing" >
+    <number>3</number>
+   </property>
    <item row="0" column="0" >
     <widget class="QLabel" name="label" >
      <property name="sizePolicy" >
@@ -36,10 +46,10 @@
      </property>
      <layout class="QGridLayout" name="gridLayout" >
       <property name="margin" >
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
-       <number>3</number>
+       <number>1</number>
       </property>
       <item row="1" column="0" >
        <widget class="QLabel" name="label_2" >
@@ -66,6 +76,12 @@
        <widget class="QLineEdit" name="axX" >
         <property name="enabled" >
          <bool>false</bool>
+        </property>
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
         <property name="alignment" >
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -170,10 +186,10 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2" >
       <property name="margin" >
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
-       <number>3</number>
+       <number>1</number>
       </property>
       <item row="1" column="0" >
        <widget class="QLabel" name="label_5" >
@@ -264,7 +280,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons/icons.qrc" />
+ </resources>
  <connections>
   <connection>
    <sender>reflex</sender>
