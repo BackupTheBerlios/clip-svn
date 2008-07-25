@@ -15,7 +15,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self)
         self.setupUi(self)
         self.HKL=[]
-        self.order=[]
+        self.scores=[]
         self.runParams={}
 
         self.paramModel=ParamModel(self)
@@ -42,7 +42,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
     def doIndexing(self):
         c=self.searchCrystal()
         self.HKL=[]
-        self.order=[]
+        self.scores=[]
         if c:
             for p in c.getConnectedProjectors():
                 N=p.getMarkerNormals()
@@ -58,9 +58,11 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
                         s=(r*h)/(r*r)
                         if (r*s-h).norm()<0.1:
                             break
-    
+                    
                     self.HKL.append(r*s)
-                    self.order.append(s*i)
+                    angleDiff=math.degrees(math.acos(c.hkl2Reziprocal(h).normalized()*n))
+                    hklDev=sum([abs(x) for x in r*s-h])
+                    self.scores.append((angleDiff, hklDev))
         self.fitModel.reset()
         
     def refineCell(self, crystal, projectors):
@@ -184,8 +186,10 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         for p in crystal.getConnectedProjectors():
             p.enableProjection(True)
             p.reflectionsUpdated()
-            
+        
+        self.doIndexing()
         self.paramModel.reset()
+        self.fitModel.reset()
 
     def windowChanged(self):
         self.paramModel.loadModel()
@@ -197,7 +201,7 @@ class FitModel(QtCore.QAbstractTableModel):
         self.fit=parent
         
     def rowCount(self, p):
-        return len(self.fit.order)
+        return len(self.fit.HKL)
         
     def columnCount(self, p):
         return 8
@@ -209,11 +213,9 @@ class FitModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(round(self.fit.HKL[index.row()][index.column()]))
             elif c<6:
                 return QtCore.QVariant('%.2f'%self.fit.HKL[index.row()][index.column()-3])
-            elif c==6:
-                return QtCore.QVariant('lala')
-            elif c==7:
-                return QtCore.QVariant('lala')
-        elif role==QtCore.Qt.TextAlignmentRole and index.column()<6:
+            else:
+                return QtCore.QVariant('%.3f'%self.fit.scores[index.row()][index.column()-6])
+        elif role==QtCore.Qt.TextAlignmentRole:
             return QtCore.QVariant(QtCore.Qt.AlignRight)
         return QtCore.QVariant()
 
@@ -317,3 +319,4 @@ class ParamModel(QtCore.QAbstractItemModel):
     
 
     
+
