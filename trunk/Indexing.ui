@@ -30,7 +30,7 @@
      </property>
      <widget class="QWidget" name="layoutWidget" >
       <layout class="QGridLayout" name="gridLayout_2" >
-       <item rowspan="4" row="0" column="0" >
+       <item rowspan="5" row="0" column="0" >
         <widget class="QTableView" name="SolutionSelector" >
          <property name="sizePolicy" >
           <sizepolicy vsizetype="Expanding" hsizetype="MinimumExpanding" >
@@ -124,23 +124,23 @@
           <item row="3" column="0" >
            <widget class="QLabel" name="label_4" >
             <property name="text" >
-             <string>Max Q</string>
+             <string># Tried </string>
             </property>
            </widget>
           </item>
           <item row="3" column="1" >
-           <widget class="QDoubleSpinBox" name="doubleSpinBox" >
+           <widget class="QSpinBox" name="numberOfTried" >
             <property name="minimum" >
-             <double>0.100000000000000</double>
+             <number>10</number>
             </property>
             <property name="maximum" >
-             <double>100.000000000000000</double>
+             <number>99999</number>
             </property>
             <property name="singleStep" >
-             <double>0.250000000000000</double>
+             <number>100</number>
             </property>
             <property name="value" >
-             <double>1.000000000000000</double>
+             <number>500</number>
             </property>
            </widget>
           </item>
@@ -180,7 +180,7 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="1" colspan="2" >
+       <item row="4" column="1" colspan="2" >
         <spacer name="verticalSpacer" >
          <property name="orientation" >
           <enum>Qt::Vertical</enum>
@@ -192,6 +192,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="3" column="1" colspan="2" >
+        <widget class="QProgressBar" name="progress" >
+         <property name="value" >
+          <number>24</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

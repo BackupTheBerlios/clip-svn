@@ -14,7 +14,7 @@ class FujiBASImageFile(ImageFile.ImageFile):
         self.fp.seek(0)
         if magic=='BAS_IMAGE_FILE':
             self.infFile=self.fp
-            for ext in ('img',  'IMG'):
+            for ext in ('img', 'IMG'):
                 try:
                     self.imgFile=open(self.fp.name[:-3]+ext,  'rb')
                     break
@@ -68,5 +68,6 @@ class FujiBASImageFile(ImageFile.ImageFile):
 Image.register_open("BAS", FujiBASImageFile)
 Image.register_extension("BAS", ".inf")
 Image.register_extension("BAS", ".img") 
+Image.register_extension("BAS", ".IMG") 
 
 

@@ -281,12 +281,14 @@ class ProjectionPlaneWidget(QtGui.QWidget):
           if fInfo.exists():
             img=LaueImage.Image.open(fileName)
             mode=None
-            if img.mode=='L':
-                img=img.convert('RGB')
             if img.mode=='RGB':
                 mode=1
             elif img.mode=='F':
                 mode=0
+            elif img.mode=='L':
+                img=img.convert('F')
+                mode=0
+
             if mode!=None:
                 self.image=ImageTransfer()
                 self.image.setData(img.size[0], img.size[1], mode, img.tostring())

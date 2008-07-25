@@ -23,12 +23,15 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         self.paramView.setModel(self.paramModel)
         self.markerView.setModel(self.fitModel)
         
-        for tv in (self.markerView, ):
-            height = tv.fontMetrics().height()
-            tv.verticalHeader().setDefaultSectionSize(height); 
+        
+        self.markerView.verticalHeader().setDefaultSectionSize(self.markerView.fontMetrics().height()) 
         #self.paramView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         #self.markerView.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.markerView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.markerView.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        for n in (6, 7):
+            self.markerView.horizontalHeader().setResizeMode(n, QtGui.QHeaderView.Stretch)
+        
+        
         
         self.connect(self.paramModel, QtCore.SIGNAL('modelReset()'),  self.paramView.expandAll)
         
@@ -66,7 +69,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         d=0
         K=[Vec3D(round(h), round(k), round(l)) for (h, k, l) in self.HKL]
         O=crystal.getReziprocalOrientationMatrix()
-        while (loops<5 or abs(last-d)>1e-4):
+        while (loops<3 or abs(last-d)>1e-4):
             last=d
             loops+=1
             
@@ -139,14 +142,15 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         return d
         
     def score(self, x, crystal, projectors, items):
-        t1=time()
+        
         for v, (p, n) in zip(x, items):
             p.fitParameterSetValue(n, v)
-        t2=time()
+
         r=self.refineCell(crystal,  projectors) 
-        t3=time()
-        print t2-t1, t3-t2
         return r
+        
+    def printScore(self, x):
+        print x
 
     def doFit(self):
         crystal=self.searchCrystal()
@@ -168,7 +172,9 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
                         fitItems.append((p,  n))
                         initialValues.append(p.fitParameterValue(n))
         if len(fitItems)>0:
-            res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True)
+            #res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True)
+            res=scipy.optimize.fmin(self.score, initialValues,  args=(crystal, projectors, fitItems), callback=self.printScore)
+            
             print res
         else:
             self.refineCell(crystal, projectors)
@@ -194,20 +200,28 @@ class FitModel(QtCore.QAbstractTableModel):
         return len(self.fit.order)
         
     def columnCount(self, p):
-        return 7
+        return 8
             
     def data(self, index, role):
         if role==QtCore.Qt.DisplayRole:
             c=index.column()
-            if c==0:
-                return QtCore.QVariant(self.fit.order[index.row()])
-            elif c<4:
-                return QtCore.QVariant(self.fit.HKL[index.row()][index.column()-1])
-            elif c<7:
-                return QtCore.QVariant(round(self.fit.HKL[index.row()][index.column()-4]))
+            if c<3:
+                return QtCore.QVariant(round(self.fit.HKL[index.row()][index.column()]))
+            elif c<6:
+                return QtCore.QVariant('%.2f'%self.fit.HKL[index.row()][index.column()-3])
+            elif c==6:
+                return QtCore.QVariant('lala')
+            elif c==7:
+                return QtCore.QVariant('lala')
+        elif role==QtCore.Qt.TextAlignmentRole and index.column()<6:
+            return QtCore.QVariant(QtCore.Qt.AlignRight)
         return QtCore.QVariant()
 
     def headerData(self, section, orientation, role):
+        if role==QtCore.Qt.DisplayRole and orientation==QtCore.Qt.Horizontal:
+            data=('h', 'k', 'l', 'h', 'k', 'l', 'Angular',  'HKL')
+            return QtCore.QVariant(data[section])
+        return QtCore.QVariant()
         return QtCore.QVariant()        
 
 class ParamModel(QtCore.QAbstractItemModel):

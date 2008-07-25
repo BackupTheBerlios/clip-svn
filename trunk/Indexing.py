@@ -21,6 +21,9 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         self.connect(self.solutions, QtCore.SIGNAL('runningStateChanged(bool)'), self.updateRunLabel)
         self.connect(self.stopButton, QtCore.SIGNAL('pressed()'), self.solutions,  QtCore.SIGNAL('stopWorker()'))
         
+        self.connect(self.solutions, QtCore.SIGNAL('progressInfo(int,int)'), self.updateProgress)
+        
+        
         for tv in (self.SolutionDisplay, self.SolutionSelector):
             height = tv.fontMetrics().height()
             tv.verticalHeader().setDefaultSectionSize(height); 
@@ -28,16 +31,22 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
         self.SolutionDisplay.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         for n in (6, 7, 8):
             self.SolutionDisplay.horizontalHeader().setResizeMode(n, QtGui.QHeaderView.Stretch)
+            
+        self.updateRunLabel(False)
 
     def updateRunLabel(self, b):
         if b:
             self.runLabel.setText('Running')
+            self.progress.setEnabled(True)
             p=self.runLabel.palette()
             p.setColor(self.runLabel.backgroundRole(), QtGui.QColor(0x80, 0xFF, 0x80))
             self.runLabel.setPalette(p)
         else:
             self.runLabel.setText('Idle')
+            self.progress.setEnabled(False)
             self.runLabel.setPalette(QtGui.QPalette())
+            self.progress.setRange(0, 1)
+            self.progress.setValue(1)
         
 
     def startIndexing(self):
@@ -48,11 +57,9 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             V+=p.getMarkerNormals()
         params.markerNormals=V
         
-        V=[]
-        for r in  self.crystal.getReflectionList():
-            if r.Q<0.5:
-                V.append(r)
-        params.refs=V
+        L=self.crystal.getReflectionList()
+        L.sort(lambda x, y:cmp(x.Q, y.Q))
+        params.refs=L[:min(len(L), self.numberOfTried.value())]
         
         sg=SpaceGroup.SpaceGroup()
         sg.parseGroupSymbol(self.crystal.getSpacegroupSymbol())
@@ -74,6 +81,12 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             self.crystal.setRotation(s.bestRotation.transposed())
             for i in s.items:
                 print i.h,  i.k,  i.l,  s.bestRotation.transposed()*i.latticeVector, s.bestRotation.transposed()*i.rotatedMarker
+                
+    def updateProgress(self, max, act):
+        self.progress.setMaximum(max)
+        self.progress.setValue(act)
+        #print "progress", max, act, 100.0*act/max
+        
                 
         
 class SolutionDisplayModel(QtCore.QAbstractTableModel):

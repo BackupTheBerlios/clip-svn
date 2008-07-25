@@ -14,7 +14,6 @@
 using namespace std;
 
 Indexer::Indexer(QObject* parent): QAbstractTableModel(parent) {
-
 }
 
 int Indexer::rowCount(const QModelIndex & parent) const {
@@ -72,6 +71,7 @@ void Indexer::startIndexing(Indexer::IndexingParameter& _p) {
     IndexWorker* worker=new IndexWorker(p);
     qRegisterMetaType<Solution>();
     connect(worker, SIGNAL(publishSolution(Solution)), this, SLOT(addSolution(Solution)));
+    connect(worker, SIGNAL(progressInfo(int, int)), this, SIGNAL(progressInfo(int,int)));
     connect(worker, SIGNAL(destroyed()), this, SLOT(threadFinished()));
     connect(this, SIGNAL(stopWorker()), worker, SLOT(stop()));
     connect(this, SIGNAL(destroyed()), worker, SLOT(stop()));
@@ -163,6 +163,8 @@ double Solution::hklDeviationSum() const {
 IndexWorker::IndexWorker(Indexer::IndexingParameter &_p): QObject(), QRunnable(), indexMutex(), angles(), solRotLock(), solutionRotations() {
     indexI=1;
     indexJ=0;
+    nextProgressSignal=0;
+    
     isInitiatingThread=true;
     shouldStop=false;
     p=_p;
@@ -347,7 +349,14 @@ bool IndexWorker::nextWork(int &i, int &j) {
 
     i=indexI;
     j=indexJ;
-    
+
+    if (nextProgressSignal==0) {
+        int maxN=p.refs.size()*(p.refs.size()-1)/2;
+        int actN=i*(i-1)/2+j;
+        nextProgressSignal=maxN/1000;
+        emit progressInfo(maxN, actN);
+    }
+    nextProgressSignal--;
     indexJ++;
     if (indexJ==indexI) {
         indexI++;

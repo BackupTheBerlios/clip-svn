@@ -80,6 +80,7 @@ class Indexer: public QAbstractTableModel {
     signals:
         void stopWorker();
         void runningStateChanged(bool);
+        void progressInfo(int, int);
     private:
         class SolSort {
             public:
@@ -125,6 +126,7 @@ class IndexWorker: public QObject, public QRunnable {
         
     signals:
         void publishSolution(Solution s);
+        void progressInfo(int, int);
     protected:
     
         bool newSolution(const Mat3D& M);
@@ -132,6 +134,7 @@ class IndexWorker: public QObject, public QRunnable {
     
         int indexI;
         int indexJ;
+        int nextProgressSignal;
         bool shouldStop;
         QMutex indexMutex;
     
