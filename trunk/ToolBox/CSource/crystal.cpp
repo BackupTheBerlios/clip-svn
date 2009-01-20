@@ -363,17 +363,119 @@ void Crystal::enableUpdate(bool b) {
 }
 
 void Crystal::setSpacegroupConstrains(QList<int> constrains) {
-    spacegroupConstrains=constrains;
-    QList<QString> fitParameterTempNames;
-    fitParameterTempNames << "b" << "c" << "alpha" << "beta" << "gamma";
-    QList<QString> fitParameterNames;
-    for (unsigned int n=1; n<constrains.size(); n++) {
-        if (constrains[n]==0)
-            fitParameterNames << fitParameterTempNames[n-1];
-    }    
-    setFitParameterNames(fitParameterNames);
+    if (constrains!=spacegroupConstrains) {
+        spacegroupConstrains=constrains;
+        QList<QString> fitParameterTempNames;
+        fitParameterTempNames << "b" << "c" << "alpha" << "beta" << "gamma";
+        QList<QString> fitParameterNames;
+        if (constrains[1]==0 or constrains[2]==0)
+            fitParameterNames << "a";
+        for (unsigned int n=1; n<constrains.size(); n++) {
+            if (constrains[n]==0)
+                fitParameterNames << fitParameterTempNames[n-1];
+        }    
+        setFitParameterNames(fitParameterNames);
+        emit constrainsChanged();
+    }
 }
+
+
 
 QList<int> Crystal::getSpacegroupConstrains() const {
     return spacegroupConstrains;
+}
+
+
+double Crystal::fitParameterValue(unsigned int n) {
+    if (fitParameterName(n)=="a") {
+        return a;
+    } else if (fitParameterName(n)=="b") {
+        return b;
+    } else if (fitParameterName(n)=="c") {
+        return c;
+    } else if (fitParameterName(n)=="alpha") {
+        return alpha;
+    } else if (fitParameterName(n)=="beta") {
+        return beta;
+    } else if (fitParameterName(n)=="gamma") {
+        return gamma;
+    }
+    return 0.0;
+}
+
+void Crystal::fitParameterSetValue(unsigned int n, double val) {
+    if (fitParameterName(n)=="a") {
+        setCell(val, b,c,alpha, beta, gamma);
+    } else if (fitParameterName(n)=="b") {
+        setCell(a, val,c,alpha, beta, gamma);
+    } else if (fitParameterName(n)=="c") {
+        setCell(a, b,val,alpha, beta, gamma);
+    } else if (fitParameterName(n)=="alpha") {
+        setCell(a, b,c,val, beta, gamma);
+    } else if (fitParameterName(n)=="beta") {
+        setCell(a, b,c,alpha, val, gamma);
+    } else if (fitParameterName(n)=="gamma") {
+        setCell(a, b,c,alpha, beta, val);
+    }
+}
+
+void Crystal::fitParameterSetEnabled(unsigned int n, bool enable) {
+    unsigned int nDist=0;
+    for (unsigned int i=0; i<3; i++) {
+        if (spacegroupConstrains[i]==0)
+            nDist++;
+    }
+    if (nDist==1)
+        nDist=0;
+    if ((n<nDist) and enable) {
+        bool b=true;
+        for (unsigned int i=0; i<nDist; i++) {
+            b = b and (fitParameterEnabled(i) or i==n);
+        }
+        if (b) {
+            fitParameterSetEnabled((n+1)%nDist, false);
+        }
+    }   
+    FitObject::fitParameterSetEnabled(n, enable);
+}
+
+
+void Crystal::calcEulerAngles(double &omega, double &chi, double &phi) {
+    omega=-atan2(MRot[0][1],MRot[1][1]);
+    //chi=asin(MRot[2][1]);
+    double s=sin(omega);
+    double c=cos(omega);
+    if (fabs(c)>fabs(s)) {
+        chi=atan2(MRot[2][1], MRot[1][1]/c);
+    } else {
+        chi=atan2(MRot[2][1], MRot[0][1]/s);
+    }
+    Mat3D M(Mat3D(Vec3D(1,0,0), -chi)*Mat3D(Vec3D(0,0,1), -omega)*MRot);
+    phi=atan2(M[0][2],M[0][0]);
+    
+        /*v=R*Vec3D(0, 0, 1)
+        omega=math.atan2(v.x(), -v.y())
+        Rom=Mat3D(Vec3D(0, 0, 1),  -omega)
+        v=Rom*v
+        chi=math.atan2(-v.y(), v.z())
+        Rchi=Mat3D(Vec3D(1, 0, 0),  -chi)
+        Rphi=Rchi*Rom*R
+        v=Rphi*Vec3D(1, 0, 0)
+        phi=math.atan2(v.y(),  v.x())
+        return math.degrees(omega), math.degrees(chi), math.degrees(phi), OM*/    
+}
+
+void Crystal::setEulerAngles(double omega, double chi, double phi) {
+    Mat3D M(Vec3D(0,0,1), omega);
+    M*=Mat3D(Vec3D(1,0,0), chi);
+    M*=Mat3D(Vec3D(0,1,0), phi);
+    setRotation(M);
+/*        OM=Mat3D()
+        for ang, p in ((omega, 2), (chi, 0), (phi, 2)):
+            ax=Vec3D(0, 0, 0)
+            ax[p]=1.0
+            OM=OM*Mat3D(ax,  math.radians(ang))
+        
+        self.crystal.setRotation(OM)
+  */  
 }

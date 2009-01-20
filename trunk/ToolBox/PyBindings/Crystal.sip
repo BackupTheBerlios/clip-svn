@@ -35,6 +35,10 @@ class Crystal: QObject,FitObject {
         Mat3D getRealOrientationMatrix() const;
         Mat3D getReziprocalOrientationMatrix() const;
         Mat3D getRotationMatrix() const;
+        
+        void calcEulerAngles(double &omega /Out/, double &chi /Out/, double &phi /Out/);
+        void setEulerAngles(double omega, double chi, double phi);
+        
         QList<Projector*> getConnectedProjectors();
         QString getSpacegroupSymbol() const;
         QList<int> getSpacegroupConstrains() const;
@@ -45,7 +49,10 @@ class Crystal: QObject,FitObject {
         
         QList<double> getCell();
         void enableUpdate(bool b=true);
-        
+        // Functions for fitting parameters
+        virtual double fitParameterValue(unsigned int n);
+        virtual void fitParameterSetValue(unsigned int n, double val);
+        virtual void fitParameterSetEnabled(unsigned int n, bool enable);        
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -63,5 +70,7 @@ class Crystal: QObject,FitObject {
         void orientationChanged();
         void reflectionsUpdate();
         void rotationAxisChanged();
-
+        void constrainsChanged();
+        
 };
+

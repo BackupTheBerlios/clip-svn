@@ -1,7 +1,7 @@
 from Tools import SolutionFinder,  SpaceGroup
 from PyQt4 import QtCore,  QtGui
 from Ui_Fit import Ui_Fit
-from ToolBox import Vec3D, Mat3D
+from ToolBox import Vec3D, Mat3D, FitObject
 from Tools import SpaceGroup
 import math
 from ToolWidget import ToolWidget
@@ -59,7 +59,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
                         if (r*s-h).norm()<0.1:
                             break
                     
-                    self.HKL.append(r*s)
+                    self.HKL.append((r*s, h))
                     angleDiff=math.degrees(math.acos(c.hkl2Reziprocal(h).normalized()*n))
                     hklDev=sum([abs(x) for x in r*s-h])
                     self.scores.append((angleDiff, hklDev))
@@ -69,7 +69,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         last=0
         loops=0
         d=0
-        K=[Vec3D(round(h), round(k), round(l)) for (h, k, l) in self.HKL]
+        K=[Vec3D(round(h), round(k), round(l)) for ((h, k, l)) in self.HKL]
         O=crystal.getReziprocalOrientationMatrix()
         while (loops<3 or abs(last-d)>1e-4):
             last=d
@@ -143,13 +143,18 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         #print loops, a, b, c, alpha, beta, gamma, d
         return d
         
-    def score(self, x, crystal, projectors, items):
-        
-        for v, (p, n) in zip(x, items):
+    def score(self, x, items,  Rinit,  crystal):
+        omega, phi, chi=x[:3]
+        R=Mat3D(Vec3D(0, 0, 1), omega)*Mat3D(Vec3D(1, 0, 0), chi)*Mat3D(Vec3D(0, 1, 0), phi)*Rinit
+        crystal.setRotation(R)
+        for v, (p, n) in zip(x[3:], items):
             p.fitParameterSetValue(n, v)
 
-        r=self.refineCell(crystal,  projectors) 
-        return r
+        normals=[]
+        for p in crystal.getConnectedProjectors():
+            normals+=p.getMarkerNormals()
+
+        return sum([(crystal.hkl2Reziprocal(hkl).normalized()-n).norm() for (hklf, hkl), n in zip(self.HKL,  normals)])
         
     def printScore(self, x):
         print x
@@ -162,25 +167,28 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
             
         self.doIndexing()
         fitItems=[]
-        initialValues=[]
-        projectors=[]
+        initialValues=[0.0, 0.0, 0.0]
+        
         crystal.enableUpdate(False)
+        for n in range(crystal.fitParameterNumber()):
+            if crystal.fitParameterEnabled(n):
+                fitItems.append((crystal,  n))
+                initialValues.append(crystal.fitParameterValue(n))
+                
         for p in crystal.getConnectedProjectors():
             p.enableProjection(False)
             if p.fitParameterNumber()>0 and p.markerNumber()>0:
-                projectors.append(p)
                 for n in range(p.fitParameterNumber()):
                     if p.fitParameterEnabled(n):
                         fitItems.append((p,  n))
                         initialValues.append(p.fitParameterValue(n))
-        if len(fitItems)>0:
-            #res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True)
-            res=scipy.optimize.fmin(self.score, initialValues,  args=(crystal, projectors, fitItems), callback=self.printScore)
+        
+        #res=scipy.optimize.fmin_l_bfgs_b(self.score, initialValues,  args=(crystal, projectors, fitItems), approx_grad=True)
+        RInit=Mat3D(crystal.getRotationMatrix())
+        res=scipy.optimize.fmin(self.score, initialValues,  args=(fitItems,  RInit, crystal), callback=self.printScore)
             
-            print res
-        else:
-            self.refineCell(crystal, projectors)
-                
+        print res
+        print self.score(res, fitItems,  RInit, crystal)
         crystal.enableUpdate(True)
         crystal.updateRotation()
         for p in crystal.getConnectedProjectors():
@@ -193,7 +201,10 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
 
     def windowChanged(self):
         self.paramModel.loadModel()
-                
+    
+    def crystalConstrainChanged(self):
+        self.paramModel.loadModel()
+        self.paramModel.reset()
                 
 class FitModel(QtCore.QAbstractTableModel):
     def __init__(self, parent):
@@ -210,9 +221,9 @@ class FitModel(QtCore.QAbstractTableModel):
         if role==QtCore.Qt.DisplayRole:
             c=index.column()
             if c<3:
-                return QtCore.QVariant(round(self.fit.HKL[index.row()][index.column()]))
+                return QtCore.QVariant(round(self.fit.HKL[index.row()][0][index.column()]))
             elif c<6:
-                return QtCore.QVariant('%.2f'%self.fit.HKL[index.row()][index.column()-3])
+                return QtCore.QVariant('%.2f'%self.fit.HKL[index.row()][0][index.column()-3])
             else:
                 return QtCore.QVariant('%.3f'%self.fit.scores[index.row()][index.column()-6])
         elif role==QtCore.Qt.TextAlignmentRole:
@@ -238,13 +249,13 @@ class ParamModel(QtCore.QAbstractItemModel):
         c=self.fit.searchCrystal()
         if not c:
             return
-    
+        
         rootItems=[]
         names=[]
         if c.fitParameterNumber()>0:
             rootItems.append(c)
             names.append('Cell')
-
+            
         for p in c.getConnectedProjectors():
             if p.fitParameterNumber()>0 and p.markerNumber()>0:
                 rootItems.append(p)
@@ -255,8 +266,6 @@ class ParamModel(QtCore.QAbstractItemModel):
             self.names=names
             self.lastCrystal=c
             self.reset()
-
-        
         
     def rowCount(self, parent):
         if not parent.isValid():
@@ -310,7 +319,9 @@ class ParamModel(QtCore.QAbstractItemModel):
     def setData(self, index, value, role):
         if role==QtCore.Qt.CheckStateRole and index.internalId()>=0:
             self.rootItems[index.internalId()].fitParameterSetEnabled(index.row(), value.toBool())
-            self.emit(QtCore.SIGNAL('dataChanged()'))
+            id1=self.index(0,  index.column(), index.parent())
+            id2=self.index(self.rowCount(index.parent()),  index.column(), index.parent())
+            self.emit(QtCore.SIGNAL('dataChanged(const QModelIndex&, const QModelIndex&)'), id1, id2)
             return True
         return False
             

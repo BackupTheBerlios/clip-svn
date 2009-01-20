@@ -170,10 +170,11 @@ class clip(QtGui.QMainWindow):
     def slotNewCrystal(self):
         wid = Crystal(self)
         self.crystalStore.addObject(wid.crystal)
-
+        print "NewCryst"
         for t in self.tools:
             self.connect(wid.crystal, QtCore.SIGNAL('rotationAxisChanged()'), t.rotAxisChanged)
             self.connect(wid.crystal, QtCore.SIGNAL('orientationChanged()'), t.orientationChanged)
+            self.connect(wid.crystal, QtCore.SIGNAL('constrainsChanged()'), t.crystalConstrainChanged)
         mdi=self.MdiArea.addSubWindow(wid)
         mdi.setWindowIcon(wid.windowIcon())        
         wid.show()

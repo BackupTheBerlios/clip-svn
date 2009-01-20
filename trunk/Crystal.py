@@ -72,42 +72,24 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.crystal.setCell(*cell)
         
 
-    def calcOrientation(self):
+    def updateOM(self):
         OM=self.crystal.getReziprocalOrientationMatrix()
         R=self.crystal.getRotationMatrix()
-        OM=R*OM
+        OM=R*OM        
+        angs=self.crystal.calcEulerAngles()
+        self.inhibitRotationUpdate=True
+        for w, p in zip(self.rotInputs,  angs):
+            w.setValue(math.degrees(p))
         for i in range(3):
             for j in range(3):
-                self.orientationMatrix.setItem(i, j, QtGui.QTableWidgetItem('%.4f'%OM[i, j]))
-        v=R*Vec3D(0, 0, 1)
-        omega=math.atan2(v.x(), -v.y())
-        Rom=Mat3D(Vec3D(0, 0, 1),  -omega)
-        v=Rom*v
-        chi=math.atan2(-v.y(), v.z())
-        Rchi=Mat3D(Vec3D(1, 0, 0),  -chi)
-        Rphi=Rchi*Rom*R
-        v=Rphi*Vec3D(1, 0, 0)
-        phi=math.atan2(v.y(),  v.x())
-        return math.degrees(omega), math.degrees(chi), math.degrees(phi)
-
-    def updateOM(self):
-        omega, chi, phi=self.calcOrientation()
-        self.inhibitRotationUpdate=True
-        for w, p in zip(self.rotInputs,  (omega,  chi,  phi)):
-            w.setValue(p)
+                self.orientationMatrix.setItem(i, j, QtGui.QTableWidgetItem('%.4f'%OM[i, j]))            
         self.inhibitRotationUpdate=False
         
     def changeRotation(self):
         if not self.inhibitRotationUpdate:
-            OM=Mat3D()
-            for w, p in zip(self.rotInputs,  (2, 0, 2)):
-                ang=w.value()
-                ax=Vec3D(0, 0, 0)
-                ax[p]=1.0
-                OM=OM*Mat3D(ax,  math.radians(ang))
-            
-            self.crystal.setRotation(OM)
-        
+            angs=[math.radians(x.value()) for x in self.rotInputs]
+            self.crystal.setEulerAngles(*angs)
+                    
     def mousePressEvent(self,  e):
         if e.button()==QtCore.Qt.LeftButton and self.dragStart.geometry().contains(e.pos()):
             self.mousePressStart=QtCore.QPoint(e.pos())
@@ -137,7 +119,7 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
             cell.setAttribute(name, str(val))
 
         orient=crystal.appendChild(doc.createElement('Orientation'))
-        for val, name in zip(self.calcOrientation(), ('omega', 'chi','phi')):
+        for val, name in zip(self.calcEulerAngles()[:3], ('omega', 'chi','phi')):
             orient.setAttribute(name, str(val))
 
         fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Cell files (*.cell);;All Files (*)')

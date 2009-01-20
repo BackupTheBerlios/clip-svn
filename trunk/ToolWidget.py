@@ -67,3 +67,6 @@ class ToolWidget(QtGui.QWidget):
         
     def addedRotation(self, d):
         pass
+        
+    def crystalConstrainChanged(self):
+        pass

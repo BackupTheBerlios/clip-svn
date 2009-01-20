@@ -39,6 +39,10 @@ class Crystal: public QObject, public FitObject {
         Mat3D getRealOrientationMatrix() const;
         Mat3D getReziprocalOrientationMatrix() const;
         Mat3D getRotationMatrix() const;
+        
+        void calcEulerAngles(double &omega, double &chi, double &phi);
+        void setEulerAngles(double omega, double chi, double phi);
+        
         QString getSpacegroupSymbol() const;
         QList<int> getSpacegroupConstrains() const;
         
@@ -50,6 +54,12 @@ class Crystal: public QObject, public FitObject {
         
         QList<double> getCell();
         void enableUpdate(bool b=true);
+        
+        // Functions for fitting parameters
+        virtual double fitParameterValue(unsigned int n);
+        virtual void fitParameterSetValue(unsigned int n, double val);
+        virtual void fitParameterSetEnabled(unsigned int n, bool enable);
+            
     public slots:
         void addRotation(const Vec3D& axis, double angle);
         void addRotation(const Mat3D& M);
@@ -67,6 +77,7 @@ class Crystal: public QObject, public FitObject {
         void orientationChanged();
         void reflectionsUpdate();
         void rotationAxisChanged();
+        void constrainsChanged();
     private:
         // Real and reziprocal orientation Matrix
         Mat3D MReal;
