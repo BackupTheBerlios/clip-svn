@@ -140,7 +140,7 @@ class SpaceGroup:
     
     allPointGrps=[cubicPoint, hexagonalPoint, trigonalPoint, tetragonalPoint, orthorhombicPoint, monoclinicPoint, triclinicPoint]
     
-    centerSymbols = ['P', 'A', 'B', 'C', 'I', 'F', 'R']
+    centerSymbols = ['P', 'A', 'B', 'C', 'I', 'F', 'R', 'H']
 
 
     def __init__(self):
@@ -171,8 +171,11 @@ class SpaceGroup:
               pointGrp=k
               break
         if (s[0] in self.centerSymbols) and pointGrp:
+          self.system=self.pointGroups[pointGrp]
+          if self.system!=self.trigonal and s[0] in ('H','R'):
+            return False
+          
           self.pointGrp=pointGrp
-          self.system=self.pointGroups[self.pointGrp]
           self.symbol=s
           self.centering=s[0]
           return True
@@ -197,7 +200,12 @@ class SpaceGroup:
         elif self.system==self.tetragonal:
           symConst=[0,-1,0,90,90,90]
         elif self.system==self.trigonal:
-          symConst=[0,-1,-1,0,-4,-4]
+          if self.centering=='R':
+            symConst=[0,-1,-1,0,-4,-4]
+          else:
+            symConst=[0,-1,0,90,90,120]
+        elif self.system==self.hexagonal:
+            symConst=[0,-1,0,90,90,120]
         elif self.system==self.cubic:
           symConst=[0,-1,-1,90,90,90]
         else:

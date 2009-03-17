@@ -62,9 +62,24 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
 
     def sgtest(self, s):
         if self.sg.parseGroupSymbol(str(s)):
+            
+            sgold=SpaceGroup.SpaceGroup()
+            sgold.parseGroupSymbol(self.crystal.getSpacegroupSymbol())
             self.crystal.setSpacegroupSymbol(s)
+            
+            if self.sg.system==self.sg.trigonal:
+                self.crystal.setSpacegroupConstrains([0,0,0,0,0,0])
+                if sgold.getCellConstrain()==[0,-1,-1,0,-4,-4] and self.sg.getCellConstrain()==[0,-1,0,90,90,120]:
+                    print self.crystal.uvw2Real(1,-1,0), self.crystal.uvw2Real(1,1,1)
+                    self.R2T(self.crystal)
+                    print self.crystal.uvw2Real(1,0,0), self.crystal.uvw2Real(0,0,1)
+                elif sgold.getCellConstrain()==[0,-1,0,90,90,120] and self.sg.getCellConstrain()==[0,-1,-1,0,-4,-4]:
+                    print self.crystal.uvw2Real(1,0,0), self.crystal.uvw2Real(0,0,1)
+                    self.T2R(self.crystal)
+                    print self.crystal.uvw2Real(1,-1,0), self.crystal.uvw2Real(1,1,1)
+
             self.crystal.setSpacegroupConstrains(self.sg.getCellConstrain())
-    
+                  
         constrain=self.sg.getCellConstrain()
         for i in range(6):
             self.inputs[i].setEnabled(constrain[i]==0)
@@ -173,3 +188,39 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
             self.crystal.setRotation(R)
 
             
+    def R2T(self, Cr):
+        a,b,c,al,be,ga=Cr.getCell()
+        if a==b and b==c and al==be and be==ga:
+            a=Cr.uvw2Real(1,-1,0)
+            c=Cr.uvw2Real(1,1,1)
+            Cr.setCell(a.norm(),a.norm(),c.norm(),90,90,120)
+            ch=Cr.uvw2Real(0,0,1)
+            Cr.addRotation(self.rotHT(a,c,Cr.uvw2Real(1,0,0),Cr.uvw2Real(0,0,1),-1))
+  
+    def T2R(self, Cr):
+        a,b,c,al,be,ga=Cr.getCell()
+        if a==b and al==90.0 and be==90.0 and ga==120.0:
+            a=Cr.uvw2Real(2,1,1)/3
+            b=Cr.uvw2Real(-1,1,1)/3
+            ah=Cr.uvw2Real(1,0,0)
+            ch=Cr.uvw2Real(0,0,1)
+            l=a.norm()
+            ang=math.degrees(math.acos(a*b/l/l))
+            Cr.setCell(l,l,l,ang,ang,ang)
+            Cr.addRotation(self.rotHT(Cr.uvw2Real(1,-1,0),Cr.uvw2Real(1,1,1),ah,ch,1))
+
+
+    def rotHT(self,r1,r2,ah,ch,o):
+
+        da=r1-ah
+        dc=r2-ch
+        
+        n=da%dc
+        n.normalize()
+
+        c1=r2-n*(n*r2)
+        c2=ch-n*(ch*n)
+        c1.normalize()
+        c2.normalize()
+        R=Mat3D(n,o*math.acos(c1*c2))
+        return R

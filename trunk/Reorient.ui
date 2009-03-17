@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>262</width>
-    <height>199</height>
+    <width>312</width>
+    <height>269</height>
    </rect>
   </property>
   <property name="sizePolicy" >
@@ -473,8 +473,8 @@
    <slot>axis1Changed()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>104</x>
-     <y>109</y>
+     <x>116</x>
+     <y>156</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -489,8 +489,8 @@
    <slot>axis1EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>121</x>
-     <y>133</y>
+     <x>144</x>
+     <y>189</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -505,8 +505,8 @@
    <slot>axis2Changed()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>252</x>
-     <y>109</y>
+     <x>299</x>
+     <y>156</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -521,8 +521,8 @@
    <slot>axis2EditChanged()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>251</x>
-     <y>133</y>
+     <x>298</x>
+     <y>189</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -537,8 +537,8 @@
    <slot>doRotationSlot()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>257</x>
-     <y>194</y>
+     <x>307</x>
+     <y>264</y>
     </hint>
     <hint type="destinationlabel" >
      <x>285</x>
@@ -585,12 +585,28 @@
    <slot>doFirstRotationSlot()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>65</x>
-     <y>182</y>
+     <x>69</x>
+     <y>264</y>
     </hint>
     <hint type="destinationlabel" >
      <x>130</x>
      <y>99</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>RezicheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Reorient</receiver>
+   <slot>updateDisplay()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>199</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>-3</x>
+     <y>90</y>
     </hint>
    </hints>
   </connection>

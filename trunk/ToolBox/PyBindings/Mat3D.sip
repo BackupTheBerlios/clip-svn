@@ -27,7 +27,6 @@ class Mat3D {
     for (PyObject* item=PyIter_Next(iter); item && itercount<9; item=PyIter_Next(iter)) {
       if (PyFloat_Check(item) || PyInt_Check(item)) {
         PyArg_Parse(item, "d", &t);
-  	//std::cout << "parsed Float " << t << std::endl;
      	m.push_back(t);
         itercount++;
       } else {
@@ -39,12 +38,9 @@ class Mat3D {
         }
         if (coliter!=NULL) {
         
-          //std::cout << "parsed iter" << std::endl;
           for (PyObject* colitem=PyIter_Next(coliter); colitem && itercount<9; colitem=PyIter_Next(coliter)) {
-            //std::cout << "colIter loop" << std::endl;
             if (PyFloat_Check(colitem) || PyInt_Check(colitem)) {
               PyArg_Parse(colitem, "d", &t);
-              //std::cout << "parsed float in iter" << t << std::endl;
               m.push_back(t);
             }
             itercount++;
@@ -118,11 +114,28 @@ class Mat3D {
     }
 %End
   
-  void __setitem__(int i, int j, double d);
+  void __setitem__(SIP_PYOBJECT _idx, double d);
 %MethodCode
-    Py_BEGIN_ALLOW_THREADS
-    *(*sipCpp).at(a0,a1)=a2;
-    Py_END_ALLOW_THREADS
+    PyObject* iter;
+    int idx1,idx2;
+    if ((iter=PyObject_GetIter(a0))) {
+      PyObject* item;
+
+      if ((item=PyIter_Next(iter)) && PyInt_Check(item) && PyArg_Parse(item, "i", &idx1) && (item=PyIter_Next(iter)) && PyInt_Check(item) && PyArg_Parse(item, "i", &idx2)) {
+        
+        Py_BEGIN_ALLOW_THREADS
+        *(*sipCpp).at(idx1, idx2)=a1;
+        Py_END_ALLOW_THREADS
+      } else {
+       sipIsErr=1;
+      }
+    } else if (PyArg_ParseTuple(a0,"ii",&idx1, &idx2)) {
+        Py_BEGIN_ALLOW_THREADS
+        *(*sipCpp).at(idx1, idx2)=a1;
+        Py_END_ALLOW_THREADS
+    } else {
+     sipIsErr=1;
+    }
 %End
 
 
