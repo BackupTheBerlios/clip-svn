@@ -222,6 +222,9 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     r.normalize()
                     a=math.acos(v1*v2)
                     self.projector.addRotation(r, a)
+                    # Process screen updates. Otherwise no updates are prosessed if
+                    # two projectors are active and the mouse moves fast
+                    QtGui.qApp.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
 
     def rotateHandler(self, *args):
         if len(args)==1 and args[0]:
