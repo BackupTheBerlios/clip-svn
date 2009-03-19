@@ -1,0 +1,13 @@
+
+* Aus / An Decorations
+* UI für Winkel zwischen Reflexen,  Axen, x, y, z,  etc.
+* UI für aktuelle Mausposition (Pos,  2Theta,  winkel mit x, y, z,  Nächter Reflex)
+* Farbe für die verschiedenen Elemente festlegen (spots,  text, ...)
+* Simulation mit verschiednenen Punktgrößen ~ Min abstand
+* Sys absents
+* CIF-Import der Kristallstruktur
+
+* Kommentare
+* LaueCylinder Projector   
+* Bild des CoordinatenSystems
+* Aufräumen von clip.py

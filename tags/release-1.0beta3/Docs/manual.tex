@@ -1,0 +1,75 @@
+% ----------------------------------------------------------------
+% AMS-LaTeX Paper ************************************************
+% **** -----------------------------------------------------------
+\documentclass{article}
+\usepackage{graphicx}
+% ----------------------------------------------------------------
+\vfuzz2pt % Don't report over-full v-boxes if over-edge is small
+\hfuzz2pt % Don't report over-full h-boxes if over-edge is small
+% THEOREMS -------------------------------------------------------
+
+\newcommand{\clip}{ \textbf{Clip} }
+% ----------------------------------------------------------------
+\begin{document}
+
+\section{Doc}
+\subsection{Reorient}
+
+To reorient two unit vectors, say \textbf{v$_1$} to \textbf{v$_2$} with two
+rotations around the $\mathbf{\phi}$ and $\mathbf{\mathbf{\chi}}$ unit vectors,
+\clip uses the following approach.
+
+We we need to determine two rotation matrices $R_\phi$ and $R_\chi$, so that
+$v_2 = R_\mathbf{\phi} \cdot R_\mathbf{\chi} \cdot v_1$, or equivalently
+$R_\mathbf{\phi}^{-1} \cdot v_2 =  R_\mathbf{\chi} \cdot v_1$.
+$R_\mathbf{\phi}^{-1} \cdot v_2$ and $R_\mathbf{\chi} \cdot v_1$ lie on a
+circle on the unit sphere. These circles are the intersections of the unit
+sphere with planes having $\phi$ and $\chi$ as normals and distances from the
+origin of $v_2\cdot\phi$ and $v_1\cdot\chi$ respectively. These equations of
+these planes are: $\mathbf{x}\cdot\mathbf{\phi}=v_2\cdot\mathbf{\phi}$ and
+$\mathbf{x}\cdot\mathbf{\chi}=v_1\cdot\mathbf{\chi}$. The intersection of these
+two planes is a line and the vectors on this line with a length of 1 represent
+the possible intermediate vectors for the rotation: $v_i=R_\mathbf{\phi}^{-1}
+\cdot \mathbf{v_2}$.
+
+The equation of the line is
+\begin{equation}
+    u_1+\varepsilon\cdot u_2
+    \label{lineEqn}
+\end{equation}
+where $u_2$ could be chosen to be perpendicular to $\mathbf{\phi}$ and
+$\mathbf{\chi}$ and therefore to  be simply
+$u_2=\mathbf{\phi}\times\mathbf{\chi}$ and $u_1$ could be chosen to lie in the
+$\mathbf{\phi}\,\mathbf{\chi}$-plane. This gives $u_1=\lambda \cdot \phi + \mu
+\cdot \chi$. The length of $u_1$ is the minimal distance of the line from the
+origin and therefore determines the number of solutions. If it is larger than
+one, the intersection of the two planes lie entirely outside of the unit sphere
+and no rotation around $\phi$ and $\chi$ from $v_1$ to $v_2$ is possible. If
+the length is exactly one, then there is one solution and corresponding one
+possible rotation. If the length is smaller than one, are two possible
+solutions.
+
+To determine the coefficients in the representation of $u_1$ we consider the
+equations for the two planes (remember that $u_2$ is perpendicular to both
+$\chi$ and $\phi$ and therefore the product vanishes). Here we get the
+equations  $(\lambda \cdot \phi + \mu \cdot \chi) \cdot \phi =
+v_2\cdot\mathbf{\phi}$ and $(\lambda \cdot \phi + \mu \cdot \chi) \cdot \chi =
+v_1\cdot\mathbf{\chi}$. The first equation simplifies to $\lambda  = (v_2-\mu
+\cdot \chi) \cdot\mathbf{\phi}$ and inserted in the second gives the solutions
+
+\begin{equation}
+    \lambda =
+    \frac{v_2\cdot\phi-(\phi\cdot\chi)(v_1\cdot\chi)}{1-(\phi\cdot\chi)^2}
+\end{equation}
+
+\begin{equation}
+    \mu =
+    \frac{v_1\cdot\chi-(\phi\cdot\chi)(v_2\cdot\phi)}{1-(\phi\cdot\chi)^2}
+\end{equation}
+
+If we now normalize $u_2$, we could rewrite equation (\ref{lineEqn}) as
+$\varepsilon=\pm\sqrt{1-|u_1|^2}$
+
+
+\end{document}
+% ----------------------------------------------------------------
