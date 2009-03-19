@@ -3,6 +3,7 @@
 import sys
 import math
 
+import PyQt4
 from PyQt4 import QtCore, QtGui
 from ToolBox import ObjectStore
 import icons_rc

@@ -1,4 +1,3 @@
-from Tools import SolutionFinder
 from PyQt4 import QtCore,  QtGui
 from Ui_Indexing import Ui_Indexing
 from ToolBox import Indexer

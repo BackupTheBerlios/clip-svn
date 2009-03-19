@@ -1,8 +1,6 @@
-from Tools import SolutionFinder,  SpaceGroup
 from PyQt4 import QtCore,  QtGui
 from Ui_Fit import Ui_Fit
-from ToolBox import Vec3D, Mat3D, FitObject
-from Tools import SpaceGroup
+from ToolBox import Vec3D, Mat3D
 import math
 from ToolWidget import ToolWidget
 import scipy.optimize
