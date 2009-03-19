@@ -3,6 +3,7 @@ import LaueImage
 from PyQt4 import QtCore, QtGui
 import math
 from time import time
+import os
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
@@ -10,6 +11,9 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     releaseContext=3
     def __init__(self, type, parent):
         QtGui.QWidget.__init__(self, parent)
+
+        #FIXME: Does it only depend on OS, does Max needs it or not?
+        self.doProcessEvent=os.name=='nt'
 
         self.zoomSteps=[]
         self.mousePressStart=None
@@ -222,9 +226,10 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     r.normalize()
                     a=math.acos(v1*v2)
                     self.projector.addRotation(r, a)
-                    # Process screen updates. Otherwise no updates are prosessed if
-                    # two projectors are active and the mouse moves fast
-                    QtGui.qApp.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+                    # Process screen updates. Otherwise on Windows no updates are prosessed if
+                    # two projectors are active and the mouse moves fast. Otherwise, on Linux this produces stange effects.
+                    if self.doProcessEvent:
+                        QtGui.qApp.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
 
     def rotateHandler(self, *args):
         if len(args)==1 and args[0]:
@@ -247,7 +252,11 @@ class ProjectionPlaneWidget(QtGui.QWidget):
                     if Mat3D(ax, v1, v2).det()<0:
                         a*=-1
                     self.projector.addRotation(ax, a)
+                    # Process screen updates. Otherwise on Windows no updates are prosessed if
+                    # two projectors are active and the mouse moves fast. Otherwise, on Linux this produces stange effects.
                     self.emit(QtCore.SIGNAL('projectorAddedRotation(double)'), a)
+                    if self.doProcessEvent:
+                        QtGui.qApp.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
 
     def infoHandler(self, *args):
         def f(i):

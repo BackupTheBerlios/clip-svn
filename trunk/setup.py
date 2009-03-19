@@ -12,13 +12,13 @@ opts=dict(includes=inc,
           compressed=True,
           base="Win32GUI",
           append_script_to_exe=True,
-          optimize=2)
+          optimize=1)
 
 
 setup(
         name = "Clip",
         version = "3.0c",
         description = "The Cologne Laue Indexation Program",
-        executables = [Executable("clip.pyw")],
+        executables = [Executable("clip.py")],
         options={"build_exe": opts})
 
