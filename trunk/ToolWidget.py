@@ -16,7 +16,6 @@ class ToolWidget(QtGui.QWidget):
         e.ignore()
         self.parent().deleteLater()
         self.MdiArea.removeSubWindow(self)
-        print "Tool close"
     
     def searchCrystal(self):
         windows=self.MdiArea.subWindowList(QtGui.QMdiArea.ActivationHistoryOrder)

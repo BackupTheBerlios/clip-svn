@@ -63,17 +63,12 @@ class StereoCfg(QtGui.QWidget, Ui_StereoCfg):
         self.projector.setMaxHklSqSum(i);
         
     def setOrientation(self, i):
-        print i
         v1=Vec3D()
         v1[i/2]=1-(i%2)*2
         i=(i+2)%6
         v2=Vec3D()
         v2[i/2]=1-(i%2)*2
         v3=v1%v2
-        print v1
-        print v2
-        print v3
         M=Mat3D(v1, v2, v3).transposed()
-        print M*Vec3D(1, 2, 3)
         self.projector.setDetOrientation(M)
         

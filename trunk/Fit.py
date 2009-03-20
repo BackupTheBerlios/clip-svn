@@ -62,85 +62,7 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
                     hklDev=sum([abs(x) for x in r*s-h])
                     self.scores.append((angleDiff, hklDev))
         self.fitModel.reset()
-        
-    def refineCell(self, crystal, projectors):
-        last=0
-        loops=0
-        d=0
-        K=[Vec3D(round(h), round(k), round(l)) for ((h, k, l)) in self.HKL]
-        O=crystal.getReziprocalOrientationMatrix()
-        while (loops<3 or abs(last-d)>1e-4):
-            last=d
-            loops+=1
-            
-            normals=[]
-            for p in projectors:
-                normals+=p.getMarkerNormals()
-            
-            N=[ x*(O*y).norm() for x,y in zip(normals,K) ]
-        
-            A=reduce(lambda x,y:x+y, [x^y for x,y in zip(N,K)] )
-            B=reduce(lambda x,y:x+y, [x^x for x in K] )
-            C=A*B.inverse()            
-            O2=C.transposed()*C
-            O2=O2.inverse()
-
-            a=math.sqrt(O2[0,0])
-            b=math.sqrt(O2[1,1])
-            c=math.sqrt(O2[2,2])
-            newCell=[a, b, c]
-        
-            newCell.append(math.degrees(math.acos(O2[1,2]/b/c)))
-            newCell.append(math.degrees(math.acos(O2[0,2]/a/c)))
-            newCell.append(math.degrees(math.acos(O2[0,1]/a/b)))
-          
-            origCell=crystal.getCell()
-            constrain=crystal.getSpacegroupConstrains()
-            paramNr=0
-            for i in range(3):
-                newCell[i]*=origCell[0]/newCell[0]
                 
-            Avg=[[], [], [], [], [], []]
-            for i, c in enumerate(constrain):
-                if c==0:
-                    Avg[i].append(newCell[i])
-                elif c<0:
-                    Avg[-c-1].append(newCell[i])
-                else:
-                    Avg[i].append(c)
-                    
-            for i in range(1, 6):
-                if constrain[i]==0:
-                    if crystal.fitParameterEnabled(paramNr):
-                        origCell[i]=sum(Avg[i])/len(Avg[i])
-                    paramNr+=1
-                elif constrain[i]>0:
-                    origCell[i]=constrain[i]
-                else:
-                    origCell[i]=origCell[-constrain[i]-1]
-            
-            crystal.setCell(*origCell)
-
-            O=crystal.getReziprocalOrientationMatrix()
-            
-            R=Mat3D((0, 0, 0, 0, 0, 0, 0, 0, 0))
-            for n, k in zip(normals, K):
-                k=(O*k).normalized()
-                R+=n^k
-        
-            U, V=R.svd()
-            s=U.det()*V.det()
-            if s<0.0:
-                R=U*Mat3D((1, 0, 0, 0, 1, 0, 0, 0, -1))*V
-            else:
-                R=U*V
-            crystal.setRotation(R)
-            D=[(n-(R*O*k).normalized()).norm() for n,k in zip(normals,K)]
-            d=sum(D)
-            
-        #print loops, a, b, c, alpha, beta, gamma, d
-        return d
-        
     def score(self, x, items,  Rinit,  crystal):
         omega, phi, chi=x[:3]
         R=Mat3D(Vec3D(0, 0, 1), omega)*Mat3D(Vec3D(1, 0, 0), chi)*Mat3D(Vec3D(0, 1, 0), phi)*Rinit
@@ -155,7 +77,8 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         return sum([(crystal.hkl2Reziprocal(hkl).normalized()-n).norm() for (hklf, hkl), n in zip(self.HKL,  normals)])
         
     def printScore(self, x):
-        print x
+        #print x
+        pass
 
     def doFit(self):
         crystal=self.searchCrystal()
@@ -185,13 +108,14 @@ class Fit(ToolWidget, Ui_Fit, QtCore.QAbstractTableModel):
         RInit=Mat3D(crystal.getRotationMatrix())
         res=scipy.optimize.fmin(self.score, initialValues,  args=(fitItems,  RInit, crystal), callback=self.printScore)
             
-        print res
-        print self.score(res, fitItems,  RInit, crystal)
         crystal.enableUpdate(True)
         crystal.updateRotation()
         for p in crystal.getConnectedProjectors():
             p.enableProjection(True)
             p.reflectionsUpdated()
+            
+        # Calculating score here also updates the projectors. So do not move up!
+        self.printScore(self.score(res, fitItems,  RInit, crystal))
         
         self.doIndexing()
         self.paramModel.reset()

@@ -104,5 +104,6 @@ QString StereoProjector::configName() {
 
 void StereoProjector::setDetOrientation(const Mat3D& M) {
     localCoordinates=M;
-    emit projectionParamsChanged();
+    if (projectionEnabled)
+        emit projectionParamsChanged();
 }

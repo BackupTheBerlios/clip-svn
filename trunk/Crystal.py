@@ -70,13 +70,9 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
             if self.sg.system==self.sg.trigonal:
                 self.crystal.setSpacegroupConstrains([0,0,0,0,0,0])
                 if sgold.getCellConstrain()==[0,-1,-1,0,-4,-4] and self.sg.getCellConstrain()==[0,-1,0,90,90,120]:
-                    print self.crystal.uvw2Real(1,-1,0), self.crystal.uvw2Real(1,1,1)
                     self.R2T(self.crystal)
-                    print self.crystal.uvw2Real(1,0,0), self.crystal.uvw2Real(0,0,1)
                 elif sgold.getCellConstrain()==[0,-1,0,90,90,120] and self.sg.getCellConstrain()==[0,-1,-1,0,-4,-4]:
-                    print self.crystal.uvw2Real(1,0,0), self.crystal.uvw2Real(0,0,1)
                     self.T2R(self.crystal)
-                    print self.crystal.uvw2Real(1,-1,0), self.crystal.uvw2Real(1,1,1)
 
             self.crystal.setSpacegroupConstrains(self.sg.getCellConstrain())
                   
@@ -108,7 +104,6 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
     def mousePressEvent(self,  e):
         if e.button()==QtCore.Qt.LeftButton and self.dragStart.geometry().contains(e.pos()):
             self.mousePressStart=QtCore.QPoint(e.pos())
-            print 'Possibly start Drag', e.pos().x(),  e.pos().y()
             drag=QtGui.QDrag(self)
             mimeData=QtCore.QMimeData()
             mimeData.setData('application/CrystalPointer','')
@@ -134,8 +129,8 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
             cell.setAttribute(name, str(val))
 
         orient=crystal.appendChild(doc.createElement('Orientation'))
-        for val, name in zip(self.calcEulerAngles()[:3], ('omega', 'chi','phi')):
-            orient.setAttribute(name, str(val))
+        for val, name in zip(self.crystal.calcEulerAngles()[:3], ('omega', 'chi','phi')):
+            orient.setAttribute(name, str(math.degrees(val)))
 
         fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Cell files (*.cell);;All Files (*)')
         if fileName!="":
@@ -180,12 +175,8 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         else:
             self.crystal.setSpacegroupSymbol(sgName)
             self.crystal.setCell(*cellData)
-            R=Mat3D()
-            for a, n in zip(orient, (2, 0, 2)):
-                v=Vec3D(0, 0, 0)
-                v[n]=1
-                R*=Mat3D(v, math.radians(a))
-            self.crystal.setRotation(R)
+            orient=[math.radians(a) for a in orient]
+            self.crystal.setEulerAngles(*orient)
 
             
     def R2T(self, Cr):

@@ -78,13 +78,10 @@ class Indexing(QtGui.QWidget, Ui_Indexing):
             s=self.solutions.getSolution(n)
             self.solDisp.setSolution(s)
             self.crystal.setRotation(s.bestRotation.transposed())
-            for i in s.items:
-                print i.h,  i.k,  i.l,  s.bestRotation.transposed()*i.latticeVector, s.bestRotation.transposed()*i.rotatedMarker
                 
     def updateProgress(self, max, act):
         self.progress.setMaximum(max)
         self.progress.setValue(act)
-        #print "progress", max, act, 100.0*act/max
         
                 
         

@@ -42,7 +42,9 @@ class LauePlaneCfg(QtGui.QWidget, Ui_LauePlaneCfg):
 
     def loadParameters(self):
         for a, b in ((self.detDist,  self.projector.dist),  (self.detWidth,  self.projector.width), (self.detHeight, self.projector.height), (self.detOmega,  self.projector.omega),  (self.detChi,  self.projector.chi), (self.detPhi, self.projector.phi), (self.detDx, self.projector.xOffset), (self.detDy, self.projector.yOffset), (self.maxRefLabel, self.projector.getMaxHklSqSum), (self.detTextSize, self.projector.getTextSize), (self.detSpotSize, self.projector.getSpotSize)):
-            a.setValue(b())
+            v=b()
+            if a.value()!=v:
+                a.setValue(v)
             
         self.detSpotsEnabled.setChecked(self.projector.spotsEnabled())
         self.detMinQ.setValue(2.0*math.pi*self.projector.Qmin())

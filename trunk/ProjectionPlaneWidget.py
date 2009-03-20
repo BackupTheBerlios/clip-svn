@@ -401,15 +401,10 @@ class MyGraphicsView(QtGui.QGraphicsView):
             p.save()
             #p.setClipRect(to)
 
-            t1=time()
             qi=self.BGImage.qImg()
-            t2=time()
 
             sr=self.sceneRect()
             source=QtCore.QRectF((to.x()-sr.x())*qi.width()/sr.width(), (to.y()-sr.y())*qi.height()/sr.height(), to.width()*qi.width()/sr.width(), to.height()*qi.height()/sr.height())
-            t3=time()
             
             p.drawImage(to, qi, source)
-            t4=time()
-            print 'Convert Times', t2-t1, t3-t2, t4-t3
             p.restore()

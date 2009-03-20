@@ -180,7 +180,8 @@ void LauePlaneProjector::movedPBMarker() {
         detDx=p.x()-q.x();
         detDy=p.y()-q.y();
     }
-    emit projectionParamsChanged();
+    if (projectionEnabled)
+        emit projectionParamsChanged();
 }
 
 QString LauePlaneProjector::configName() {
@@ -194,8 +195,10 @@ void LauePlaneProjector::setDetSize(double dist, double width, double height) {
         detHeight=height;
         
         scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
-        emit projectionRectSizeChanged();
-        emit projectionParamsChanged();
+        if (projectionEnabled) {
+            emit projectionRectSizeChanged();
+            emit projectionParamsChanged();
+        }
     }
 }
     
@@ -233,7 +236,8 @@ void LauePlaneProjector::setDetOffset(double dx, double dy) {
             QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
             center->setPos(det2img.map(q));
         }
-        emit projectionParamsChanged();
+        if (projectionEnabled)
+            emit projectionParamsChanged();
     }
 }
     
