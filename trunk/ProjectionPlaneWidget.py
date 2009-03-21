@@ -53,10 +53,21 @@ class ProjectionPlaneWidget(QtGui.QWidget):
         self.imageAction=self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Load Image', self.slotLoadCloseImage)
         self.toolBar.addAction(QtGui.QIcon(':/fileprint.png'), 'Print', self.slotPrint)
 
+
+        self.imageActions=[]
+        self.imageActions.append(self.toolBar.addSeparator())
+        self.imageActions.append(self.toolBar.addAction(QtGui.QIcon(':/flip_horizontal.png'), 'Flip Horizontal', self.flipH))
+        self.imageActions.append(self.toolBar.addAction(QtGui.QIcon(':/flip_vertical.png'), 'Flip Vertical', self.flipV))
+        self.imageActions.append(self.toolBar.addAction(QtGui.QIcon(':/rotate_left.png'), 'Rotate Anti-Clockwise', self.rotCCW))
+        self.imageActions.append(self.toolBar.addAction(QtGui.QIcon(':/rotate_right.png'), 'Rotate Clockwise', self.rotCW))
+
         self.toolBar.addSeparator()
-        a=self.toolBar.addAction(QtGui.QIcon(':/configure.png'), 'Configure')
-        self.connect(a, QtCore.SIGNAL('triggered(bool)'), self.startConfig)
-    
+        a=self.toolBar.addAction(QtGui.QIcon(':/configure.png'), 'Configure',  self.startConfig)
+
+        for a in self.imageActions:
+            a.setVisible(self.image!=None)
+        
+        
         self.rubberBand=QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,  self.gv)
         
         self.mouseHandler=self.zoomHandler
@@ -319,6 +330,9 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.gv.resetCachedContent()
             self.gv.viewport().update()
 
+        for a in self.imageActions:
+            a.setVisible(self.image!=None)
+
     def slotPrint(self):
         pr=QtGui.QPrinter(QtGui.QPrinter.HighResolution)
         pd=QtGui.QPrintDialog(pr,  self)
@@ -329,7 +343,24 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.gv.render(p)
             p.end()
             
-            
+    def flipH(self):
+        self.doRot(0,  True)
+
+    def flipV(self):
+        self.doRot(2, True)
+
+    def rotCW(self):        
+        self.doRot(1, False)
+
+    def rotCCW(self):
+        self.doRot(3, False)
+    
+    def doRot(self, steps, flip):
+        if self.image:
+            for w in (self.projector, self.image):
+                w.doImgRotation(steps,  flip)
+            self.gv.viewport().update()
+            self.gv.resetCachedContent()            
 
 
 

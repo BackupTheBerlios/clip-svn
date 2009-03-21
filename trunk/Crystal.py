@@ -131,6 +131,8 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         orient=crystal.appendChild(doc.createElement('Orientation'))
         for val, name in zip(self.crystal.calcEulerAngles()[:3], ('omega', 'chi','phi')):
             orient.setAttribute(name, str(math.degrees(val)))
+            
+        
 
         fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Cell files (*.cell);;All Files (*)')
         if fileName!="":

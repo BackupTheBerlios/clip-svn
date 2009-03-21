@@ -31,12 +31,12 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
 
         self.gv.fitInView(0, 0, 1, 1)
 
-        a=self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Load Curve',  self.loadCurves)
-        a=self.toolBar.addAction(QtGui.QIcon(':/filesave.png'), 'Save Curve', self.saveCurves)
-        a=self.toolBar.addAction(QtGui.QIcon(':/flip_horizontal.png'), 'Flip Horizontal', self.flipH)
-        a=self.toolBar.addAction(QtGui.QIcon(':/flip_vertical.png'), 'Flip Vertical', self.flipV)
-        a=self.toolBar.addAction(QtGui.QIcon(':/rotate_right.png'), 'Rotate Clockwise', self.rotCW)
-        a=self.toolBar.addAction(QtGui.QIcon(':/rotate_left.png'), 'Rotate Anti-Clockwise', self.rotCCW)
+        self.toolBar.addAction(QtGui.QIcon(':/fileopen.png'), 'Load Curve',  self.loadCurves)
+        self.toolBar.addAction(QtGui.QIcon(':/filesave.png'), 'Save Curve', self.saveCurves)
+        self.toolBar.addAction(QtGui.QIcon(':/flip_horizontal.png'), 'Flip Horizontal', self.flipH)
+        self.toolBar.addAction(QtGui.QIcon(':/flip_vertical.png'), 'Flip Vertical', self.flipV)
+        self.toolBar.addAction(QtGui.QIcon(':/rotate_right.png'), 'Rotate Clockwise', self.rotCW)
+        self.toolBar.addAction(QtGui.QIcon(':/rotate_left.png'), 'Rotate Anti-Clockwise', self.rotCCW)
 
         self.transferCurves=[]
         self.transferCurveMarkers=[[], [], [], []]

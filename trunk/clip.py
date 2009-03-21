@@ -32,8 +32,6 @@ class clip(QtGui.QMainWindow):
 
         self.transferCurveMapper=QtCore.QSignalMapper()
         #self.connect(self.TransferCurveMapper,  QtCore.SIGNAL('mapped(QWidget*)'),  self.)
-
-        self.lastOpenDir='.'
         
         self.statusBar().showMessage(self.appTitle+" ready", 2000)
         self.crystalStore=ObjectStore()
