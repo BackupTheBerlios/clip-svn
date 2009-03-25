@@ -20,7 +20,11 @@ class Projector: QObject, FitObject {
         
         QGraphicsScene* getScene();
         Crystal* getCrystal();
+
         virtual QString configName()=0;
+        virtual QString projectorName()=0;
+        virtual QString displayName()=0;
+        
         double Qmin() const;
         double Qmax() const;
         unsigned int getMaxHklSqSum() const;
@@ -31,7 +35,9 @@ class Projector: QObject, FitObject {
         QList<Vec3D> getMarkerNormals() const;
         unsigned int markerNumber() const;
         QPointF getMarkerDetPos(unsigned int n) const;
-        
+
+        virtual void projector2xml(QXmlStreamWriter&);
+        virtual void loadFromXML(QXmlStreamReader&);
     public slots:
         void connectToCrystal(Crystal *);
         void setWavevectors(double Qmin, double Qmax);
@@ -89,7 +95,12 @@ class StereoProjector: Projector {
         Vec3D det2normal(const QPointF&, bool* b /out/) const;
         virtual void decorateScene();
         virtual QString configName();
+        virtual QString projectorName();
+        virtual QString displayName();
+        
         void setDetOrientation(const Mat3D& M);
+        
+        virtual void projector2xml(QXmlStreamWriter&);
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();
@@ -124,6 +135,8 @@ class LauePlaneProjector: Projector {
         double yOffset();
         
         virtual QString configName();
+        virtual QString projectorName();
+        virtual QString displayName();
         
         void setDetSize(double dist, double width, double height);
         void setDetOrientation(double omega, double chi, double phi);
@@ -135,7 +148,8 @@ class LauePlaneProjector: Projector {
 
         virtual double fitParameterValue(unsigned int n);
         virtual void fitParameterSetValue(unsigned int n, double val);
-        
+
+        virtual void projector2xml(QXmlStreamWriter&);
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();

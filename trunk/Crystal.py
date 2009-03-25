@@ -1,6 +1,6 @@
 from Ui_Crystal import Ui_Crystal
 from PyQt4 import QtCore, QtGui
-from Tools import SpaceGroup
+from Tools import SpaceGroup, getXMLAttributes
 import ToolBox
 from ToolBox import Vec3D,  Mat3D
 import math
@@ -20,7 +20,7 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         self.inputs=(self.latticeA, self.latticeB, self.latticeC, self.latticeAlpha, self.latticeBeta, self.latticeGamma)
         self.rotInputs=(self.rotationOmega,  self.rotationChi,  self.rotationPhi)
         
-        self.crystal=ToolBox.Crystal()
+        self.crystal=ToolBox.Crystal(self)
 
         self.connect(self.SpaceGroup, QtCore.SIGNAL("textChanged(const QString &)"), self.sgtest)
         
@@ -116,71 +116,81 @@ class Crystal(QtGui.QWidget, Ui_Crystal):
         mdi.addSubWindow(w)
         w.show()
 
-    def slotSaveCrystalData(self):
-        import xml.dom.minidom
-        doc=xml.dom.minidom.Document()
-        crystal=doc.appendChild(doc.createElement('Crystal'))
-
-        sg=crystal.appendChild(doc.createElement('Spacegroup'))
-        sg.setAttribute('symbol', str(self.crystal.getSpacegroupSymbol()))
-
-        cell=crystal.appendChild(doc.createElement('Cell'))
-        for val, name in zip(self.crystal.getCell(), ('a', 'b', 'c', 'alpha', 'beta', 'gamma')):
-            cell.setAttribute(name, str(val))
-
-        orient=crystal.appendChild(doc.createElement('Orientation'))
-        for val, name in zip(self.crystal.calcEulerAngles()[:3], ('omega', 'chi','phi')):
-            orient.setAttribute(name, str(math.degrees(val)))
-            
+    def crystaldata2xml(self, w):                
+        w.writeStartElement('Crystal')
         
+        w.writeEmptyElement('Spacegroup')
+        w.writeAttribute('symbol', str(self.crystal.getSpacegroupSymbol()))
+        
+        w.writeEmptyElement('Cell')
+        for val, name in zip(self.crystal.getCell(), ('a', 'b', 'c', 'alpha', 'beta', 'gamma')):
+            w.writeAttribute(name, str(val))
+            
+        w.writeEmptyElement('Orientation')
+        for val, name in zip(self.crystal.calcEulerAngles()[:3], ('omega', 'chi','phi')):
+            w.writeAttribute(name, str(math.degrees(val)))
+        
+        w.writeEndElement()
 
+    def loadFromXML(self, r):
+        if r.name()!="Crystal" or not r.isStartElement():
+            return
+        while not r.atEnd() and not (r.isEndElement() and r.name()=="Crystal"):
+            if r.readNext()==QtCore.QXmlStreamReader.StartElement:
+                if r.name()=="Spacegroup":
+                    s=r.attributes().value('symbol')
+                    if not s.isNull():
+                        self.crystal.setSpacegroupSymbol(str(s.toString()))
+                elif r.name()=="Cell":
+                    cell=[]
+                    for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma'):
+                        s=r.attributes().value(name)
+                        v, b=s.toString().toDouble()
+                        if not s.isNull() and b:
+                            cell.append(v)
+                    if len(cell)==6:
+                        self.crystal.setCell(*cell)
+                elif r.name()=="Orientation":
+                    angles=[]
+                    for name in ('omega', 'chi', 'phi'):
+                        s=r.attributes().value(name)
+                        v, b=s.toString().toDouble()
+                        if not s.isNull() and b:
+                            angles.append(math.radians(v))
+                    if len(angles)==3:
+                        self.crystal.setEulerAngles(*angles)
+        
+    def slotSaveCrystalData(self):
+        xmlString=QtCore.QString()
+        w=QtCore.QXmlStreamWriter(xmlString)
+        w.setAutoFormatting(True)
+        w.setAutoFormattingIndent(2)
+
+        self.crystaldata2xml(w)
+        w.writeEndDocument()
+        print xmlString
+        
         fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Cell files (*.cell);;All Files (*)')
         if fileName!="":
-            doc.writexml(open(fileName, 'w'), addindent='  ',newl='\n')
+            f=open(str(fileName),  'w')
+            f.write(str(xmlString))
+            f.close()
             
-    def getAttibutes(self, doc, elementName, attibuteNames):
-        element=doc.getElementsByTagName(elementName)
-        if len(element)!=1:
-            return
-        element=element[0]
-        r=[]
-        for an in attibuteNames:
-            s=element.getAttribute(an)
-            if s=='':
-                return
-            r.append(s)
-        return r
 
     def slotOpenCrystalData(self):
         fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Choose Cell to load from File', '', 'Clip Cell files (*.cell);;All Files (*)'))
         try:
-            import xml.dom.minidom
-            doc=xml.dom.minidom.parse(fileName)
-            
-            sgName=self.getAttibutes(doc, 'Spacegroup', ('symbol', ))
-            if sgName==None:
-                return
-            sgName=sgName[0]
-            
-            cellData=self.getAttibutes(doc, 'Cell', ('a', 'b', 'c', 'alpha', 'beta', 'gamma'))
-            if cellData==None:
-                return
-            cellData=[float(v) for v in cellData]
-
-            orient=self.getAttibutes(doc, 'Orientation', ('omega', 'chi','phi'))
-            if orient==None:
-                return
-            orient=[float(v) for v in orient]
-
+            f=open(str(fileName))
+            s=''.join(f.readlines())
         except:
             return
         else:
-            self.crystal.setSpacegroupSymbol(sgName)
-            self.crystal.setCell(*cellData)
-            orient=[math.radians(a) for a in orient]
-            self.crystal.setEulerAngles(*orient)
-
-            
+            r=QtCore.QXmlStreamReader(s)
+            while not r.atEnd():
+                r.readNext()
+                if r.name()=='Crystal' and r.isStartElement():
+                    self.loadFromXML(r)
+                    
     def R2T(self, Cr):
         a,b,c,al,be,ga=Cr.getCell()
         if a==b and b==c and al==be and be==ga:

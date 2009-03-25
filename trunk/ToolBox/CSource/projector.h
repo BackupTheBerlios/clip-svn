@@ -9,6 +9,8 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsItem>
 #include <QtCore/QString>
+#include <QtCore/QXmlStreamReader>
+#include <QtCore/QXmlStreamWriter>
 #include <crystal.h>
 #include <FitObject.h>
 
@@ -34,7 +36,9 @@ class Projector: public QObject, public FitObject {
         QGraphicsScene* getScene();
         Crystal* getCrystal();
         virtual QString configName()=0;
-
+        virtual QString projectorName()=0;
+        virtual QString displayName()=0;
+        
         double Qmin() const;
         double Qmax() const;
         unsigned int getMaxHklSqSum() const;
@@ -46,6 +50,8 @@ class Projector: public QObject, public FitObject {
         QPointF getMarkerDetPos(unsigned int n) const;
         QList<Vec3D> getMarkerNormals() const;
         
+        virtual void projector2xml(QXmlStreamWriter&);
+        virtual void loadFromXML(QXmlStreamReader&);
     public slots:
         void connectToCrystal(Crystal *);
         void setWavevectors(double Qmin, double Qmax);
@@ -84,6 +90,8 @@ class Projector: public QObject, public FitObject {
         virtual bool project(const Reflection &r, QGraphicsItem* item)=0;
         virtual QGraphicsItem* itemFactory()=0;
     
+        virtual bool parseXMLElement(QXmlStreamReader&);
+
         // These are the reflections
         QList<QGraphicsItem*> projectedItems;
         // Stuff like Primary beam marker, Coordinate lines
@@ -113,6 +121,7 @@ class Projector: public QObject, public FitObject {
         virtual void updateImgTransformations();
 };
 
-
+double getDoubleAttrib(QXmlStreamReader &r, QString name, double def);
+int getIntAttrib(QXmlStreamReader &r, QString name, double def);
 
 #endif

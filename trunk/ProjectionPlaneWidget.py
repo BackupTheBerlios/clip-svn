@@ -4,28 +4,29 @@ from PyQt4 import QtCore, QtGui
 import math
 from time import time
 import os
+from Tools import getXMLAttributes
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1
     moveContext=2
     releaseContext=3
-    def __init__(self, type, parent):
+    def __init__(self, projector, parent):
         QtGui.QWidget.__init__(self, parent)
 
-        #FIXME: Does it only depend on OS, does Max needs it or not?
-        self.doProcessEvent=os.name=='nt'
+        #FIXME: Does it only depend on OS, does MacOs needs it too?
+        self.doProcessEvent=(os.name=='nt')
 
         self.zoomSteps=[]
         self.mousePressStart=None
         self.image=None
         
-        if type==0:
-            self.projector=StereoProjector(self)
-        elif type==1:
-            self.projector=LauePlaneProjector(self)
+        self.projector=projector
+        self.projector.setParent(self)
         self.setMinimumSize(QtCore.QSize(200, 240))
         self.setAcceptDrops(True)
-
+        self.setWindowTitle(self.projector.displayName())
+        
+        
         self.gv=MyGraphicsView(self)
         self.gv.setScene(self.projector.getScene())
         self.gv.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
@@ -349,7 +350,7 @@ class ProjectionPlaneWidget(QtGui.QWidget):
     def flipV(self):
         self.doRot(2, True)
 
-    def rotCW(self):        
+    def rotCW(self):
         self.doRot(1, False)
 
     def rotCCW(self):
@@ -363,15 +364,38 @@ class ProjectionPlaneWidget(QtGui.QWidget):
             self.gv.resetCachedContent()            
 
 
+    def projector2xml(self,  w):
+        w.writeStartElement('ProjectionPlane')
+        w.writeAttribute('projectorType', self.projector.projectorName())
+        
+        w.writeEmptyElement('Geometry')
+        w.writeAttribute('width', str(self.parent().width()))
+        w.writeAttribute('height', str(self.parent().height()))
+        w.writeAttribute('x', str(self.parent().x()))
+        w.writeAttribute('y', str(self.parent().y()))
+        
+        self.projector.projector2xml(w)
+        
+        w.writeEndElement()
 
 
-
-
-
-
-
-
-
+    def loadFromXML(self, r):
+        if r.name()!="ProjectionPlane" or not r.isStartElement():
+            return
+        while not r.atEnd() and not (r.isEndElement() and r.name()=="ProjectionPlane"):
+            if r.readNext()==QtCore.QXmlStreamReader.StartElement:
+                if r.name()=="Geometry":
+                    for att, func in ((('x', 'y'), self.parent().move), (('width', 'height'), self.parent().resize)):
+                        cell=[]
+                        for name in att:
+                            s=r.attributes().value(name)
+                            v, b=s.toString().toInt()
+                            if not s.isNull() and b:
+                                cell.append(v)
+                        if len(cell)==2:
+                            func(*cell)
+                elif r.name()=="Projector":
+                    self.projector.loadFromXML(r)
 
 
 

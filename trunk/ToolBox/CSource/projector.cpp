@@ -48,6 +48,7 @@ void Projector::connectToCrystal(Crystal *c) {
     if (not crystal.isNull()) {
         disconnect(this, 0, crystal, 0);
         disconnect(crystal, 0, this, 0);
+        crystal->removeProjector(this);
     }
     crystal=c;
     crystal->addProjector(this);
@@ -293,7 +294,6 @@ void Projector::addMarker(const QPointF& p) {
     
     QGraphicsEllipseItem* marker=new QGraphicsEllipseItem(&imgGroup);
     marker->setFlag(QGraphicsItem::ItemIsMovable, true);
-    //marker->setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
     marker->setCursor(QCursor(Qt::SizeAllCursor));
     marker->setPen(QPen(QColor(0xFF,0xAA,0x33)));
     marker->setRect(r);
@@ -302,10 +302,6 @@ void Projector::addMarker(const QPointF& p) {
     t.scale(det2img.m11(), det2img.m22());
     marker->setTransform(t);
 
-    QPointF mp=marker->scenePos();
-    cout << "Marker " << p.x() << "  "<< p.y() << " " << mp.x() << "  "<< mp.y() << " ";
-    mp=marker->pos();
-    cout << mp.x() << "  "<< mp.y() << endl;
     markerItems.append(marker);
 };
 
@@ -394,4 +390,93 @@ void Projector::doImgRotation(unsigned int CWRSteps, bool flip) {
 
 void Projector::enableProjection(bool b) {
     projectionEnabled=b;
+}
+
+void Projector::projector2xml(QXmlStreamWriter& w) {
+    w.writeEmptyElement("QRange");
+    w.writeAttribute("Qmin", QString::number(Qmin()));
+    w.writeAttribute("Qmax", QString::number(Qmax()));
+    
+    w.writeEmptyElement("Display");
+    w.writeAttribute("maxHKLSum", QString::number(getMaxHklSqSum()));
+    w.writeAttribute("textSize", QString::number(getTextSize()));
+    w.writeAttribute("spotSize", QString::number(getSpotSize()));
+    if (spotsEnabled()) 
+        w.writeAttribute("spotsEnabled", "1");
+    
+    w.writeStartElement("SpotMarkers");
+    for (unsigned int n=0; n<markerNumber(); n++) {
+        QPointF p=getMarkerDetPos(n);
+        w.writeEmptyElement("Spot");
+        w.writeAttribute("x", QString::number(p.x()));
+        w.writeAttribute("y", QString::number(p.y()));
+    }
+    w.writeEndElement();
+    
+    
+}
+
+void Projector::loadFromXML(QXmlStreamReader &r) {
+    if (not (r.name()=="Projector" and r.isStartElement()))
+        return;
+    while (not (r.atEnd() or (r.name()=="Projector" and r.isEndElement()))) {
+        r.readNext();
+        if (r.isStartElement())
+            if (not parseXMLElement(r)) {
+                cout << "Could not parse: " << qPrintable(r.name().toString()) << endl;
+            }
+    }
+}
+
+
+double getDoubleAttrib(QXmlStreamReader &r, QString name, double def) {
+    bool b;
+    QStringRef sr = r.attributes().value(name);
+    if (not sr.isNull()) {
+        double v = sr.toString().toDouble(&b);
+        if (b)
+            return v;
+    }
+    return def;
+}
+
+int getIntAttrib(QXmlStreamReader &r, QString name, int def) {
+    bool b;
+    QStringRef sr = r.attributes().value(name);
+    if (not sr.isNull()) {
+        int v =sr.toString().toInt(&b);
+        if (b)
+            return v;
+    }
+    return def;
+}
+
+bool Projector::parseXMLElement(QXmlStreamReader &r) {
+    if (r.name()=="QRange") {
+        double qMin=getDoubleAttrib(r, "Qmin", Qmin());
+        double qMax=getDoubleAttrib(r, "Qmax", Qmax());
+        setWavevectors(qMin, qMax);
+        return true;
+    } else if (r.name()=="Display") {
+        setMaxHklSqSum(getIntAttrib(r, "maxHKLSum", (int)getMaxHklSqSum()));
+        setSpotSize(getDoubleAttrib(r, "spotSize", getSpotSize()));
+        setTextSize(getDoubleAttrib(r, "textSize", getTextSize()));
+        QStringRef sr = r.attributes().value("spotsEnabled");
+        enableSpots(not sr.isNull());
+        return true;
+    } else if (r.name()=="SpotMarkers") {
+        while (not (r.atEnd() or (r.name()=="SpotMarkers" and r.isEndElement()))) {
+            r.readNext();
+            if (r.isStartElement() and r.name()=="Spot") {
+                bool b1, b2;
+                double x = r.attributes().value("x").toString().toDouble(&b1);
+                double y = r.attributes().value("y").toString().toDouble(&b2);
+                if (b1 and b2) {
+                    addMarker(QPointF(x,y));
+                }
+            }
+        }
+        return true;
+    }
+    return false;
 }

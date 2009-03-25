@@ -10,7 +10,7 @@ class Crystal: QObject,FitObject {
             DirectSpace
         };
         
-        Crystal();
+        Crystal(QObject* parent);
         ~Crystal();
         
         Crystal* copy() /Factory/;

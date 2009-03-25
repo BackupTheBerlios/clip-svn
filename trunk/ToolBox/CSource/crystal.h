@@ -20,7 +20,7 @@ class Crystal: public QObject, public FitObject {
             DirectSpace
         };
 
-        Crystal();
+        Crystal(QObject* parent);
         Crystal(const Crystal &);
         ~Crystal();
 
@@ -67,6 +67,7 @@ class Crystal: public QObject, public FitObject {
         void setCell(double a, double b, double c, double alpha, double beta, double gamma);
         void setWavevectors(double Qmin, double Qmax);
         void addProjector(Projector*);
+        void removeProjector(Projector*);
         void updateWavevectorsFromProjectors();
         void setSpacegroupSymbol(const QString& s);
         void setSpacegroupConstrains(QList<int> constrains);

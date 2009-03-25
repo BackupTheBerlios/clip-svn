@@ -102,8 +102,27 @@ QString StereoProjector::configName() {
     return QString("StereoCfg");
 }
 
+QString StereoProjector::projectorName() {
+    return QString("StereoProjector");
+}
+
+QString StereoProjector::displayName() {
+    return QString("Stereographic Projection");
+}
+
 void StereoProjector::setDetOrientation(const Mat3D& M) {
     localCoordinates=M;
     if (projectionEnabled)
         emit projectionParamsChanged();
+}
+
+
+void StereoProjector::projector2xml(QXmlStreamWriter& w) {  
+    w.writeStartElement("Projector");
+    Projector::projector2xml(w);
+    w.writeEndElement();
+}
+
+bool StereoProjector::parseXMLElement(QXmlStreamReader &r) {
+    return Projector::parseXMLElement(r);
 }

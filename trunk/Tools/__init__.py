@@ -14,3 +14,21 @@ def parseHKL(s):
             except:
                 pass
     return None
+    
+def getXMLAttributes(base, elementName, attibuteNames):
+    element=base.elementsByTagName(elementName)
+    if element.isEmpty():
+        return
+    element=element.item(0)
+    if not element.isElement():
+        return
+    element=element.toElement()
+    r=[]
+    for an in attibuteNames:
+        if element.hasAttribute(an):
+            s=element.attribute(an)
+            r.append(s)
+        else:
+            return
+    return r
+

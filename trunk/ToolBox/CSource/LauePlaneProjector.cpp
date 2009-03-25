@@ -8,12 +8,12 @@
 using namespace std;
 
 LauePlaneProjector::LauePlaneProjector(QObject* parent): Projector(parent), localCoordinates() {
-    cout << "Normal LauePlaneConstructor" << endl;
     setWavevectors(0.0, 4.0*M_1_PI);
     setDetSize(30.0, 110.0, 140.0);
     setDetOrientation(180.0, 0, 0);
-    detDx=0.0;
-    detDy=0.0;
+    detDx=1.0;
+    detDy=1.0;
+    setDetOffset(0.0, 0.0);
     
     QList<QString> fitParameterNames;
     fitParameterNames << "Distance" << "X-Offset" << "Y-Offset" << "Omega" << "Chi";
@@ -133,7 +133,9 @@ void LauePlaneProjector::decorateScene() {
     decorationItems.append(handle);
     decorationItems.append(marker);
     
-    center->setPos(0.5, 0.5);
+    //center->setPos(0.5, 0.5);
+    updatePBPos();
+    
     
     connect(center, SIGNAL(positionChanged()), this, SLOT(movedPBMarker()));
     connect(handle, SIGNAL(positionChanged()), this, SLOT(resizePBMarker()));
@@ -184,8 +186,32 @@ void LauePlaneProjector::movedPBMarker() {
         emit projectionParamsChanged();
 }
 
+void LauePlaneProjector::updatePBPos() {
+    bool b;
+    QPointF q;
+    if (omega()>90.5) {
+        q=(scattered2det(Vec3D(1,0,0), &b));
+    } else if (omega()<89.5) {
+        q=scattered2det(Vec3D(-1,0,0), &b);
+    } else {
+        b=false;
+    }
+    if (b and decorationItems.size()>2) {
+        QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
+        center->setPos(det2img.map(q));
+    }
+}
+
 QString LauePlaneProjector::configName() {
     return QString("LauePlaneCfg");
+}
+
+QString LauePlaneProjector::projectorName() {
+    return QString("LauePlaneProjector");
+}
+
+QString LauePlaneProjector::displayName() {
+    return QString("Laue Plane");
 }
 
 void LauePlaneProjector::setDetSize(double dist, double width, double height) {
@@ -223,19 +249,7 @@ void LauePlaneProjector::setDetOffset(double dx, double dy) {
     if ((dx!=detDx) or (dy!=detDy)) {
         detDx=dx;
         detDy=dy;
-        bool b;
-        QPointF q;
-        if (omega()>90.5) {
-            q=(scattered2det(Vec3D(1,0,0), &b));
-        } else if (omega()<89.5) {
-            q=scattered2det(Vec3D(-1,0,0), &b);
-        } else {
-            b=false;
-        }
-        if (b and decorationItems.size()>2) {
-            QGraphicsEllipseItem* center=dynamic_cast<QGraphicsEllipseItem*>(decorationItems[0]);
-            center->setPos(det2img.map(q));
-        }
+        updatePBPos();
         if (projectionEnabled)
             emit projectionParamsChanged();
     }
@@ -315,3 +329,38 @@ void LauePlaneProjector::fitParameterSetValue(unsigned int n, double val) {
 }
 
 
+void LauePlaneProjector::projector2xml(QXmlStreamWriter& w) {
+    w.writeStartElement("Projector");
+    
+    w.writeEmptyElement("DetSize");
+    w.writeAttribute("width", QString::number(width()));
+    w.writeAttribute("height", QString::number(height()));
+    w.writeAttribute("dist", QString::number(dist()));
+    
+    w.writeEmptyElement("DetOrientation");
+    w.writeAttribute("Omega", QString::number(omega()));
+    w.writeAttribute("Chi", QString::number(chi()));
+    w.writeAttribute("Phi", QString::number(phi()));
+
+    w.writeEmptyElement("DetOffset");
+    w.writeAttribute("xOffset", QString::number(xOffset()));
+    w.writeAttribute("yOffset", QString::number(yOffset()));
+    
+    Projector::projector2xml(w);
+
+    w.writeEndElement();
+}
+
+bool LauePlaneProjector::parseXMLElement(QXmlStreamReader &r) {
+    if (r.name()=="DetSize") {
+        setDetSize(getDoubleAttrib(r, "dist", dist()), getDoubleAttrib(r, "width", width()), getDoubleAttrib(r, "height", height()));
+        return true;
+    } else if (r.name()=="DetOrientation") {
+        setDetOrientation(getDoubleAttrib(r, "Omega", omega()), getDoubleAttrib(r, "Chi", chi()), getDoubleAttrib(r, "Phi", phi()));
+        return true;
+    } else if (r.name()=="DetOffset") {
+        setDetOffset(getDoubleAttrib(r, "xOffset", xOffset()), getDoubleAttrib(r, "yOffset", yOffset()));
+        return true;
+    }
+    return Projector::parseXMLElement(r);
+}

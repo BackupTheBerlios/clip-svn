@@ -14,7 +14,7 @@ int ggt(int a, int b) {
     return abs(a);
 }
 
-Crystal::Crystal(): QObject(), FitObject(), reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this), rotationAxis(1,0,0) {
+Crystal::Crystal(QObject* parent=NULL): QObject(parent), FitObject(), reflections(), MReal(), MReziprocal(), MRot(), connectedProjectors(this), rotationAxis(1,0,0) {
     setCell(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     Qmin=0.0;
     Qmax=1.0;
@@ -292,6 +292,11 @@ Mat3D Crystal::getRotationMatrix() const {
 void Crystal::addProjector(Projector* p) {
     connectedProjectors.addObject(p);
     connect(p, SIGNAL(wavevectorsUpdated()), this, SLOT(updateWavevectorsFromProjectors()));
+}
+
+void Crystal::removeProjector(Projector* p) {
+    connectedProjectors.removeObject(p);
+    disconnect(p, 0, this, 0);
 }
 
 

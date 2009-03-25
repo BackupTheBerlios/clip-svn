@@ -1,6 +1,7 @@
 %Module ToolBox 0
 
 %Import QtGui/QtGuimod.sip
+%Import QtXml/QtXmlmod.sip
 
 %Include Vec3D.sip
 %Include Mat3D.sip

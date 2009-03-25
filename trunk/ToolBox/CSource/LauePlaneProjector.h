@@ -14,6 +14,8 @@ class LauePlaneProjector: public Projector {
         virtual Vec3D det2normal(const QPointF&, bool* b=NULL) const;
     
         virtual QString configName();
+        virtual QString projectorName();
+        virtual QString displayName();
         double dist() const;
         double width() const;
         double height() const;
@@ -28,6 +30,8 @@ class LauePlaneProjector: public Projector {
         virtual double fitParameterValue(unsigned int n);
         virtual void fitParameterSetValue(unsigned int n, double val);
             
+        virtual void projector2xml(QXmlStreamWriter&);
+//        virtual void loadFromXML(QXmlStreamReader&);
     public slots:
         void setDetSize(double dist, double width, double height);
         void setDetOrientation(double omega, double chi, double phi);
@@ -35,9 +39,11 @@ class LauePlaneProjector: public Projector {
         virtual void decorateScene();
         void resizePBMarker();
         void movedPBMarker();
+        void updatePBPos();
     protected:
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();
+        virtual bool parseXMLElement(QXmlStreamReader&);
     
         Mat3D localCoordinates;
         double detDist;

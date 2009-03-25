@@ -186,8 +186,7 @@ class ImgTransferCurve(ToolWidget, Ui_ImgTransferCurve):
     def doRot(self, steps, flip):
         img=self.searchImage()
         if img:
-            for w in (img.projector, img.image):
-                w.doImgRotation(steps,  flip)
+            img.image.doImgRotation(steps,  flip)
             img.gv.viewport().update()
             img.gv.resetCachedContent()
             

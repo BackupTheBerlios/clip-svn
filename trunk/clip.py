@@ -5,7 +5,8 @@ import math
 
 import PyQt4
 from PyQt4 import QtCore, QtGui
-from ToolBox import ObjectStore
+from ToolBox import ObjectStore, LauePlaneProjector, StereoProjector
+from Tools import getXMLAttributes
 import icons_rc
 
 from Crystal import Crystal
@@ -42,19 +43,22 @@ class clip(QtGui.QMainWindow):
         self.initMenu()
         self.initToolbar()
 
+        self.loadWorkspaceFromFile('DefaultWorkspace.cws')
 
         #FIXME: Remove Debug Code
-        w=self.slotNewCrystal()
-        w.crystal.setCell(5, 5, 5, 90, 90, 90)
-        self.slotNewStereoProjector()
-        self.slotNewLauePlaneProjector()
+        #=self.slotNewCrystal()
+        #w.crystal.setCell(5, 5, 5, 90, 90, 90)
+        #self.slotNewStereoProjector()
+        #self.slotNewLauePlaneProjector()
 
         
 
     def initMenu(self):
         menudef = [
             ('&File',
-             [('New Crystal',  self.slotNewCrystal), 
+             [('Load Workspace', self.slotLoadWorkspace),
+              ('Save Workspace', self.slotSaveWorkspace),
+              ('New Crystal',  self.slotNewCrystal), 
               ('New Stereographic Projection',  self.slotNewStereoProjector),
               ('New Laue Projection',  self.slotNewLauePlaneProjector)]),
             ('&Tools', 
@@ -165,7 +169,6 @@ class clip(QtGui.QMainWindow):
     def slotAboutQT(self):
         QtGui.QMessageBox.aboutQt(self, self.appTitle)
 
-    
     def slotNewCrystal(self):
         wid = Crystal(self)
         self.crystalStore.addObject(wid.crystal)
@@ -179,31 +182,79 @@ class clip(QtGui.QMainWindow):
         return wid
 
     def slotNewStereoProjector(self):
-        wid = ProjectionPlaneWidget(0, self)
-        for t in self.tools:
-            self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), t.reflexInfo)
-            self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), t.addedRotation)
-        if self.crystalStore.size()>0:
-            wid.projector.connectToCrystal(self.crystalStore.at(0))
-        wid.setWindowTitle('Stereographic Projection')
-        mdi=self.MdiArea.addSubWindow(wid)
-        mdi.setWindowIcon(wid.windowIcon())
-        wid.show()
-        return wid
-        
+        self.newProjector(StereoProjector())
+                
     def slotNewLauePlaneProjector(self):
-        wid = ProjectionPlaneWidget(1, self)
+        self.newProjector(LauePlaneProjector())
+        
+    def newProjector(self, projector):
+        wid = ProjectionPlaneWidget(projector, self)
         for t in self.tools:
             self.connect(wid, QtCore.SIGNAL('reflexInfo(int,int,int)'), t.reflexInfo)
             self.connect(wid, QtCore.SIGNAL('projectorAddedRotation(double)'), t.addedRotation)
-        if self.crystalStore.size()>0:
-            wid.projector.connectToCrystal(self.crystalStore.at(0))
-        wid.setWindowTitle('LauePlane')
+        #if self.crystalStore.size()>0:
+        #    wid.projector.connectToCrystal(self.crystalStore.at(0))
         mdi=self.MdiArea.addSubWindow(wid)
         mdi.setWindowIcon(wid.windowIcon())
         wid.show()
         return wid
 
+    def slotSaveWorkspace(self):
+        xmlString=QtCore.QString()
+        w=QtCore.QXmlStreamWriter(xmlString)
+        w.setAutoFormatting(True)
+        w.setAutoFormattingIndent(2)
+        
+        w.writeStartElement('ClipWorkspace')
+        for n in range(self.crystalStore.size()):
+            c=self.crystalStore.at(n)
+            w.writeStartElement('CrystalConnection')
+            c.parent().crystaldata2xml(w)
+            for p in c.getConnectedProjectors():
+                p.parent().projector2xml(w)
+            w.writeEndElement()
+        w.writeEndElement()
+            
+        fileName = QtGui.QFileDialog.getSaveFileName(self, 'Choose File to save Cell', '', 'Clip Workspace files (*.cws);;All Files (*)')
+        if fileName!="":
+            f=open(str(fileName),  'w')
+            f.write(str(xmlString))
+            f.close()
+
+    def slotLoadWorkspace(self):
+        fileName = str(QtGui.QFileDialog.getOpenFileName(self, 'Choose Cell to load from File', '', 'Clip Cell files (*.cws);;All Files (*)'))
+        self.loadWorkspaceFromFile(fileName)
+            
+    def loadWorkspaceFromFile(self,  fileName):
+        try:
+            f=open(fileName)
+            s=''.join(f.readlines())
+        except:
+            return
+        else:
+            r=QtCore.QXmlStreamReader(s)
+            while not r.atEnd():
+                r.readNext()
+                if r.name()=='CrystalConnection' and r.isStartElement():
+                    self.loadCrystalConnection(r)
+                    
+    def loadCrystalConnection(self, r):
+        if r.name()!='CrystalConnection' or not r.isStartElement():
+            return
+        cryst=None
+        while not r.atEnd() and not (r.isEndElement() and r.name()=="CrystalConnection"):
+            if r.readNext()==QtCore.QXmlStreamReader.StartElement:
+                if r.name()=="Crystal" and not cryst:        
+                    cryst=self.slotNewCrystal()
+                    cryst.loadFromXML(r)
+                elif r.name()=='ProjectionPlane' and cryst:
+                    s=r.attributes().value('projectorType')
+                    if not s.isNull():
+                        pr=eval(str(s.toString())+'()')
+                        proj=self.newProjector(pr)
+                        proj.projector.connectToCrystal(cryst.crystal)
+                        proj.loadFromXML(r)
+                        
 def main(args):
     app=QtGui.QApplication(args)
     mainWindow = clip()
