@@ -27,6 +27,7 @@ class Projector: QObject, FitObject {
         
         double Qmin() const;
         double Qmax() const;
+
         unsigned int getMaxHklSqSum() const;
         double getTextSize() const;
         double getSpotSize() const;
@@ -97,6 +98,7 @@ class StereoProjector: Projector {
         virtual QString configName();
         virtual QString projectorName();
         virtual QString displayName();
+        double TTmax() const;
         
         void setDetOrientation(const Mat3D& M);
         
@@ -133,6 +135,8 @@ class LauePlaneProjector: Projector {
         double phi();
         double xOffset();
         double yOffset();
+
+        double TTmax() const;
         
         virtual QString configName();
         virtual QString projectorName();

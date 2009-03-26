@@ -70,6 +70,46 @@ Vec3D LauePlaneProjector::det2normal(const QPointF& p, bool* b)  const {
     return scattered2normal(det2scattered(p));
 }
 
+void LauePlaneProjector::setDetSize(double dist, double width, double height) {
+    if ((detDist!=dist) or (detWidth!=width) or (detHeight!=height)) {
+        detDist=dist;
+        detWidth=width;
+        detHeight=height;
+        
+        scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
+        if (projectionEnabled) {
+            emit projectionRectSizeChanged();
+            emit projectionParamsChanged();
+        }
+    }
+}
+    
+void LauePlaneProjector::setDetOrientation(double omega, double chi, double phi) {
+    if ((detOmega!=omega) or (detChi!=chi) or (detPhi!=phi)) {
+        detOmega=omega;
+        detChi=chi;
+        detPhi=phi;
+    
+        localCoordinates =Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0);
+        localCoordinates*=Mat3D(Vec3D(0,1,0), M_PI*chi/180.0);
+        localCoordinates*=Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
+        //localCoordinates=Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0)*Mat3D(Vec3D(0,1,0), M_PI*chi/180.0)*Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
+        movedPBMarker();
+        //emit projectionParamsChanged();
+    }
+}
+
+void LauePlaneProjector::setDetOffset(double dx, double dy) {
+    dx/=dist();
+    dy/=dist();
+    if ((dx!=detDx) or (dy!=detDy)) {
+        detDx=dx;
+        detDy=dy;
+        updatePBPos();
+        if (projectionEnabled)
+            emit projectionParamsChanged();
+    }
+}
 
 bool LauePlaneProjector::project(const Reflection &r, QGraphicsItem* item) {
     if (r.lowestDiffOrder==0) 
@@ -214,46 +254,6 @@ QString LauePlaneProjector::displayName() {
     return QString("Laue Plane");
 }
 
-void LauePlaneProjector::setDetSize(double dist, double width, double height) {
-    if ((detDist!=dist) or (detWidth!=width) or (detHeight!=height)) {
-        detDist=dist;
-        detWidth=width;
-        detHeight=height;
-        
-        scene.setSceneRect(QRectF(-0.5*detWidth/detDist, -0.5*detHeight/detDist, detWidth/detDist, detHeight/detDist));
-        if (projectionEnabled) {
-            emit projectionRectSizeChanged();
-            emit projectionParamsChanged();
-        }
-    }
-}
-    
-void LauePlaneProjector::setDetOrientation(double omega, double chi, double phi) {
-    if ((detOmega!=omega) or (detChi!=chi) or (detPhi!=phi)) {
-        detOmega=omega;
-        detChi=chi;
-        detPhi=phi;
-    
-        localCoordinates =Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0);
-        localCoordinates*=Mat3D(Vec3D(0,1,0), M_PI*chi/180.0);
-        localCoordinates*=Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
-        //localCoordinates=Mat3D(Vec3D(0,0,1), M_PI*(omega-180.0)/180.0)*Mat3D(Vec3D(0,1,0), M_PI*chi/180.0)*Mat3D(Vec3D(1,0,0), M_PI*phi/180.0);
-        movedPBMarker();
-        //emit projectionParamsChanged();
-    }
-}
-
-void LauePlaneProjector::setDetOffset(double dx, double dy) {
-    dx/=dist();
-    dy/=dist();
-    if ((dx!=detDx) or (dy!=detDy)) {
-        detDx=dx;
-        detDy=dy;
-        updatePBPos();
-        if (projectionEnabled)
-            emit projectionParamsChanged();
-    }
-}
     
 double LauePlaneProjector::dist() const {
     return detDist;
@@ -363,4 +363,53 @@ bool LauePlaneProjector::parseXMLElement(QXmlStreamReader &r) {
         return true;
     }
     return Projector::parseXMLElement(r);
+}
+
+
+
+double LauePlaneProjector::TTmax() const {
+    double dx = 0.5*width()/dist();
+    double dy = 0.5*height()/dist();
+        
+    Vec3D n(1.0,0.0,0.0);
+    
+    bool b;
+    QPointF p=scattered2det(n, &b);
+    if (b and (fabs(p.x())<dx) and (fabs(p.y())<dy))
+        return 180.0;
+    
+    // The four corners of the plane, vectors are normalized!
+    QList<Vec3D> corners;
+    corners.append(det2scattered(QPointF( dx,  dy)));
+    corners.append(det2scattered(QPointF(-dx,  dy)));
+    corners.append(det2scattered(QPointF(-dx, -dy)));
+    corners.append(det2scattered(QPointF( dx, -dy)));
+    
+    // small value
+    double maxCosTT=-2.0;
+    
+    for (unsigned int i=0; i<4; i++) {
+        // Check one corner
+        Vec3D a(corners[i]);
+        double cosTT=n*a;
+        if (cosTT>maxCosTT) 
+            maxCosTT=cosTT;
+        
+        
+        Vec3D b=corners[(i+1)%4]-corners[i];
+        double denom = ((n*a)*(b*b)-(n*b)*(a*b));
+        if (denom!=0.0) {
+            double lmin = ((n*b)*(a*a)-(n*a)*(a*b))/denom;
+            if ((lmin>=0.0) and (lmin<=1.0)) {
+                Vec3D v=a+b*lmin;
+                v.normalize();
+                cosTT=n*v;
+                if (cosTT>maxCosTT) 
+                    maxCosTT=cosTT;
+            }
+        }
+    }
+    
+    
+    return 180.0-180.0*acos(maxCosTT)/M_PI;
 }

@@ -44,13 +44,6 @@ class clip(QtGui.QMainWindow):
         self.initToolbar()
 
         self.loadWorkspaceFromFile('DefaultWorkspace.cws')
-
-        #FIXME: Remove Debug Code
-        #=self.slotNewCrystal()
-        #w.crystal.setCell(5, 5, 5, 90, 90, 90)
-        #self.slotNewStereoProjector()
-        #self.slotNewLauePlaneProjector()
-
         
 
     def initMenu(self):

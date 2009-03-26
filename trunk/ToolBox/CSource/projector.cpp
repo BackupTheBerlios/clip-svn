@@ -64,7 +64,10 @@ double Projector::Qmin() const {
 double Projector::Qmax() const {
     return QmaxVal;
 }
- 
+
+double Projector::TTmax() const {
+    return 180.0;
+}
 
 void Projector::setWavevectors(double Qmin, double Qmax)  {
     if ((Qmin<Qmax) and ((Qmin!=QminVal) or (Qmax!=QmaxVal))) {

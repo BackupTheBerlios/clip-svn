@@ -15,7 +15,7 @@ class StereoProjector: public Projector {
         virtual QString configName();
         virtual QString projectorName();
         virtual QString displayName();
-
+        //virtual double TTmax() const;
         virtual void projector2xml(QXmlStreamWriter&);
 //        virtual void loadFromXML(QXmlStreamReader&);
     public slots:

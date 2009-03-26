@@ -26,6 +26,8 @@ class LauePlaneProjector: public Projector {
         double yOffset() const;
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
         
+        virtual double TTmax() const;
+        
         // Functions for fitting parameters
         virtual double fitParameterValue(unsigned int n);
         virtual void fitParameterSetValue(unsigned int n, double val);
