@@ -126,7 +126,3 @@ void StereoProjector::projector2xml(QXmlStreamWriter& w) {
 bool StereoProjector::parseXMLElement(QXmlStreamReader &r) {
     return Projector::parseXMLElement(r);
 }
-
-//double StereoProjector::TTmax() const {
-    //return 180.0;
-//}

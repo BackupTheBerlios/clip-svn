@@ -26,6 +26,7 @@ class LauePlaneProjector: public Projector {
         double yOffset() const;
         virtual void doImgRotation(unsigned int CWRSteps, bool flip);
         
+        virtual double TTmin() const;
         virtual double TTmax() const;
         
         // Functions for fitting parameters
@@ -43,6 +44,8 @@ class LauePlaneProjector: public Projector {
         void movedPBMarker();
         void updatePBPos();
     protected:
+        double maxCos(Vec3D n) const;
+    
         virtual bool project(const Reflection &r, QGraphicsItem* item);
         virtual QGraphicsItem* itemFactory();
         virtual bool parseXMLElement(QXmlStreamReader&);

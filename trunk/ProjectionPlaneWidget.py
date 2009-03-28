@@ -4,7 +4,6 @@ from PyQt4 import QtCore, QtGui
 import math
 from time import time
 import os
-from Tools import getXMLAttributes
 
 class ProjectionPlaneWidget(QtGui.QWidget):
     pressContext=1

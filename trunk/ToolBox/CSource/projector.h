@@ -41,6 +41,8 @@ class Projector: public QObject, public FitObject {
         
         double Qmin() const;
         double Qmax() const;
+
+        virtual double TTmin() const;
         virtual double TTmax() const;
             
         unsigned int getMaxHklSqSum() const;

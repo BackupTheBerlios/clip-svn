@@ -365,18 +365,29 @@ bool LauePlaneProjector::parseXMLElement(QXmlStreamReader &r) {
     return Projector::parseXMLElement(r);
 }
 
-
-
 double LauePlaneProjector::TTmax() const {
+    Vec3D n(1.0, 0.0, 0.0);
+    double mc=maxCos(n);
+    cout << mc << endl;
+    return 180.0-180.0*acos(mc)/M_PI;    
+}
+
+double LauePlaneProjector::TTmin() const {
+    Vec3D n(-1.0, 0.0, 0.0);
+    double mc=maxCos(n);
+    cout << mc << endl;
+    return 180.0*acos(mc)/M_PI;    
+}
+
+
+double LauePlaneProjector::maxCos(Vec3D n) const {
     double dx = 0.5*width()/dist();
     double dy = 0.5*height()/dist();
-        
-    Vec3D n(1.0,0.0,0.0);
-    
+
     bool b;
     QPointF p=scattered2det(n, &b);
     if (b and (fabs(p.x())<dx) and (fabs(p.y())<dy))
-        return 180.0;
+        return 1.0;
     
     // The four corners of the plane, vectors are normalized!
     QList<Vec3D> corners;
@@ -410,6 +421,5 @@ double LauePlaneProjector::TTmax() const {
         }
     }
     
-    
-    return 180.0-180.0*acos(maxCosTT)/M_PI;
+    return maxCosTT;
 }

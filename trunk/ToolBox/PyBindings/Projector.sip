@@ -98,6 +98,7 @@ class StereoProjector: Projector {
         virtual QString configName();
         virtual QString projectorName();
         virtual QString displayName();
+        double TTmin() const;
         double TTmax() const;
         
         void setDetOrientation(const Mat3D& M);
@@ -136,6 +137,7 @@ class LauePlaneProjector: Projector {
         double xOffset();
         double yOffset();
 
+        double TTmin() const;
         double TTmax() const;
         
         virtual QString configName();
